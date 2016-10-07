@@ -7,6 +7,10 @@ import pylogit
 import statsmodels.api as sm
 
 
+def convert_wide_to_long(*args, **kwargs):
+	return pylogit.convert_wide_to_long(*args, **kwargs)
+
+
 class Logit(object):
 	"""
 	Wraps the functionality of statsmodels.discrete.discrete_model.Logit()
@@ -54,7 +58,7 @@ class CMResults(object):
 		return
 		
 	def summary(self):
-		return self.wrapped_model.get_statsmodels_sumamry()
+		return self.wrapped_model.get_statsmodels_summary()
 
 
 
