@@ -27,14 +27,14 @@ Based on [statsmodels.discrete.discrete_model.Logit()](http://statsmodels.source
 
 #### Parameters include:
 
-- `endog` : 1-d endogenous response variable. The dependent variable.
-- `exog` : Exogenous variables. This is an n-by-k array for n observations and k regressors.
+- `endog` &nbsp;&nbsp; 1-d endogenous response variable. The dependent variable.
+- `exog` &nbsp;&nbsp; Exogenous variables. This is an n-by-k array for n observations and k regressors.
   
 #### Methods include:
 
-- `fit(...)` : Returns a wrapper of estimation results, which are also saved to the model object.
-- `from_formula(formula, data, ...)` : Initializes model using a formula string.
-- `predict(params, exog, ...)` : Returns array of fitted values.
+- `fit(...)` &nbsp;&nbsp; Returns a wrapper of estimation results, which are also saved to the model object.
+- `from_formula(formula, data, ...)` &nbsp;&nbsp; Initializes model using a formula string.
+- `predict(params, exog, ...)` &nbsp;&nbsp; Returns array of fitted values.
   
   
 ### class `choicemodels.MNLogit()`
