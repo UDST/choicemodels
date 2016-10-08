@@ -25,20 +25,16 @@ This is a package for discrete choice model estimation and simulation, with an e
 
 Based on [statsmodels.discrete.discrete_model.Logit()](http://statsmodels.sourceforge.net/0.6.0/generated/statsmodels.discrete.discrete_model.Logit.html).
 
-Parameters include:
+#### Parameters include:
 
-| Parameter | Description |
-| --- | --- | 
-| `endog` | 1-d endogenous response variable. The dependent variable. |
-| `exog` | Exogenous variables. This is an n-by-k array where n is the number of observations and k is the number of regressors. |
+- `endog` -- 1-d endogenous response variable. The dependent variable.
+- `exog` -- Exogenous variables. This is an n-by-k array where n is the number of observations and k is the number of regressors.
   
-Methods include:
+#### Methods include:
 
-| Method | Description | 
-| --- | --- |
-| `fit(...)`  | Returns a wrapper of estimation results, which are also saved to the model object. |
-| `from_formula(formula, data, ...)` | Initializes model using a formula string. |
-| `predict(params, exog, ...)` | Returns array of fitted values. |
+- `fit(...)` -- Returns a wrapper of estimation results, which are also saved to the model object.
+- `from_formula(formula, data, ...)` -- Initializes model using a formula string.
+- `predict(params, exog, ...)` -- Returns array of fitted values.
   
   
 ### class `choicemodels.MNLogit()`
