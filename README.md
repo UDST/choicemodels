@@ -1,16 +1,16 @@
-# choicemodels
+# ChoiceModels
 
-A general package for discrete choice model estimation and simulation, covering basic Multinomial Logit and various refinements.
+This is a package for discrete choice model estimation and simulation, with an emphasis on large choice sets and behavioral refinements to multinomial models. Most of these models are not available in StatsModels or Scikit-learn. 
 
 
 
 
 ## API Reference
 
-### Classes
+### Model classes
 
 - `Logit()`
-- `MNL()`
+- `MNLogit()`
 - `NestedLogit()`
 - `MixedLogit()`
 
@@ -21,17 +21,14 @@ A general package for discrete choice model estimation and simulation, covering 
 - `convert_wide_to_long()`
 
 
-### class `choicemodels.Logit()`
+### Class choicemodels.Logit()
 
 Based on [statsmodels.discrete.discrete_model.Logit()](http://statsmodels.sourceforge.net/0.6.0/generated/statsmodels.discrete.discrete_model.Logit.html).
 
 Parameters include:
 
-- `endog` (list, numpy.array, pandas.Series)  
-  1-d endogenous response variable. The dependent variable.
-
-- `exog` (list of lists, numpy.array, pandas.DataFrame)  
-  Exogenous variables. This is an n-by-k array where n is the number of observations and k is the number of regressors.
+| `endog` | 1-d endogenous response variable. The dependent variable. |
+| `exog` | Exogenous variables. This is an n-by-k array where n is the number of observations and k is the number of regressors. |
   
 Methods include:
 
@@ -45,7 +42,7 @@ Methods include:
   Returns array of fitted values.
   
   
-### class `choicemodels.MNL()`
+### class `choicemodels.MNLogit()`
 
 Based on [pylogit.conditional_logit.MNL()](https://github.com/timothyb0912/pylogit/blob/master/pylogit/conditional_logit.py)
 
