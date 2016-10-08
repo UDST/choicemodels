@@ -31,7 +31,7 @@ Based on [statsmodels.discrete.discrete_model.Logit()](http://statsmodels.source
 #### Methods include:
 
 - `fit(...)` &nbsp; Returns estimation results, which are also saved to the model object.
-- `from_formula(formula, data, ...)` &nbsp; Initializes model using a formula string.
+- `from_formula(formula, data, ...)` &nbsp; Initializes model using a specification formula.
 - `predict(params, exog, ...)` &nbsp; Returns array of fitted values.
   
   
