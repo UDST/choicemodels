@@ -4,4 +4,4 @@ Information about the survey: http://www.dot.ca.gov/hq/tpp/offices/omsp/statewid
 
 Data download: https://www.nrel.gov/transportation/secure-transportation-data.html
 
-The data is open access, but you will need to fill out a registration form. Our demos use the file named `caltrans_full_survey.zip`, 233.2 MB
+The data is open access, but you will need to fill out a registration form. Download the file named `caltrans_full_survey.zip`, 233.2 MB, and place it in this directory. 
