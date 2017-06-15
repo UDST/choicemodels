@@ -15,7 +15,7 @@ import scipy.optimize
 from . import pmat
 from .pmat import PMAT
 
-from ..utils.logutil import log_start_finish
+from urbansim.utils.logutil import log_start_finish
 
 logger = logging.getLogger(__name__)
 
