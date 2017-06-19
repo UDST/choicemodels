@@ -28,114 +28,114 @@ second pass later. This should make it easier to update documentation and tests.
 
 
 class MultinomialLogit(object):
-	"""
-	A class with methods for estimating multinomial logit discrete choice models.
-	
-	This is based on the UrbanSim MNL codebase, and functionality from PyLogit is not yet 
-	integrated. So for now, each choice scenario must have the same number of alternatives
-	(although these can be sampled from a larger set), and the same utility equation
-	must be used for all the alternatives.
-	
-	The utility equation can include attributes of the choosers and of the alternatives. 
-	Attributes of a particular alternative may vary for different choosers (distance, for
-	example), but the user must set this up manually in the input data.
-	
-	The input data needs to be in "long" format, with one row for each combination of 
-	chooser and alternative. (Sampling of alternatives should be carried out before data 
-	is passed to this class.)
-	
-	Note that prediction methods are in a separate class: MultinomialLogitResults().
-	
-	Parameters
-	----------
-	
-	data : pandas.DataFrame
-		A table of estimation data in "long" format, with one row for each combination of 
-		chooser and alternative. Column labeling must be consistent with the
-		'model_expression'. May include extra columns. The table must be sorted such that
-		each chooser's alternatives are in contiguous rows.
-		
-		[TO DO: Can we enforce latter requirement in the code? Tradeoff is that it would
-		require additional input (chooser id and alternative id columns).]
-	
-	choice : str, 1D array, 2D array
-		An indication of which alternative has been chosen in each scenario. This can take
-		the form of (a) a 1D binary array of same length and order as the 'data' table,
-		(b) the name of such a column in the 'data' table, or (c) a 2D binary array with a 
-		row for each chooser and a column for each alternative. The column ordering for
-		alternatives must be the same as their row ordering in the 'data' table. 
-		
-		[ONLY FINAL OPTION HAS BEEN IMPLEMENTED SO FAR]
-	
-	numalts : int
-		Number of alternatives in each choice scenario.
-		
-		[TO DO: is there a better or more flexible way to get this information? For
-		example, if we required a chooser ID we could infer the number of alternatives,
-		and it would also match PyLogit better.]
-		
-	model_expression: str, iterable, or dict [CONFIRM]
-		A patsy model expression, containing only a right-hand side.
-	
-	weights : 1D array, optional
-		Estimation weights. [TK]
-	
-	"""
-	def __init__(self, data, choice, numalts, model_expression, weights=None):
-		self.data = data
-		self.choice = choice
-		self.numalts = numalts
-		self.model_expression = model_expression
-		self.weights = weights
-		return
-		
-	def _validate_input_data(self):
-		return
+    """
+    A class with methods for estimating multinomial logit discrete choice models.
+    
+    This is based on the UrbanSim MNL codebase, and functionality from PyLogit is not yet 
+    integrated. So for now, each choice scenario must have the same number of alternatives
+    (although these can be sampled from a larger set), and the same utility equation
+    must be used for all the alternatives.
+    
+    The utility equation can include attributes of the choosers and of the alternatives. 
+    Attributes of a particular alternative may vary for different choosers (distance, for
+    example), but the user must set this up manually in the input data.
+    
+    The input data needs to be in "long" format, with one row for each combination of 
+    chooser and alternative. (Sampling of alternatives should be carried out before data 
+    is passed to this class.)
+    
+    Note that prediction methods are in a separate class: MultinomialLogitResults().
+    
+    Parameters
+    ----------
+    
+    data : pandas.DataFrame
+        A table of estimation data in "long" format, with one row for each combination of 
+        chooser and alternative. Column labeling must be consistent with the
+        'model_expression'. May include extra columns. The table must be sorted such that
+        each chooser's alternatives are in contiguous rows.
+        
+        [TO DO: Can we enforce latter requirement in the code? Tradeoff is that it would
+        require additional input (chooser id and alternative id columns).]
+    
+    choice : str, 1D array, 2D array
+        An indication of which alternative has been chosen in each scenario. This can take
+        the form of (a) a 1D binary array of same length and order as the 'data' table,
+        (b) the name of such a column in the 'data' table, or (c) a 2D binary array with a 
+        row for each chooser and a column for each alternative. The column ordering for
+        alternatives must be the same as their row ordering in the 'data' table. 
+        
+        [ONLY FINAL OPTION HAS BEEN IMPLEMENTED SO FAR]
+    
+    numalts : int
+        Number of alternatives in each choice scenario.
+        
+        [TO DO: is there a better or more flexible way to get this information? For
+        example, if we required a chooser ID we could infer the number of alternatives,
+        and it would also match PyLogit better.]
+        
+    model_expression: str, iterable, or dict [CONFIRM]
+        A patsy model expression, containing only a right-hand side.
+    
+    weights : 1D array, optional
+        Estimation weights. [TK]
+    
+    """
+    def __init__(self, data, choice, numalts, model_expression, weights=None):
+        self.data = data
+        self.choice = choice
+        self.numalts = numalts
+        self.model_expression = model_expression
+        self.weights = weights
+        return
+        
+    def _validate_input_data(self):
+        return
 
-	def fit(self):
-		"""
-		[TO DO: implement optional parameters]
-		
-		Parameters
-		----------		
-		GPU : bool, optional
-			GPU acceleration.		
-		coefrange : tuple of floats, optional
-			Limits to which coefficients are held, in format (min, max). 
-		beta : 1D array, optional
-			Initial values for the coefficients.
-		
-		Returns
-		-------
-		MultinomialLogitResults() object.
-		
-		"""
-		model_design = dmatrix(self.model_expression, data=self.data, 
-							   return_type='dataframe').as_matrix()
-	
-		mnl_params = {'data': model_design,
-					  'chosen': self.choice,
-					  'numalts': self.numalts}
-					  
-		log_likelihoods, fit_parameters = mnl_estimate(**mnl_params)
+    def fit(self):
+        """
+        [TO DO: implement optional parameters]
+        
+        Parameters
+        ----------      
+        GPU : bool, optional
+            GPU acceleration.       
+        coefrange : tuple of floats, optional
+            Limits to which coefficients are held, in format (min, max). 
+        beta : 1D array, optional
+            Initial values for the coefficients.
+        
+        Returns
+        -------
+        MultinomialLogitResults() object.
+        
+        """
+        model_design = dmatrix(self.model_expression, data=self.data, 
+                               return_type='dataframe').as_matrix()
+    
+        mnl_params = {'data': model_design,
+                      'chosen': self.choice,
+                      'numalts': self.numalts}
+                      
+        log_likelihoods, fit_parameters = mnl_estimate(**mnl_params)
 
-		return MultinomialLogitResults(log_likelihoods, fit_parameters)
+        return MultinomialLogitResults(log_likelihoods, fit_parameters)
 
 
 class MultinomialLogitResults(object):
-	"""
-		
-	"""
-	def __init__(self, log_likelihoods, fit_parameters):
-		self.log_likelihoods = log_likelihoods
-		self.fit_parameters = fit_parameters
-		return
-	
-	def __repr__(self):
-		return
-	
-	def __str__(self):
-		return self.log_likelihoods.__str__() + self.fit_parameters.__str__()
+    """
+        
+    """
+    def __init__(self, log_likelihoods, fit_parameters):
+        self.log_likelihoods = log_likelihoods
+        self.fit_parameters = fit_parameters
+        return
+    
+    def __repr__(self):
+        return
+    
+    def __str__(self):
+        return self.log_likelihoods.__str__() + self.fit_parameters.__str__()
 
 
 

@@ -16,14 +16,8 @@ choosers = choosers.loc[choosers.trip_distance_miles.notnull()]
 numalts = 10
 
 merged = MergedChoiceTable(choosers = choosers, alternatives = tracts, 
-						   chosen_alternatives = choosers.full_tract_id, 
-						   sample_size = numalts)
-
-'''
-_, merged, chosen = interaction.mnl_interaction_dataset(
-    choosers=choosers, alternatives=tracts, SAMPLE_SIZE=numalts, 
-    chosenalts=choosers.full_tract_id)
-'''
+                           chosen_alternatives = choosers.full_tract_id, 
+                           sample_size = numalts)
 
 model_expression = "home_density + work_density + school_density"
 
