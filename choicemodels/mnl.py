@@ -6,8 +6,8 @@ import numpy as np
 import pandas as pd
 import scipy.optimize
 
-from .urbanchoice import pmat
-from .urbanchoice.pmat import PMAT
+from .tools import pmat
+from .tools.pmat import PMAT
 
 from patsy import dmatrix
 from urbansim.utils.logutil import log_start_finish
@@ -55,7 +55,7 @@ class MultinomialLogit(object):
 		'model_expression'. May include extra columns. The table must be sorted such that
 		each chooser's alternatives are in contiguous rows.
 		
-		[TO DO: can we enforce latter requirement in the code? Tradeoff is that it would
+		[TO DO: Can we enforce latter requirement in the code? Tradeoff is that it would
 		require additional input (chooser id and alternative id columns).]
 	
 	choice : str, 1D array, 2D array
@@ -124,13 +124,16 @@ class MultinomialLogit(object):
 
 class MultinomialLogitResults(object):
 	"""
-	
+		
 	"""
 	def __init__(self, log_likelihoods, fit_parameters):
 		self.log_likelihoods = log_likelihoods
 		self.fit_parameters = fit_parameters
 		return
-		
+	
+	def __repr__(self):
+		return
+	
 	def __str__(self):
 		return self.log_likelihoods.__str__() + self.fit_parameters.__str__()
 
