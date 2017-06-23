@@ -9,6 +9,7 @@ import scipy.optimize
 from .tools import pmat
 from .tools.pmat import PMAT
 
+from collections import OrderedDict
 from patsy import dmatrix
 from urbansim.utils.logutil import log_start_finish
 
@@ -29,72 +30,136 @@ second pass later. This should make it easier to update documentation and tests.
 
 class MultinomialLogit(object):
     """
-    A class with methods for estimating multinomial logit discrete choice models.
-    
-    This is based on the UrbanSim MNL codebase, and functionality from PyLogit is not yet 
-    integrated. So for now, each choice scenario must have the same number of alternatives
-    (although these can be sampled from a larger set), and the same utility equation
-    must be used for all the alternatives.
-    
-    The utility equation can include attributes of the choosers and of the alternatives. 
-    Attributes of a particular alternative may vary for different choosers (distance, for
-    example), but the user must set this up manually in the input data.
+    A class with methods for estimating multinomial logit discrete choice models. Each 
+    observation is a choice scenario in which a chooser selects one alternative from a 
+    choice set of two or more. The fitted parameters represent a joint optimization of 
+    utility expressions that explains observed choices based on attributes of the
+    alternatives and of the choosers. 
     
     The input data needs to be in "long" format, with one row for each combination of 
-    chooser and alternative. (Sampling of alternatives should be carried out before data 
-    is passed to this class.)
+    chooser and alternative. Columns contain relevant attributes and identifiers. (If the 
+    choice sets are large, sampling of alternatives should be carried out before data is 
+    passed to this class.)
     
-    Note that prediction methods are in a separate class: MultinomialLogitResults().
+    The class constructor supports two use cases:
     
+    1. The first use case is simpler and requires fewer inputs. Each choice scenario must 
+       have the same number of alternatives, and each alternative must have the same model 
+       expression (utility equation). This is typical when the alternatives are relatively 
+       numerous and homogenous, for example with travel destination choice or household 
+       location choice. 
+       
+       The following parameters are required: 'data', 'observation_id_col', 'choice_col', 
+       'model_expression' in Patsy format. 
+       
+       To fit this type of model, ChoiceModels will use its own estimation engine adapted
+       from the UrbanSim MNL codebase. 
+       
+       Migration from 'urbansim.urbanchoice': Note that these requirements differ from 
+       the old UrbanSim codebase in a couple of ways. (1) The chosen alternatives need to 
+       be indicated in a column of the estimation data table instead of in a separate 
+       matrix, and (2) in lieu of indicating the number of alternatives in each choice 
+       set, the estimation data table should include an observation id column. These 
+       changes make the API more consistent with other use cases. See the 
+       MergedChoiceTable() class for tools and code examples to help with migration.
+       
+    2. The second use case is more flexible. Choice scenarios can have varying numbers of 
+       alternatives, and the model expression (utility equation) can be different for 
+       distinct alternatives. This is typical when there is a small number of alternatives 
+       whose salient characteristics vary, for example with travel mode choice.
+       
+       The following parameters are required: 'data', 'observation_id_col', 
+       'alternative_id_col', 'choice_col', 'model_expression' in PyLogit format, 
+       'model_labels' in PyLogit format (optional). 
+       
+       To fit this type of model, ChoiceModels will use the PyLogit estimation engine.
+    
+    With either use case, the model expression can include attributes of both the choosers
+    and the alternatives. Attributes of a particular alternative may vary for different
+    choosers (distance, for example), but this must be set up manually in the input data.
+    
+    [TO DO: comparison of the estimation engines]
+    
+    Note that prediction methods are in a separate class: see MultinomialLogitResults().
+        
     Parameters
     ----------
     
     data : pandas.DataFrame
         A table of estimation data in "long" format, with one row for each combination of 
         chooser and alternative. Column labeling must be consistent with the
-        'model_expression'. May include extra columns. The table must be sorted such that
-        each chooser's alternatives are in contiguous rows.
+        'model_expression'. May include extra columns. 
+   
+    observation_id_col : str
+        Name of column containing the observation id. This should uniquely identify each
+        distinct choice scenario. 
         
-        [TO DO: Can we enforce latter requirement in the code? Tradeoff is that it would
-        require additional input (chooser id and alternative id columns).]
+    choice_col : str
+        Name of column containing an indication of which alternative has been chosen in 
+        each scenario. Values should evaluate as binary: 1/0, True/False, etc.
     
-    choice : str, 1D array, 2D array
-        An indication of which alternative has been chosen in each scenario. This can take
-        the form of (a) a 1D binary array of same length and order as the 'data' table,
-        (b) the name of such a column in the 'data' table, or (c) a 2D binary array with a 
-        row for each chooser and a column for each alternative. The column ordering for
-        alternatives must be the same as their row ordering in the 'data' table. 
+    model_expression : Patsy 'formula-like' or PyLogit 'specification'
+        For the simpler use case where each choice scenario has the same number of 
+        alternatives and each alternative has the same model expression, this should be a 
+        Patsy formula representing the right-hand side of the single model expression. 
+        This can be a string or a number of other data types. See here: 
+        https://patsy.readthedocs.io/en/v0.1.0/API-reference.html#patsy.dmatrix
         
-        [ONLY FINAL OPTION HAS BEEN IMPLEMENTED SO FAR]
-    
-    numalts : int
-        Number of alternatives in each choice scenario.
+        For the more flexible use case where choice scenarios have varying numbers of 
+        alternatives or the model expessions vary, this should be a PyLogit OrderedDict 
+        model specification. See here:
+        https://github.com/timothyb0912/pylogit/blob/master/pylogit/pylogit.py#L116-L130
+
+    model_labels : PyLogit 'names', optional
+        If the model expression is a PyLogit OrderedDict, you can provide a corresponding 
+        OrderedDict of labels. See here:
+        https://github.com/timothyb0912/pylogit/blob/master/pylogit/pylogit.py#L151-L165
+
+    alternative_id_col : str, optional
+        Name of column containing the alternative id. This is only required if the model 
+        expression varies for different alternatives. 
         
-        [TO DO: is there a better or more flexible way to get this information? For
-        example, if we required a chooser ID we could infer the number of alternatives,
-        and it would also match PyLogit better.]
-        
-    model_expression: str, iterable, or dict [CONFIRM]
-        A patsy model expression, containing only a right-hand side.
-    
     weights : 1D array, optional
-        Estimation weights. [TK]
+        Estimation weights. [TO DO: implement the pass-through]
     
     """
-    def __init__(self, data, choice, numalts, model_expression, weights=None):
-        self.data = data
-        self.choice = choice
-        self.numalts = numalts
-        self.model_expression = model_expression
-        self.weights = weights
+    def __init__(self, data, observation_id_col, choice_col, model_expression, 
+                 model_labels=None, alternative_id_col=None, weights=None):
+        self._data = data
+        self._observation_id_col = observation_id_col
+        self._alternative_id_col = alternative_id_col
+        self._choice_col = choice_col
+        self._model_expression = model_expression
+        self._weights = weights
+        
+        if isinstance(self._model_expression, OrderedDict):
+            self._estimation_engine = 'PyLogit'
+        
+        else:
+            self._estimation_engine = 'ChoiceModels'
+            self._numobs = self._data[[self._observation_id_col]].\
+            						drop_duplicates().shape[0]
+            print(self._numobs)
+            self._numalts = self._data.shape[0] / self._numobs
+            print(self._numalts)
+        
         return
         
     def _validate_input_data(self):
+        """
+        [TO DO for ChoiceModels engine:
+         - verify number of alternatives consistent for each chooser
+         - verify each chooser's alternatives in contiguous rows
+         - verify chosen alternative listed first]
+                
+        """
         return
 
     def fit(self):
         """
-        [TO DO: implement optional parameters]
+        [TO DO: 
+         - implement optional parameters
+         - implement PyLogit estimation]
         
         Parameters
         ----------      
@@ -110,12 +175,16 @@ class MultinomialLogit(object):
         MultinomialLogitResults() object.
         
         """
-        model_design = dmatrix(self.model_expression, data=self.data, 
+        model_design = dmatrix(self._model_expression, data=self._data, 
                                return_type='dataframe').as_matrix()
     
+        # generate 2D array from choice column, for mnl_estimate()
+        chosen = np.reshape(self._data[[self._choice_col]].as_matrix(), 
+                            (self._numobs, self._numalts))
+                
         mnl_params = {'data': model_design,
-                      'chosen': self.choice,
-                      'numalts': self.numalts}
+                      'chosen': chosen,
+                      'numalts': self._numalts}
                       
         log_likelihoods, fit_parameters = mnl_estimate(**mnl_params)
 
@@ -127,15 +196,15 @@ class MultinomialLogitResults(object):
         
     """
     def __init__(self, log_likelihoods, fit_parameters):
-        self.log_likelihoods = log_likelihoods
-        self.fit_parameters = fit_parameters
+        self._log_likelihoods = log_likelihoods
+        self._fit_parameters = fit_parameters
         return
     
     def __repr__(self):
         return
     
     def __str__(self):
-        return self.log_likelihoods.__str__() + self.fit_parameters.__str__()
+        return self._log_likelihoods.__str__() + self._fit_parameters.__str__()
 
 
 

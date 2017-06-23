@@ -15,13 +15,17 @@ choosers = choosers.loc[choosers.trip_distance_miles.notnull()]
 
 numalts = 10
 
-merged = MergedChoiceTable(choosers = choosers, alternatives = tracts, 
+merged = MergedChoiceTable(observations = choosers, 
+						   alternatives = tracts, 
                            chosen_alternatives = choosers.full_tract_id, 
                            sample_size = numalts)
 
 model_expression = "home_density + work_density + school_density"
 
-model = MultinomialLogit(merged.to_frame(), merged.chosen, numalts, model_expression)
+model = MultinomialLogit(merged.to_frame(), 
+						 merged.observation_id_col, 
+						 merged.choice_col,
+						 model_expression)
 
 results = model.fit()
 
