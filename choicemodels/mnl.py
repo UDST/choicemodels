@@ -4,6 +4,7 @@ import logging
 
 import numpy as np
 import pandas as pd
+import pylogit
 import scipy.optimize
 
 from .tools import pmat
@@ -18,12 +19,6 @@ from urbansim.utils.logutil import log_start_finish
 #####################
 NEW CLASS DEFINITIONS
 #####################
-
-We're refactoring the estimation code to have a more generic interface.
-
-Plan: define a class structure, move functions in one by one, and then do the same for 
-interaction.py and pmat.py. Use as light a touch as possible at first, and then take a  
-second pass later. This should make it easier to update documentation and tests.
 
 """
 
@@ -117,32 +112,54 @@ class MultinomialLogit(object):
 
     alternative_id_col : str, optional
         Name of column containing the alternative id. This is only required if the model 
-        expression varies for different alternatives. 
+        expression varies for different alternatives.
+    
+    initial_coefs : float, list, or 1D array, optional
+        Initial coefficients (beta values) to begin the optimization process with. Provide 
+        a single value for all coefficients, or an array containing a value for each 
+        one being estimated. If None, initial coefficients will be 0.
         
     weights : 1D array, optional
         Estimation weights. [TO DO: implement the pass-through]
     
     """
     def __init__(self, data, observation_id_col, choice_col, model_expression, 
-                 model_labels=None, alternative_id_col=None, weights=None):
+                 model_labels=None, alternative_id_col=None, initial_coefs=None, 
+                 weights=None):
         self._data = data
         self._observation_id_col = observation_id_col
         self._alternative_id_col = alternative_id_col
         self._choice_col = choice_col
         self._model_expression = model_expression
+        self._model_labels = model_labels
+        self._initial_coefs = initial_coefs
         self._weights = weights
-        
+
         if isinstance(self._model_expression, OrderedDict):
             self._estimation_engine = 'PyLogit'
-        
+            
+            # parse initial_coefs
+            if isinstance(self._initial_coefs, np.ndarray):
+                pass
+            elif isinstance(self._initial_coefs, list):
+                self._initial_coefs = np.array(self._initial_coefs)
+            elif (self._initial_coefs == None):
+                self._initial_coefs = np.zeros(len(self._model_expression))
+            else:
+                self._initial_coefs = np.repeat(self._initial_coefs,
+                                                len(self._model_expression))
+
         else:
             self._estimation_engine = 'ChoiceModels'
             self._numobs = self._data[[self._observation_id_col]].\
-            						drop_duplicates().shape[0]
+                                    drop_duplicates().shape[0]
             print(self._numobs)
             self._numalts = self._data.shape[0] / self._numobs
             print(self._numalts)
+            
+            # TO DO: parse initial coefs
         
+        self._validate_input_data()
         return
         
     def _validate_input_data(self):
@@ -153,13 +170,17 @@ class MultinomialLogit(object):
          - verify chosen alternative listed first]
                 
         """
+        self._data = self._data.sort_values(by = [self._observation_id_col,
+                                                  self._choice_col],
+                                            ascending = [True, False])
         return
 
     def fit(self):
         """
-        [TO DO: 
-         - implement optional parameters
-         - implement PyLogit estimation]
+        Fit the model using maximum likelihood estimation. Uses either the ChoiceModels
+        or PyLogit estimation engine as appropriate.
+        
+        [TO DO: implement parameters, add PyLogit parameters]
         
         Parameters
         ----------      
@@ -167,7 +188,7 @@ class MultinomialLogit(object):
             GPU acceleration.       
         coefrange : tuple of floats, optional
             Limits to which coefficients are held, in format (min, max). 
-        beta : 1D array, optional
+        initial_values : 1D array, optional
             Initial values for the coefficients.
         
         Returns
@@ -175,20 +196,40 @@ class MultinomialLogit(object):
         MultinomialLogitResults() object.
         
         """
-        model_design = dmatrix(self._model_expression, data=self._data, 
-                               return_type='dataframe').as_matrix()
-    
-        # generate 2D array from choice column, for mnl_estimate()
-        chosen = np.reshape(self._data[[self._choice_col]].as_matrix(), 
-                            (self._numobs, self._numalts))
-                
-        mnl_params = {'data': model_design,
-                      'chosen': chosen,
-                      'numalts': self._numalts}
-                      
-        log_likelihoods, fit_parameters = mnl_estimate(**mnl_params)
+        if (self._estimation_engine == 'PyLogit'):
+            
+            m = pylogit.create_choice_model(data = self._data,
+                                            obs_id_col = self._observation_id_col,
+                                            alt_id_col = self._alternative_id_col,
+                                            choice_col = self._choice_col,
+                                            specification = self._model_expression,
+                                            names = self._model_labels,
+                                            model_type = 'MNL')
+            
+            m.fit_mle(init_vals = self._initial_coefs)
+            results = m
+            
+        elif (self._estimation_engine == 'ChoiceModels'):
 
-        return MultinomialLogitResults(log_likelihoods, fit_parameters)
+            model_design = dmatrix(self._model_expression, data=self._data, 
+                                   return_type='dataframe').as_matrix()
+    
+            # generate 2D array from choice column, for mnl_estimate()
+            chosen = np.reshape(self._data[[self._choice_col]].as_matrix(), 
+                                (self._numobs, self._numalts))
+                
+            log_lik, fit = mnl_estimate(model_design, chosen, self._numalts)
+            results = MultinomialLogitResults(log_lik, fit)
+
+        return results
+        
+    
+    @property
+    def estimation_engine(self):
+        """
+        
+        """
+        return self._estimation_engine
 
 
 class MultinomialLogitResults(object):
