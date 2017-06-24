@@ -12,6 +12,7 @@ from .tools.pmat import PMAT
 
 from collections import OrderedDict
 from patsy import dmatrix
+from prettytable import PrettyTable
 from urbansim.utils.logutil import log_start_finish
 
 
@@ -180,7 +181,7 @@ class MultinomialLogit(object):
         Fit the model using maximum likelihood estimation. Uses either the ChoiceModels
         or PyLogit estimation engine as appropriate.
         
-        [TO DO: implement parameters, add PyLogit parameters]
+        TO DO: should we implement parameters here, or take them all in the constructor?
         
         Parameters
         ----------      
@@ -219,7 +220,9 @@ class MultinomialLogit(object):
                                 (self._numobs, self._numalts))
                 
             log_lik, fit = mnl_estimate(model_design, chosen, self._numalts)
-            results = MultinomialLogitResults(log_lik, fit)
+            results = MultinomialLogitResults(log_likelihoods = log_lik,
+                                              fit_parameters = fit,
+                                              estimation_engine = self._estimation_engine)
 
         return results
         
@@ -234,19 +237,63 @@ class MultinomialLogit(object):
 
 class MultinomialLogitResults(object):
     """
-        
+    This is a work in progress. The rationale for having a separate results class is that 
+    users don't have to keep track of which methods they're allowed to run depending on 
+    the status of the object. An estimation object is always ready to estimate, and a 
+    results object is always ready to report the results or predict. 
+    
+    Anticipated functionality of the results class:
+    - store estimation results, test statistics, and other metadata for a single model
+    - report these in a standard estimation results table
+    - provide access to individual values as needed
+    - write results to a human-readable text file, and read them back in
+    - prediction?? maybe this should be separate and take a results object as input
+    
+    Most of this functionality can be inherited from a generic results class.
+    
+    TO DO:
+    - can PyLogit results easily be pulled out from a model object?
+    - can the PyLogit print function be called on its own?
+    - if so, we can store metadata in a unified way and have all output look the same
+    
     """
-    def __init__(self, log_likelihoods, fit_parameters):
+    def __init__(self, log_likelihoods, fit_parameters, estimation_engine):
         self._log_likelihoods = log_likelihoods
         self._fit_parameters = fit_parameters
+        self._estimation_engine = estimation_engine
         return
     
     def __repr__(self):
-        return
+        self.report_fit()
     
     def __str__(self):
         return self._log_likelihoods.__str__() + self._fit_parameters.__str__()
 
+    def report_fit(self):
+        """
+        Print a report of the fit results. Code from 
+        urbansim.models.MNLDiscreteChoiceModel().
+        
+        """
+        print('Null Log-liklihood: {0:.3f}'.format(
+            self._log_likelihoods['null']))
+        print('Log-liklihood at convergence: {0:.3f}'.format(
+            self._log_likelihoods['convergence']))
+        print('Log-liklihood Ratio: {0:.3f}\n'.format(
+            self._log_likelihoods['ratio']))
+
+        tbl = PrettyTable(
+            ['Component', ])
+        tbl = PrettyTable()
+
+        tbl.add_column('Component', self._fit_parameters.index.values)
+        for col in ('Coefficient', 'Std. Error', 'T-Score'):
+            tbl.add_column(col, self._fit_parameters[col].values)
+
+        tbl.align['Component'] = 'l'
+        tbl.float_format = '.3'
+
+        print(tbl)
 
 
 """
