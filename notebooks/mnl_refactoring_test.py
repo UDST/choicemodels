@@ -32,6 +32,7 @@ results = model.fit()
 
 results.report_fit()
 
+"""
 model_expression = OrderedDict([('home_density', 'all_same'),
 								('work_density', 'all_same'),
 								('school_density', 'all_same')])
@@ -44,3 +45,4 @@ model = MultinomialLogit(data = merged.to_frame(),
 						 
 results = model.fit()
 print(results.get_statsmodels_summary())
+"""

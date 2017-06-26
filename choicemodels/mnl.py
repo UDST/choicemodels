@@ -12,7 +12,7 @@ from .tools.pmat import PMAT
 
 from collections import OrderedDict
 from patsy import dmatrix
-from prettytable import PrettyTable
+from statsmodels.iolib.summary import Summary
 from urbansim.utils.logutil import log_start_finish
 
 
@@ -181,7 +181,8 @@ class MultinomialLogit(object):
         Fit the model using maximum likelihood estimation. Uses either the ChoiceModels
         or PyLogit estimation engine as appropriate.
         
-        TO DO: should we implement parameters here, or take them all in the constructor?
+        TO DO: should we add pass-through parameters here, or take them all in the 
+        constructor?
         
         Parameters
         ----------      
@@ -220,9 +221,9 @@ class MultinomialLogit(object):
                                 (self._numobs, self._numalts))
                 
             log_lik, fit = mnl_estimate(model_design, chosen, self._numalts)
-            results = MultinomialLogitResults(log_likelihoods = log_lik,
-                                              fit_parameters = fit,
-                                              estimation_engine = self._estimation_engine)
+            results = MultinomialLogitResults(estimation_engine = self._estimation_engine, 
+                                              results = {'log_likelihood': log_lik,
+                                                         'fit_parameters': fit})
 
         return results
         
@@ -243,7 +244,7 @@ class MultinomialLogitResults(object):
     results object is always ready to report the results or predict. 
     
     Anticipated functionality of the results class:
-    - store estimation results, test statistics, and other metadata for a single model
+    - store estimation results, test statistics, and other metadata 
     - report these in a standard estimation results table
     - provide access to individual values as needed
     - write results to a human-readable text file, and read them back in
@@ -251,23 +252,53 @@ class MultinomialLogitResults(object):
     
     Most of this functionality can be inherited from a generic results class.
     
+    This is going to be a bit of a project. PyLogit provides full results and test 
+    statistics, while the UrbanSim codebase only provides a subset. But PyLogit uses a 
+    single class for estimation and results, and I don't see an easy way to instantiate 
+    the equivalent of a results object. (We would need this to create a results object 
+    from a saved file, or for using PyLogit methods on models estimated with the 
+    ChoiceModels engine.) Maybe we can accomplish this with a subclass?
+    
     TO DO:
-    - can PyLogit results easily be pulled out from a model object?
-    - can the PyLogit print function be called on its own?
-    - if so, we can store metadata in a unified way and have all output look the same
+    - have this class accept either a PyLogit object or the UrbanSim estimation output
+    - implement nice printing for the UrbanSim output
+    
+    Parameters
+    ----------
+    estimation_engine : str
+        'ChoiceModels' or 'PyLogit'. 
+        
+    results : dict or object
+        Raw results as currently provided by the estimation engine. This should be 
+        replaced with a more consistent and comprehensive set of inputs.
     
     """
-    def __init__(self, log_likelihoods, fit_parameters, estimation_engine):
-        self._log_likelihoods = log_likelihoods
-        self._fit_parameters = fit_parameters
+    def __init__(self, estimation_engine, results=None):
         self._estimation_engine = estimation_engine
+        self._results = results
         return
     
     def __repr__(self):
         self.report_fit()
     
     def __str__(self):
-        return self._log_likelihoods.__str__() + self._fit_parameters.__str__()
+        # return self._log_likelihoods.__str__() + self._fit_parameters.__str__()
+        return
+    
+    @property
+    def estimation_engine(self):
+        """
+        Estimation engine that generated the results. 'ChoiceModels' or 'PyLogit'.
+        
+        """
+        return self._estimation_engine
+    
+    def get_raw_results(self):
+        """
+        Return the raw results as provided by the estimation engine. Dict or object.
+        
+        """
+        return self._results
 
     def report_fit(self):
         """
@@ -275,25 +306,88 @@ class MultinomialLogitResults(object):
         urbansim.models.MNLDiscreteChoiceModel().
         
         """
-        print('Null Log-liklihood: {0:.3f}'.format(
-            self._log_likelihoods['null']))
-        print('Log-liklihood at convergence: {0:.3f}'.format(
-            self._log_likelihoods['convergence']))
-        print('Log-liklihood Ratio: {0:.3f}\n'.format(
-            self._log_likelihoods['ratio']))
+        if (self._estimation_engine == 'PyLogit'):
+            print(self_results.get_statsmodels_summary())
+            
+        elif (self._estimation_engine == 'ChoiceModels'):
+            ll = self._results['log_likelihood']['convergence']
+            ll_null = self._results['log_likelihood']['null']
+            
+            s = summary_table(title = "test",
+                              log_likelihood = ll,
+                              null_log_likelihood = ll_null)
+            print(s)
+        
+        
+        
+#         print('Null Log-liklihood: {0:.3f}'.format(
+#             self._log_likelihoods['null']))
+#         print('Log-liklihood at convergence: {0:.3f}'.format(
+#             self._log_likelihoods['convergence']))
+#         print('Log-liklihood Ratio: {0:.3f}\n'.format(
+#             self._log_likelihoods['ratio']))
+# 
+#         tbl = PrettyTable(
+#             ['Component', ])
+#         tbl = PrettyTable()
+# 
+#         tbl.add_column('Component', self._fit_parameters.index.values)
+#         for col in ('Coefficient', 'Std. Error', 'T-Score'):
+#             tbl.add_column(col, self._fit_parameters[col].values)
+# 
+#         tbl.align['Component'] = 'l'
+#         tbl.float_format = '.3'
+# 
+#         print(tbl)
 
-        tbl = PrettyTable(
-            ['Component', ])
-        tbl = PrettyTable()
 
-        tbl.add_column('Component', self._fit_parameters.index.values)
-        for col in ('Coefficient', 'Std. Error', 'T-Score'):
-            tbl.add_column(col, self._fit_parameters[col].values)
 
-        tbl.align['Component'] = 'l'
-        tbl.float_format = '.3'
+def summary_table(title=None, dep_var=None, model_name=None, method=None, date=None, 
+                  time=None, aic=None, bic=None, num_obs=None, df_resid=None, 
+                  df_model=None, rho_squared=None, rho_bar_squared=None, 
+                  log_likelihood=None, null_log_likelihood=None, xnames=None, alpha=None):
+    """
+    Print a results table using statsmodels.iolib.summary.Summary(). Code adapted from 
+    statsmodels.discrete.discrete_model via pylogit.base_multinomial_cm_v2. 
+    https://github.com/timothyb0912/pylogit/blob/master/pylogit/base_multinomial_cm_v2.py#L1626
+    
+    """
+    def fmt(value, format_str):
+    	# Custom formatter that gracefully accepts null values
+    	return None if value is None else format_str.format(value) 
+    
+    smry = Summary()
+    
+    top_left = [('Dep. Variable:', dep_var),
+                ('Model:', [model_name]),
+                ('Method:', [method]),
+                ('Date:', date),
+                ('Time:', time),
+                ('AIC:', [fmt(aic, "{:,.3f}")]),
+                ('BIC:', [fmt(bic, "{:,.3f}")])]
 
-        print(tbl)
+    top_right = [('No. Observations:', [fmt(num_obs, "{:,}")]),
+                 ('Df Residuals:', [fmt(df_resid, "{:,}")]),
+                 ('Df Model:', [fmt(df_model, "{:,}")]),
+                 ('Pseudo R-squ.:', [fmt(rho_squared, "{:.3f}")]),
+                 ('Pseudo R-bar-squ.:', [fmt(rho_bar_squared, "{:.3f}")]),
+                 ('Log-Likelihood:', [fmt(log_likelihood, "{:,.3f}")]),
+                 ('LL-Null:', [fmt(null_log_likelihood, "{:,.3f}")])]
+
+    smry.add_table_2cols(res = None,
+    					 gleft = top_left,
+                         gright = top_right,
+                         yname = None,
+                         xname = xnames,
+                         title = title)
+        
+    smry.add_table_params(res = None,
+    			  	      yname = [None],
+                          xname = xnames,
+                          alpha = alpha,
+                          use_t = False)
+
+    return smry
 
 
 """
