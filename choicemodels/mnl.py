@@ -154,9 +154,7 @@ class MultinomialLogit(object):
             self._estimation_engine = 'ChoiceModels'
             self._numobs = self._data[[self._observation_id_col]].\
                                     drop_duplicates().shape[0]
-            print(self._numobs)
             self._numalts = self._data.shape[0] / self._numobs
-            print(self._numalts)
             
             # TO DO: parse initial coefs
         
@@ -209,7 +207,8 @@ class MultinomialLogit(object):
                                             model_type = 'MNL')
             
             m.fit_mle(init_vals = self._initial_coefs)
-            results = m
+            results = MultinomialLogitResults(self._estimation_engine, 
+                                              results = m)
             
         elif (self._estimation_engine == 'ChoiceModels'):
 
@@ -282,8 +281,11 @@ class MultinomialLogitResults(object):
         self._results = results
         return
     
+    def __repr__(self):
+    	return self.report_fit()
+    
     def __str__(self):
-        self.report_fit()
+        return self.report_fit()
     
     @property
     def estimation_engine(self):
@@ -306,7 +308,7 @@ class MultinomialLogitResults(object):
         
         """
         if (self._estimation_engine == 'PyLogit'):
-            print(self_results.get_statsmodels_summary())
+            output = self._results.get_statsmodels_summary().as_text()
             
         elif (self._estimation_engine == 'ChoiceModels'):
             
@@ -326,10 +328,10 @@ class MultinomialLogitResults(object):
                                            coefs = coefs,
                                            std_errs = std_errs,
                                            t_scores = t_scores)
-            print(header)
-            print(body)
+                                           
+            output = header.as_text() + '\n' + body.as_text()
         
-        return    
+        return output
     
 
 def summary_table(title=None, dep_var='', model_name='', method='', date='', 
@@ -397,7 +399,7 @@ def summary_table(title=None, dep_var='', model_name='', method='', date='',
     col_labels = ['coef', 'std err', 'z', 'P>|z|', 'Conf. Int.']
     row_labels = x_names
     
-    body_cells = [[fmt(coefs[i], "{:,.3f}"),
+    body_cells = [[fmt(coefs[i], "{:,.4f}"),
                    fmt(std_errs[i], "{:,.3f}"),
                    fmt(t_scores[i], "{:,.3f}"),
                    '',  # p-value placeholder
