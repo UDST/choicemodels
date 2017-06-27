@@ -214,16 +214,20 @@ class MultinomialLogit(object):
         elif (self._estimation_engine == 'ChoiceModels'):
 
             model_design = dmatrix(self._model_expression, data=self._data, 
-                                   return_type='dataframe').as_matrix()
+                                   return_type='dataframe')
     
             # generate 2D array from choice column, for mnl_estimate()
             chosen = np.reshape(self._data[[self._choice_col]].as_matrix(), 
                                 (self._numobs, self._numalts))
                 
-            log_lik, fit = mnl_estimate(model_design, chosen, self._numalts)
-            results = MultinomialLogitResults(estimation_engine = self._estimation_engine, 
-                                              results = {'log_likelihood': log_lik,
-                                                         'fit_parameters': fit})
+            log_lik, fit = mnl_estimate(model_design.as_matrix(), chosen, self._numalts)
+            
+            result_params = dict(log_likelihood = log_lik,
+                                 fit_parameters = fit,
+                                 x_names = model_design.design_info.column_names)
+            
+            results = MultinomialLogitResults(self._estimation_engine, 
+                                              results = result_params)
 
         return results
         
@@ -231,6 +235,7 @@ class MultinomialLogit(object):
     @property
     def estimation_engine(self):
         """
+        'ChoiceModels' or 'PyLogit'.
         
         """
         return self._estimation_engine
@@ -243,28 +248,25 @@ class MultinomialLogitResults(object):
     the status of the object. An estimation object is always ready to estimate, and a 
     results object is always ready to report the results or predict. 
     
-    Anticipated functionality of the results class:
-    - store estimation results, test statistics, and other metadata 
-    - report these in a standard estimation results table
-    - provide access to individual values as needed
-    - write results to a human-readable text file, and read them back in
-    - prediction?? maybe this should be separate and take a results object as input
+    Anticipated functionality:
+    - Store estimation results, test statistics, and other metadata 
+    - Report these in a standard estimation results table
+    - Provide access to individual values as needed
     
-    Most of this functionality can be inherited from a generic results class.
+    Possible functionality:
+    - Write results to a human-readable text file, and read them back in? Currently this 
+      is handled at a higher level by UrbanSim.
+    - Prediction?? Maybe this should be separate and take a results object as input..
     
-    This is going to be a bit of a project. PyLogit provides full results and test 
-    statistics, while the UrbanSim codebase only provides a subset. But PyLogit uses a 
-    single class for estimation and results, and I don't see an easy way to instantiate 
-    the equivalent of a results object. (We would need this to create a results object 
-    from a saved file, or for using PyLogit methods on models estimated with the 
-    ChoiceModels engine.) Maybe we can accomplish this with a subclass?
+    Most of this functionality can be inherited from a generic results class; it doesn't 
+    need to be MNL-specific. Statsmodels has some patterns for this that we could follow.
+    Or it might be best to do something that integrates with PyLogit as smoothly as 
+    possible.
     
-    Statsmodels seems to have a general format for results classes, which we could follow.
-    
-    TO DO:
-    - have this class accept either a PyLogit object or the UrbanSim estimation output
-    - implement nice printing for the UrbanSim output
-    
+    Note that the PyLogit estimation engine provides a full suite of output (test 
+    statistics, p-values, confidence intervals, etc), while the ChoiceModels engine 
+    only provides the basics at this point. More can be added as needed.
+        
     Parameters
     ----------
     estimation_engine : str
@@ -275,17 +277,13 @@ class MultinomialLogitResults(object):
         replaced with a more consistent and comprehensive set of inputs.
     
     """
-    def __init__(self, estimation_engine, results=None):
+    def __init__(self, estimation_engine, results):
         self._estimation_engine = estimation_engine
         self._results = results
         return
     
-    def __repr__(self):
-        self.report_fit()
-    
     def __str__(self):
-        # return self._log_likelihoods.__str__() + self._fit_parameters.__str__()
-        return
+        self.report_fit()
     
     @property
     def estimation_engine(self):
@@ -304,61 +302,40 @@ class MultinomialLogitResults(object):
 
     def report_fit(self):
         """
-        Print a report of the fit results. Code from 
-        urbansim.models.MNLDiscreteChoiceModel().
+        Print a report of the model estimation results.
         
         """
         if (self._estimation_engine == 'PyLogit'):
             print(self_results.get_statsmodels_summary())
             
         elif (self._estimation_engine == 'ChoiceModels'):
+            
             ll = self._results['log_likelihood']['convergence']
             ll_null = self._results['log_likelihood']['null']
+            x_names = self._results['x_names']
             coefs = self._results['fit_parameters']['Coefficient'].tolist()
             std_errs = self._results['fit_parameters']['Std. Error'].tolist()
             t_scores = self._results['fit_parameters']['T-Score'].tolist()
             
             (header, body) = summary_table(dep_var = 'chosen',
-                              			   model_name = 'Multinomial Logit',
-                              			   method = 'Maximum Likelihood',
-                              			   log_likelihood = ll,
-                              			   null_log_likelihood = ll_null,
-                              			   xnames = ['one','two','three'],
-                              			   coefs = coefs,
-                              			   std_errs = std_errs,
-                              			   t_scores = t_scores)
-            
+                                           model_name = 'Multinomial Logit',
+                                           method = 'Maximum Likelihood',
+                                           log_likelihood = ll,
+                                           null_log_likelihood = ll_null,
+                                           x_names = x_names,
+                                           coefs = coefs,
+                                           std_errs = std_errs,
+                                           t_scores = t_scores)
             print(header)
             print(body)
         
-        
-        
-#         print('Null Log-liklihood: {0:.3f}'.format(
-#             self._log_likelihoods['null']))
-#         print('Log-liklihood at convergence: {0:.3f}'.format(
-#             self._log_likelihoods['convergence']))
-#         print('Log-liklihood Ratio: {0:.3f}\n'.format(
-#             self._log_likelihoods['ratio']))
-# 
-#         tbl = PrettyTable(
-#             ['Component', ])
-#         tbl = PrettyTable()
-# 
-#         tbl.add_column('Component', self._fit_parameters.index.values)
-#         for col in ('Coefficient', 'Std. Error', 'T-Score'):
-#             tbl.add_column(col, self._fit_parameters[col].values)
-# 
-#         tbl.align['Component'] = 'l'
-#         tbl.float_format = '.3'
-# 
-#         print(tbl)
-
-
+        return    
+    
 
 def summary_table(title=None, dep_var='', model_name='', method='', date='', 
                   time='', aic=None, bic=None, num_obs=None, df_resid=None, 
                   df_model=None, rho_squared=None, rho_bar_squared=None, 
-                  log_likelihood=None, null_log_likelihood=None, xnames=[], coefs=[], 
+                  log_likelihood=None, null_log_likelihood=None, x_names=[], coefs=[], 
                   std_errs=[], t_scores=[], alpha=None):
     """
     Print a summary table of estimation results using Statsmodels SimpleTable. Still a 
@@ -387,7 +364,7 @@ def summary_table(title=None, dep_var='', model_name='', method='', date='',
         return '' if value is None else format_str.format(value) 
     
     if (title is None):
-    	title = "CHOICEMODELS ESTIMATION RESULTS"
+        title = "CHOICEMODELS ESTIMATION RESULTS"
     
     top_left = [['Dep. Var.:', dep_var],
                 ['Model:', model_name],
@@ -411,26 +388,26 @@ def summary_table(title=None, dep_var='', model_name='', method='', date='',
     # See end of statsmodels.iolib.table.py for formatting options
     header_fmt = dict(table_dec_below = '',
                       data_aligns = 'lrlr',
-                      colwidths = 10,
+                      colwidths = 11,
                       colsep = '   ',
                       empty_cell = '')
 
     header = SimpleTable(header_cells, title=title, txt_fmt=header_fmt)
     
     col_labels = ['coef', 'std err', 'z', 'P>|z|', 'Conf. Int.']
-    row_labels = xnames
+    row_labels = x_names
     
     body_cells = [[fmt(coefs[i], "{:,.3f}"),
                    fmt(std_errs[i], "{:,.3f}"),
                    fmt(t_scores[i], "{:,.3f}"),
-                   'tk',  # p-value placeholder
-                   'tk']  # conf int placeholder
-                   for i in range(len(xnames))]
+                   '',  # p-value placeholder
+                   '']  # conf int placeholder
+                   for i in range(len(x_names))]
     
     body_fmt = dict(table_dec_below = '=',
-    				header_align = 'r',
+                    header_align = 'r',
                     data_aligns = 'r',
-                    colwidths = 8,
+                    colwidths = 7,
                     colsep = '   ')
 
     body = SimpleTable(body_cells,
@@ -439,7 +416,7 @@ def summary_table(title=None, dep_var='', model_name='', method='', date='',
                        txt_fmt = body_fmt)
     
     # Ideally we'd want to append these into a single table, but I can't get it to work
-    # without completely messing up the formatting
+    # without completely messing up the formatting..
     
     return (header, body)
 
