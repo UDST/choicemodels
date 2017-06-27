@@ -34,31 +34,31 @@ class Logit(object):
         return
         
 
-class MNLogit(object):
-    """
-    Wraps the functionality of pylogit.conditional_logit.MNL()
-    
-    """
-    def __init__(self, *args, **kwargs):
-        self.wrapped_model = pylogit.create_choice_model(model_type="MNL", *args, **kwargs)
-        return
-        
-    def fit_mle(self, *args, **kwargs):
-        self.wrapped_model.fit_mle(*args, **kwargs)
-        return CMResults(self.wrapped_model)
-
-
-class CMResults(object):
-    """
-    Stores estimation results
-    
-    """
-    def __init__(self, model):
-        self.wrapped_model = model
-        return
-        
-    def summary(self):
-        return self.wrapped_model.get_statsmodels_summary()
+# class MNLogit(object):
+#     """
+#     Wraps the functionality of pylogit.conditional_logit.MNL()
+#     
+#     """
+#     def __init__(self, *args, **kwargs):
+#         self.wrapped_model = pylogit.create_choice_model(model_type="MNL", *args, **kwargs)
+#         return
+#         
+#     def fit_mle(self, *args, **kwargs):
+#         self.wrapped_model.fit_mle(*args, **kwargs)
+#         return CMResults(self.wrapped_model)
+# 
+# 
+# class CMResults(object):
+#     """
+#     Stores estimation results
+#     
+#     """
+#     def __init__(self, model):
+#         self.wrapped_model = model
+#         return
+#         
+#     def summary(self):
+#         return self.wrapped_model.get_statsmodels_summary()
 
 
 
