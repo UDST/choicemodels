@@ -10,8 +10,8 @@ The underlying estimation routines come from two main places: (1) UrbanSim's `ur
 Clone this repository and run `python setup.py develop`. 
 
 Two required packages should also be installed the same way:
-- PyLogit ([https://github.com/timothyb0912/pylogit])
-- UrbanSim ([https://github.com/udst/urbansim])
+- PyLogit: https://github.com/timothyb0912/pylogit
+- UrbanSim: https://github.com/udst/urbansim
 
 UrbanSim won't be a requirement any more after we finish refactoring the estimation code.
 
@@ -32,6 +32,7 @@ UrbanSim won't be a requirement any more after we finish refactoring the estimat
 
 There's documentation in these classes' docstrings, and a usage demo in a Jupyter notebook. 
 
-[https://github.com/ual/choicemodels/blob/smmaurer/choicemodels/tools/interaction.py]
-[https://github.com/ual/choicemodels/blob/smmaurer/choicemodels/mnl.py]
-[https://github.com/ual/choicemodels/blob/smmaurer/notebooks/Destination-choice-models-01.ipynb]
+https://github.com/ual/choicemodels/blob/master/choicemodels/tools/interaction.py
+https://github.com/ual/choicemodels/blob/master/choicemodels/mnl.py
+
+https://github.com/ual/choicemodels/blob/master/notebooks/Destination-choice-models-01.ipynb
