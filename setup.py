@@ -28,6 +28,7 @@ setup(
     ],
     packages=find_packages(exclude=['*.tests']),
     install_requires=[
+        'future>=0.16.0',
         'numpy>=1.8.0',
         'pandas>=0.17.0',
         'patsy>=0.3.0',

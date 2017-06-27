@@ -1,66 +1,37 @@
 # ChoiceModels
 
-This is a package for discrete choice model estimation and simulation, with an emphasis on large choice sets and behavioral refinements to multinomial models. Most of these models are not available in StatsModels or Scikit-learn. 
+This is a package for discrete choice model estimation and simulation, with an emphasis on large choice sets and behavioral refinements to multinomial models. Most of these models are not available in Statsmodels or Scikit-learn. 
+
+The underlying estimation routines come from two main places: (1) UrbanSim's `urbanchoice` codebase, which is being moved into ChoiceModels, and (2) Timothy Brathwaite's PyLogit package, which handles more flexible model specifications.
 
 
-## API Reference
+## Installation
 
-### Model classes
+Clone this repository and run `python setup.py develop`. 
 
-- `Logit()`
-- `MNLogit()`
-- `NestedLogit()`
-- `MixedLogit()`
+Two required packages should also be installed the same way:
+- PyLogit ([https://github.com/timothyb0912/pylogit])
+- UrbanSim ([https://github.com/udst/urbansim])
 
-
-### Helper functions
-
-- `convert_long_to_wide()`
-- `convert_wide_to_long()`
+UrbanSim won't be a requirement any more after we finish refactoring the estimation code.
 
 
-### Class choicemodels.Logit()
+## Current functionality
 
-Based on [statsmodels.discrete.discrete_model.Logit()](http://statsmodels.sourceforge.net/0.6.0/generated/statsmodels.discrete.discrete_model.Logit.html).
+`choicemodels.tools.MergedChoiceTable()`
 
-#### Parameters include:
+- Generates a merged long-format table of choosers and alternatives.
 
-- `endog` &nbsp; 1-d endogenous response variable. The dependent variable.
-- `exog` &nbsp; Exogenous variables. This is an n-by-k array, for n observations and k regressors.
-  
-#### Methods include:
+`choicemodels.MultinomialLogit()`
 
-- `fit(...)` &nbsp; Returns estimation results, which are also saved to the model object.
-- `from_formula(formula, data, ...)` &nbsp; Initializes model using a specification formula.
-- `predict(params, exog, ...)` &nbsp; Returns array of fitted values.
-  
-  
-### Class choicemodels.MNLogit()
+- Fits MNL models, using either the ChoiceModels or PyLogit estimation engines.
 
-Based on [pylogit.conditional_logit.MNL()](https://github.com/timothyb0912/pylogit/blob/master/pylogit/conditional_logit.py).
+`chociemodels.MultinomialLogitResults()`
 
-#### Parameters include:
+- Stores and reports fitted MNL models.
 
-- `data`
-- `alt_id_col` &nbsp; Name of column containing alternative identifiers.
-- `obs_id_col` &nbsp; Name of column containing observation identifiers.
-- `choice_col` &nbsp; Name of column identifying whether an alternative was chosen.
-- `specification` &nbsp; OrderedDict
+There's documentation in these classes' docstrings, and a usage demo in a Jupyter notebook. 
 
-#### Methods include:
-
-- `fit_mle(...)` &nbsp; Returns estimation results, which are also saved to the model object.
-- `from_fomula(formula, data, labels, ...)` &nbsp; Not yet implemented
-
-
-### Class choicemodels.CMResults()
-
-Container for estimation results.
-
-#### Methods include:
-
-- `summary()` &nbsp; Returns a StatsModels-style printable summary
-
-
-
-
+[https://github.com/ual/choicemodels/blob/smmaurer/choicemodels/tools/interaction.py]
+[https://github.com/ual/choicemodels/blob/smmaurer/choicemodels/mnl.py]
+[https://github.com/ual/choicemodels/blob/smmaurer/notebooks/Destination-choice-models-01.ipynb]

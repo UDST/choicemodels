@@ -312,6 +312,7 @@ class MultinomialLogitResults(object):
             
         elif (self._estimation_engine == 'ChoiceModels'):
             
+            # Pull out individual results components
             ll = self._results['log_likelihood']['convergence']
             ll_null = self._results['log_likelihood']['null']
             x_names = self._results['x_names']
@@ -340,7 +341,7 @@ def summary_table(title=None, dep_var='', model_name='', method='', date='',
                   log_likelihood=None, null_log_likelihood=None, x_names=[], coefs=[], 
                   std_errs=[], t_scores=[], alpha=None):
     """
-    Print a summary table of estimation results using Statsmodels SimpleTable. Still a 
+    Generate a summary table of estimation results using Statsmodels SimpleTable. Still a 
     work in progress.
     
     SimpleTable is maddening to work with, so it would be nice to find an alternative. It 
