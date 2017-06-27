@@ -12,7 +12,7 @@ from .tools.pmat import PMAT
 
 from collections import OrderedDict
 from patsy import dmatrix
-from statsmodels.iolib.summary import Summary
+from statsmodels.iolib.table import SimpleTable
 from urbansim.utils.logutil import log_start_finish
 
 
@@ -259,6 +259,8 @@ class MultinomialLogitResults(object):
     from a saved file, or for using PyLogit methods on models estimated with the 
     ChoiceModels engine.) Maybe we can accomplish this with a subclass?
     
+    Statsmodels seems to have a general format for results classes, which we could follow.
+    
     TO DO:
     - have this class accept either a PyLogit object or the UrbanSim estimation output
     - implement nice printing for the UrbanSim output
@@ -313,7 +315,10 @@ class MultinomialLogitResults(object):
             ll = self._results['log_likelihood']['convergence']
             ll_null = self._results['log_likelihood']['null']
             
-            s = summary_table(title = "test",
+            s = summary_table(title = 'Model Estimation Results',
+            				  dep_var = 'chosen',
+            				  model_name = 'Multinomial Logit',
+            				  method = 'Maximum Likelihood',
                               log_likelihood = ll,
                               null_log_likelihood = ll_null)
             print(s)
@@ -342,52 +347,69 @@ class MultinomialLogitResults(object):
 
 
 
-def summary_table(title=None, dep_var=None, model_name=None, method=None, date=None, 
-                  time=None, aic=None, bic=None, num_obs=None, df_resid=None, 
+def summary_table(title='', dep_var='', model_name='', method='', date='', 
+                  time='', aic=None, bic=None, num_obs=None, df_resid=None, 
                   df_model=None, rho_squared=None, rho_bar_squared=None, 
                   log_likelihood=None, null_log_likelihood=None, xnames=None, alpha=None):
     """
-    Print a results table using statsmodels.iolib.summary.Summary(). Code adapted from 
-    statsmodels.discrete.discrete_model via pylogit.base_multinomial_cm_v2. 
-    https://github.com/timothyb0912/pylogit/blob/master/pylogit/base_multinomial_cm_v2.py#L1626
+    Print a summary table of estimation results using Statsmodels SimpleTable. Still a 
+    work in progress.
+    
+    SimpleTable is maddening to work with, so it would be nice to find an alternative. It 
+    would need to support pretty-printing of formatted tables to plaintext and ideally 
+    also to HTML and Latex. 
+    
+    At first it looked like we could use Statsmodels's summary table generator directly 
+    (iolib.summary.Summary), but this requires a Statsmodels results object as input and 
+    doesn't document which properties are pulled from it. PyLogit reverse engineered this 
+    for use in get_statsmodels_summary() -- so it's possible, but could be hard to 
+    maintain in the long run.
+    
+    We can't use PyLogit's summary table generator either. It requires a PyLogit 
+    model class as input, and we can't create one from results parameters. Oh well!
+    
+    Parameters
+    ----------
+    Should be pretty self-explanatory, but we'll write documentation as this firms up.
     
     """
     def fmt(value, format_str):
-    	# Custom formatter that gracefully accepts null values
-    	return None if value is None else format_str.format(value) 
+        # Custom numeric->string formatter that gracefully accepts null values
+        return '' if value is None else format_str.format(value) 
     
-    smry = Summary()
+    top_left = [['Dep. Var.:', dep_var],
+                ['Model:', model_name],
+                ['Method:', method],
+                ['Date:', date],
+                ['Time:', time],
+                ['AIC:', fmt(aic, "{:,.3f}")],
+                ['BIC:', fmt(bic, "{:,.3f}")]]
+
+    top_right = [['No. Observations:', fmt(num_obs, "{:,}")],
+                 ['Df Residuals:', fmt(df_resid, "{:,}")],
+                 ['Df Model:', fmt(df_model, "{:,}")],
+                 ['Pseudo R-squ.:', fmt(rho_squared, "{:.3f}")],
+                 ['Pseudo R-bar-squ.:', fmt(rho_bar_squared, "{:.3f}")],
+                 ['Log-Likelihood:', fmt(log_likelihood, "{:,.3f}")],
+                 ['LL-Null:', fmt(null_log_likelihood, "{:,.3f}")]]
+
+    # Zip into a single table (each side needs same number of entries)
+    header_cells = [top_left[i] + top_right[i] for i in range(len(top_left))]
+
+    header_fmt = dict(table_dec_below='',
+                      data_aligns='lrlr',
+                      colwidths=10,
+                      colsep='   ',
+                      empty_cell='')
+
+    header = SimpleTable(header_cells, title=title, txt_fmt=header_fmt)
     
-    top_left = [('Dep. Variable:', dep_var),
-                ('Model:', [model_name]),
-                ('Method:', [method]),
-                ('Date:', date),
-                ('Time:', time),
-                ('AIC:', [fmt(aic, "{:,.3f}")]),
-                ('BIC:', [fmt(bic, "{:,.3f}")])]
 
-    top_right = [('No. Observations:', [fmt(num_obs, "{:,}")]),
-                 ('Df Residuals:', [fmt(df_resid, "{:,}")]),
-                 ('Df Model:', [fmt(df_model, "{:,}")]),
-                 ('Pseudo R-squ.:', [fmt(rho_squared, "{:.3f}")]),
-                 ('Pseudo R-bar-squ.:', [fmt(rho_bar_squared, "{:.3f}")]),
-                 ('Log-Likelihood:', [fmt(log_likelihood, "{:,.3f}")]),
-                 ('LL-Null:', [fmt(null_log_likelihood, "{:,.3f}")])]
-
-    smry.add_table_2cols(res = None,
-    					 gleft = top_left,
-                         gright = top_right,
-                         yname = None,
-                         xname = xnames,
-                         title = title)
-        
-    smry.add_table_params(res = None,
-    			  	      yname = [None],
-                          xname = xnames,
-                          alpha = alpha,
-                          use_t = False)
-
-    return smry
+    
+    # Ideally we'd want to append these into a single table, but I can't get it to work
+    # without completely messing up the formatting
+    
+    return header
 
 
 """

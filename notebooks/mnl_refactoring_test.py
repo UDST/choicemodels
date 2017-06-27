@@ -44,5 +44,5 @@ model = MultinomialLogit(data = merged.to_frame(),
 						 model_expression = model_expression)
 						 
 results = model.fit()
-print(results.get_statsmodels_summary())
+print(results.print_summaries())
 """
