@@ -314,14 +314,22 @@ class MultinomialLogitResults(object):
         elif (self._estimation_engine == 'ChoiceModels'):
             ll = self._results['log_likelihood']['convergence']
             ll_null = self._results['log_likelihood']['null']
+            coefs = self._results['fit_parameters']['Coefficient'].tolist()
+            std_errs = self._results['fit_parameters']['Std. Error'].tolist()
+            t_scores = self._results['fit_parameters']['T-Score'].tolist()
             
-            s = summary_table(title = 'Model Estimation Results',
-            				  dep_var = 'chosen',
-            				  model_name = 'Multinomial Logit',
-            				  method = 'Maximum Likelihood',
-                              log_likelihood = ll,
-                              null_log_likelihood = ll_null)
-            print(s)
+            (header, body) = summary_table(dep_var = 'chosen',
+                              			   model_name = 'Multinomial Logit',
+                              			   method = 'Maximum Likelihood',
+                              			   log_likelihood = ll,
+                              			   null_log_likelihood = ll_null,
+                              			   xnames = ['one','two','three'],
+                              			   coefs = coefs,
+                              			   std_errs = std_errs,
+                              			   t_scores = t_scores)
+            
+            print(header)
+            print(body)
         
         
         
@@ -347,10 +355,11 @@ class MultinomialLogitResults(object):
 
 
 
-def summary_table(title='', dep_var='', model_name='', method='', date='', 
+def summary_table(title=None, dep_var='', model_name='', method='', date='', 
                   time='', aic=None, bic=None, num_obs=None, df_resid=None, 
                   df_model=None, rho_squared=None, rho_bar_squared=None, 
-                  log_likelihood=None, null_log_likelihood=None, xnames=None, alpha=None):
+                  log_likelihood=None, null_log_likelihood=None, xnames=[], coefs=[], 
+                  std_errs=[], t_scores=[], alpha=None):
     """
     Print a summary table of estimation results using Statsmodels SimpleTable. Still a 
     work in progress.
@@ -377,6 +386,9 @@ def summary_table(title='', dep_var='', model_name='', method='', date='',
         # Custom numeric->string formatter that gracefully accepts null values
         return '' if value is None else format_str.format(value) 
     
+    if (title is None):
+    	title = "CHOICEMODELS ESTIMATION RESULTS"
+    
     top_left = [['Dep. Var.:', dep_var],
                 ['Model:', model_name],
                 ['Method:', method],
@@ -396,20 +408,40 @@ def summary_table(title='', dep_var='', model_name='', method='', date='',
     # Zip into a single table (each side needs same number of entries)
     header_cells = [top_left[i] + top_right[i] for i in range(len(top_left))]
 
-    header_fmt = dict(table_dec_below='',
-                      data_aligns='lrlr',
-                      colwidths=10,
-                      colsep='   ',
-                      empty_cell='')
+    # See end of statsmodels.iolib.table.py for formatting options
+    header_fmt = dict(table_dec_below = '',
+                      data_aligns = 'lrlr',
+                      colwidths = 10,
+                      colsep = '   ',
+                      empty_cell = '')
 
     header = SimpleTable(header_cells, title=title, txt_fmt=header_fmt)
     
+    col_labels = ['coef', 'std err', 'z', 'P>|z|', 'Conf. Int.']
+    row_labels = xnames
+    
+    body_cells = [[fmt(coefs[i], "{:,.3f}"),
+                   fmt(std_errs[i], "{:,.3f}"),
+                   fmt(t_scores[i], "{:,.3f}"),
+                   'tk',  # p-value placeholder
+                   'tk']  # conf int placeholder
+                   for i in range(len(xnames))]
+    
+    body_fmt = dict(table_dec_below = '=',
+    				header_align = 'r',
+                    data_aligns = 'r',
+                    colwidths = 8,
+                    colsep = '   ')
 
+    body = SimpleTable(body_cells,
+                       headers = col_labels,
+                       stubs = row_labels,
+                       txt_fmt = body_fmt)
     
     # Ideally we'd want to append these into a single table, but I can't get it to work
     # without completely messing up the formatting
     
-    return header
+    return (header, body)
 
 
 """
