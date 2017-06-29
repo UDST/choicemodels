@@ -16,6 +16,76 @@ from . import pmat
 NEW FUNCTION DEFINITIONS
 ########################
 
+"""
+
+class InteractionGenerator(object):
+    """
+    We need a way to generate columns of data that represent interactions between chooser 
+    and alternative. This could be for distances between locations, for weights that vary 
+    depending on the category of the chooser, and so on. This is a class for storing such 
+    relationships and calculating them on demand. This approach provides computational and 
+    memory efficiencies when there are very large numbers of choosers and alternatives.
+    
+    InteractionGenerator is a template class. We'll provide a couple of implementations,
+    for calculating distances and other common use cases. Advanced users can write their 
+    own as needed.
+    
+    Parameters
+    ----------
+    observations : pd.DataFrame
+        Index has unique id. Other columns have additional information needed to calculate 
+        an interaction value.
+    
+    alternatives : pd.DataFrame
+        Index has unique id. Other columns have additional information needed to calculate 
+        an interaction value.
+        
+    **kwargs : arbitrary keys and values
+        Whatever else is needed for particular child classes.
+    
+    """
+    def __init__(self, observations, alternatives):
+        """
+        This probably won't need to be overridden in the child classes. We can store 
+        arbitrary additional arguments in a dictionary or something.
+        
+        """
+        self._observations = observations
+        self._alternatives = alternatives
+        return
+    
+    def get_data(self, observation_ids=[], alternative_ids=[]):
+        """
+        Returns a pd.DataFrame() with three columns, one for observation_id, one for 
+        alternative_id, and one for the interaction value.
+        
+        Child classes will override this method with their own logic.
+        
+        """
+        return
+
+
+class DistanceGenerator(InteractionGenerator):
+    """
+    InteractionGenerator with logic to calculate distances.
+    
+    Additional arguments: calculation type ('straight line', 'network', etc), optional 
+    pandana network.
+    
+    (How should we handle it if users actually want to generate something derived from the 
+    distance, like an inverse for sampling weights?)
+    
+    """
+    
+    def get_data(self, observation_ids=[], alternative_ids=[]):
+        """
+        Logic to generate distance values.
+        
+        """
+        return
+        
+
+"""
 I'm trying setting this up as a class instead of a function. Generally I'm not a fan of 
 functions that return multiple items. If MergedChoiceTable() is a class, then we can 
 provide access to different properties as needed..
