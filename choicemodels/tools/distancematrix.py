@@ -196,8 +196,21 @@ def distance_matrix(df, method='euclidean', x='lng', y='lat', earth_radius=63710
 
 
 
-# function to iterate through a list pairwise
 def pairwise(iterable):
+    """
+    Iterate through a list, pairwise.
+
+    Parameters
+    ----------
+    iterable : list-like
+        the list-like object to iterate through pairwise
+
+    Returns
+    -------
+    zip
+        a zipped iterable of pairwise tuples
+    """
+
     a, b = tee(iterable)
     next(b, None)
     return zip(a, b)
@@ -206,6 +219,24 @@ def pairwise(iterable):
 
 
 def distance_bands(dist_matrix, distances):
+    """
+    Iterate through a list, pairwise.
+
+    Parameters
+    ----------
+    dist_matrix : pandas DataFrame
+        a distance matrix with rows and columns indexed by geography ID
+    distances : list
+        a list of distance band increments
+
+    Returns
+    -------
+    df : pandas DataFrame
+        a DataFrame multi-indexed by geography ID and distance band number, with
+        values of arrays of geography IDs with the corresponding distances from
+        that ID
+    """
+
     # loop through each row in distance matrix, identifying all tracts within each distance band of the row's tract
     tract_bands = {}
     for _, row in dist_matrix.iterrows():
