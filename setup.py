@@ -34,5 +34,6 @@ setup(
         'patsy>=0.3.0',
         'scipy>=0.13.3',
         'statsmodels>=0.8.0',
+        'pylogit>=0.1'
     ]
 )
