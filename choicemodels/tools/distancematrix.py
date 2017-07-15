@@ -68,7 +68,7 @@ def great_circle_distance_matrix(df, x, y, earth_radius=6371009, return_int=True
     earth_radius : numeric
         radius of earth in units in which distance will be returned (default is meters)
     return_int : bool
-        if True, convert all distances to integers
+        if True, convert all distances to integers. saves memory.
 
     Returns
     -------
@@ -237,21 +237,21 @@ def distance_bands(dist_matrix, distances):
         that ID
     """
 
-    # loop through each row in distance matrix, identifying all tracts within each distance band of the row's tract
-    tract_bands = {}
+    # loop through each row in distance matrix, identifying all geographies within each distance band of the row's geography
+    bands = {}
     for _, row in dist_matrix.iterrows():
-        tract_bands[row.name] = {}
+        bands[row.name] = {}
 
         # for each distance band
-        for i, (dist1, dist2) in enumerate(pairwise(distances)):
+        for band_number, (dist1, dist2) in enumerate(pairwise(distances)):
 
-            # find all the tracts within this band
+            # find all the geographies within this distance band
             mask = (row >= dist1) & (row < dist2)
             place_ids = row[mask].index.values
 
-            # store value as array of tract IDs keyed by reference tract ID and distance band number
-            tract_bands[row.name][i + 1] = place_ids
+            # store value as array of geography IDs keyed by reference geography ID and distance band number
+            bands[row.name][band_number + 1] = place_ids
 
-    # convert tract bands to a dataframe indexed by tract ID and distance band number
-    df = pd.DataFrame(tract_bands).T.stack()
+    # convert geography bands to a dataframe indexed by geography ID and distance band number
+    df = pd.DataFrame(bands).T.stack()
     return df
