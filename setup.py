@@ -5,7 +5,7 @@ except ImportError:
     from ez_setup import use_setuptools
     use_setuptools()
 
-from setuptools import setup, find_packages
+from setuptools import setup
 
 
 # read README as the long description
@@ -24,12 +24,14 @@ setup(
     author='UC Berkeley Urban Analytics Lab',
     url='https://github.com/udst/choicemodels',
     classifiers=[
+        'Intended Audience :: Science/Research',
+        'Topic :: Scientific/Engineering :: Information Analysis',
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.6',
         'License :: OSI Approved :: BSD License'
     ],
-    packages=find_packages(exclude=['*.tests']),
+    packages=['choicemodels'],
     install_requires=install_requires
 )
