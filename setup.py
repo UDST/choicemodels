@@ -21,8 +21,8 @@ setup(
     version='0.1dev',
     description='Tools for discrete choice estimation',
     long_description=long_description,
-    author='Urban Analytics Lab',
-    url='https://github.com/ual/choicemodels',
+    author='UC Berkeley Urban Analytics Lab',
+    url='https://github.com/udst/choicemodels',
     classifiers=[
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
