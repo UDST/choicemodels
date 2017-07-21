@@ -12,6 +12,10 @@ from setuptools import setup, find_packages
 with open('README.md', 'r') as f:
     long_description = f.read()
 
+with open('requirements.txt') as f:
+    install_requires = f.readlines()
+install_requires = [item.strip() for item in install_requires]
+
 setup(
     name='choicemodels',
     version='0.1dev',
@@ -27,12 +31,5 @@ setup(
         'License :: OSI Approved :: BSD License'
     ],
     packages=find_packages(exclude=['*.tests']),
-    install_requires=[
-        'future>=0.16.0',
-        'numpy>=1.8.0',
-        'pandas>=0.17.0',
-        'patsy>=0.3.0',
-        'scipy>=0.13.3',
-        'statsmodels>=0.8.0',
-    ]
+    install_requires=install_requires
 )
