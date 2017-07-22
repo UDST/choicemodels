@@ -3,7 +3,7 @@ import numpy.testing as npt
 import pandas as pd
 import pytest
 
-from .. import interaction as inter
+from choicemodels.tools import interaction as inter
 
 
 @pytest.fixture
