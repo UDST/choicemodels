@@ -25,7 +25,7 @@ install:
   - pip show choicemodels
 
 script:
-  - coverage run --source choicemodels -m pytest/test.py --verbose
+  - coverage run --source choicemodels -m pytest --verbose
 
 after_success:
   - coverage report -m
