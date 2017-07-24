@@ -13,7 +13,7 @@ import pandas as pd
 import pytest
 from patsy import dmatrix
 
-from .. import mnl
+from choicemodels import mnl
 
 
 @pytest.fixture
