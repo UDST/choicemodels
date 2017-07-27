@@ -87,7 +87,7 @@ class MergedChoiceTable(object):
                                                        sample_size, chosen_alternatives)
         
         # Convert the representation of chosen alternatives to a column in table
-        merged['chosen'] = np.reshape(chosen, (merged.shape[0], 1))
+        merged['chosen'] = np.reshape(chosen.astype(int), (merged.shape[0], 1))
         
         # Label the observation id  [TO DO: would be nice to keep original name]
         merged = merged.rename(columns = {'join_index': 'observation_id'})
