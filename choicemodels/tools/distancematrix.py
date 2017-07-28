@@ -250,7 +250,7 @@ def distance_bands(dist_matrix, distances):
             place_ids = row[mask].index.values
 
             # store value as array of geography IDs keyed by reference geography ID and distance band number
-            bands[row.name][band_number + 1] = place_ids
+            bands[row.name][band_number] = place_ids
 
     # convert geography bands to a dataframe indexed by geography ID and distance band number
     df = pd.DataFrame(bands).T.stack()
