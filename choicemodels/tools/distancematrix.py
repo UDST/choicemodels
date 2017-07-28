@@ -1,5 +1,6 @@
 """
-Utilities for constructing pairwise distance matrices
+Utilities for constructing pairwise distance matrices and calculating which
+geographies are within various distance bands of some reference geography
 """
 
 
@@ -15,8 +16,9 @@ from scipy.spatial.distance import squareform, pdist
 
 def great_circle_vec(lat1, lng1, lat2, lng2, earth_radius=6371009):
     """
-    Vectorized function to calculate the great-circle distance between two points or between vectors
-    of points. This function is borrowed from OSMnx.
+    Vectorized function to calculate the great-circle distance between two
+    points or between vectors of points. This function is borrowed from OSMnx.
+    https://github.com/gboeing/osmnx
 
     Parameters
     ----------
@@ -25,12 +27,14 @@ def great_circle_vec(lat1, lng1, lat2, lng2, earth_radius=6371009):
     lat2 : float or array of float
     lng2 : float or array of float
     earth_radius : numeric
-        radius of earth in units in which distance will be returned (default is meters)
+        radius of earth in units in which distance will be returned (default is
+        meters)
 
     Returns
     -------
     distance : float or array of float
-        distance or vector of distances from (lat1, lng1) to (lat2, lng2) in units of earth_radius
+        distance or vector of distances from (lat1, lng1) to (lat2, lng2) in
+        units of earth_radius
     """
 
     phi1 = np.deg2rad(90 - lat1)
@@ -49,16 +53,17 @@ def great_circle_vec(lat1, lng1, lat2, lng2, earth_radius=6371009):
 
 
 
-def great_circle_distance_matrix(df, x, y, earth_radius=6371009, return_int=True):
+def great_circle_distance_matrix(df, x, y, earth_radius=6371009,
+                                 return_int=True):
     """
-    Calculate a pairwise great-circle distance matrix from a DataFrame of points.
-    Distances returned are in units of earth_radius (default is meters).
+    Calculate a pairwise great-circle distance matrix from a DataFrame of
+    points. Distances returned are in units of earth_radius (default is meters).
 
     Parameters
     ----------
     df : pandas DataFrame
-        a DataFrame of points, uniquely indexed by place identifier (e.g., tract ID
-        or parcel ID), represented by x and y coordinate columns
+        a DataFrame of points, uniquely indexed by place identifier (e.g., tract
+        ID or parcel ID), represented by x and y coordinate columns
     place_id : str
         label of the place_id column in the DataFrame
     x : str
@@ -66,7 +71,8 @@ def great_circle_distance_matrix(df, x, y, earth_radius=6371009, return_int=True
     y : str
         label of the y coordinate column in the DataFrame
     earth_radius : numeric
-        radius of earth in units in which distance will be returned (default is meters)
+        radius of earth in units in which distance will be returned (default is
+        meters)
     return_int : bool
         if True, convert all distances to integers. saves memory.
 
@@ -76,7 +82,8 @@ def great_circle_distance_matrix(df, x, y, earth_radius=6371009, return_int=True
         square distance matrix in units of earth_radius
     """
 
-    # calculate pairwise great-circle distances between each row and every other row
+    # calculate pairwise great-circle distances between each row and every
+    # other row
     df_dist_matrix = df.apply(lambda row: great_circle_vec(row[y], row[x], df[y], df[x], earth_radius=earth_radius),
                               axis='columns')
 
@@ -84,7 +91,7 @@ def great_circle_distance_matrix(df, x, y, earth_radius=6371009, return_int=True
     if return_int:
         df_dist_matrix = df_dist_matrix.fillna(0).astype(int)
 
-    # set matrix's column and row indices to the dataframe's row labels, then return
+    # set matrix's column and row indices to dataframe's row labels, then return
     labels = df.index.values
     df_dist_matrix.columns = labels
     df_dist_matrix.index = labels
@@ -101,8 +108,8 @@ def euclidean_distance_matrix(df, x, y):
     Parameters
     ----------
     df : pandas DataFrame
-        a DataFrame of points, uniquely indexed by place identifier (e.g., tract ID
-        or parcel ID), represented by x and y coordinate columns
+        a DataFrame of points, uniquely indexed by place identifier (e.g., tract
+        ID or parcel ID), represented by x and y coordinate columns
     x : str
         label of the x coordinate column in the DataFrame
     y : str
@@ -135,8 +142,8 @@ def network_distance_matrix(df, x, y):
     Parameters
     ----------
     df : pandas DataFrame
-        a DataFrame of points, uniquely indexed by place identifier (e.g., tract ID
-        or parcel ID), represented by x and y coordinate columns
+        a DataFrame of points, uniquely indexed by place identifier (e.g., tract
+        ID or parcel ID), represented by x and y coordinate columns
     x : str
         label of the x coordinate column in the DataFrame
     y : str
@@ -153,15 +160,17 @@ def network_distance_matrix(df, x, y):
 
 
 
-def distance_matrix(df, method='euclidean', x='lng', y='lat', earth_radius=6371009, return_int=True):
+def distance_matrix(df, method='euclidean', x='lng', y='lat',
+                    earth_radius=6371009, return_int=True):
     """
-    Calculate a pairwise distance matrix from a DataFrame of two-dimensional points.
+    Calculate a pairwise distance matrix from a DataFrame of two-dimensional
+    points.
 
     Parameters
     ----------
     df : pandas DataFrame
-        a DataFrame of points, uniquely indexed by place identifier (e.g., tract ID
-        or parcel ID), represented by x and y coordinate columns
+        a DataFrame of points, uniquely indexed by place identifier (e.g., tract
+        ID or parcel ID), represented by x and y coordinate columns
     method : str, {'euclidean', 'greatcircle', 'network'}
         which algorithm to use for calculating pairwise distances
     x : str
@@ -186,12 +195,13 @@ def distance_matrix(df, method='euclidean', x='lng', y='lat', earth_radius=63710
     if method == 'euclidean':
         return euclidean_distance_matrix(df=df, x=x, y=y)
     elif method == 'greatcircle':
-        return great_circle_distance_matrix(df=df, x=x, y=y, earth_radius=earth_radius,
+        return great_circle_distance_matrix(df=df, x=x, y=y,
+                                            earth_radius=earth_radius,
                                             return_int=return_int)
     elif method == 'network':
         return network_distance_matrix(df=df)
     else:
-        raise ValueError('method argument value must be one of "euclidean", "greatcircle", or "network"')
+        raise ValueError('argument `method` must be one of "euclidean", "greatcircle", or "network"')
 
 
 
@@ -233,7 +243,7 @@ def distance_bands(dist_matrix, distances):
 
     To make the final distance band include all geographies beyond a certain
     distance, make the final value in the distances list np.inf.
-    
+
     Parameters
     ----------
     dist_matrix : pandas DataFrame
@@ -249,7 +259,8 @@ def distance_bands(dist_matrix, distances):
         that ID
     """
 
-    # loop through each row in distance matrix, identifying all geographies within each distance band of the row's geography
+    # loop through each row in distance matrix, identifying all geographies
+    # within each distance band of the row's geography
     bands = {}
     for _, row in dist_matrix.iterrows():
         bands[row.name] = {}
@@ -261,9 +272,11 @@ def distance_bands(dist_matrix, distances):
             mask = (row >= dist1) & (row < dist2)
             place_ids = row[mask].index.values
 
-            # store value as array of geography IDs keyed by reference geography ID and distance band number
+            # store value as array of geography IDs keyed by reference geography
+            # ID and distance band number
             bands[row.name][band_number] = place_ids
 
-    # convert geography bands to a dataframe indexed by geography ID and distance band number
+    # convert geography bands to a dataframe indexed by geography ID and
+    # distance band number
     df = pd.DataFrame(bands).T.stack()
     return df
