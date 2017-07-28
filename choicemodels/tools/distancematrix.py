@@ -220,8 +220,20 @@ def pairwise(iterable):
 
 def distance_bands(dist_matrix, distances):
     """
-    Iterate through a list, pairwise.
+    Identify all geographies located within each distance band of each
+    geography.
 
+    The list of distances is treated pairwise to create distance bands, with
+    the first element of each pair forming the band's inclusive lower limit and
+    the second element of each pair forming the band's exclusive upper limit.
+    For example, if distances=[0, 10, 30], band 0 will contain all geographies
+    with a distance >= 0 and < 10 units (e.g., meters) from the reference
+    geography, and band 1 will contain all geographies with a distance >= 10
+    and < 30 units from the reference geography.
+
+    To make the final distance band include all geographies beyond a certain
+    distance, make the final value in the distances list np.inf.
+    
     Parameters
     ----------
     dist_matrix : pandas DataFrame
