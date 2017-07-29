@@ -17,22 +17,22 @@ from scipy.spatial.distance import squareform, pdist
 def great_circle_vec(lat1, lng1, lat2, lng2, earth_radius=6371009):
     """
     Vectorized function to calculate the great-circle distance between two
-    points or between vectors of points. This function is borrowed from OSMnx.
+    points or between vectors of points. This function is borrowed from OSMnx:
     https://github.com/gboeing/osmnx
 
     Parameters
     ----------
-    lat1 : float or array of float
-    lng1 : float or array of float
-    lat2 : float or array of float
-    lng2 : float or array of float
+    lat1 : float or vector of floats
+    lng1 : float or vector of floats
+    lat2 : float or vector of floats
+    lng2 : float or vector of floats
     earth_radius : numeric
         radius of earth in units in which distance will be returned (default is
         meters)
 
     Returns
     -------
-    distance : float or array of float
+    distance : float or vector of floats
         distance or vector of distances from (lat1, lng1) to (lat2, lng2) in
         units of earth_radius
     """
@@ -64,8 +64,6 @@ def great_circle_distance_matrix(df, x, y, earth_radius=6371009,
     df : pandas DataFrame
         a DataFrame of points, uniquely indexed by place identifier (e.g., tract
         ID or parcel ID), represented by x and y coordinate columns
-    place_id : str
-        label of the place_id column in the DataFrame
     x : str
         label of the x coordinate column in the DataFrame
     y : str
@@ -74,12 +72,13 @@ def great_circle_distance_matrix(df, x, y, earth_radius=6371009,
         radius of earth in units in which distance will be returned (default is
         meters)
     return_int : bool
-        if True, convert all distances to integers. saves memory.
+        if True, convert all distances to integers
 
     Returns
     -------
-    df_dist_matrix : pandas DataFrame
-        square distance matrix in units of earth_radius
+    pandas Series
+        Multi-indexed distance vector in units of df's values, with top-level
+        index representing "from" and second-level index representing "to".
     """
 
     # calculate pairwise great-circle distances between each row and every
@@ -91,7 +90,7 @@ def great_circle_distance_matrix(df, x, y, earth_radius=6371009,
     if return_int:
         df_dist_matrix = df_dist_matrix.fillna(0).astype(int)
 
-    # set matrix's column and row indices to dataframe's row labels, then return
+    # convert the distance matrix to a multi-indexed vector and return it
     labels = df.index.values
     df_dist_matrix.columns = labels
     df_dist_matrix.index = labels
@@ -168,7 +167,8 @@ def distance_matrix(df, method='euclidean', x='lng', y='lat',
     df : pandas DataFrame
         a DataFrame of points, uniquely indexed by place identifier (e.g., tract
         ID or parcel ID), represented by x and y coordinate columns
-    method : str, {'euclidean', 'greatcircle', 'network'}
+    method : str
+        {'euclidean', 'greatcircle', 'network'}
         which algorithm to use for calculating pairwise distances
     x : str
         if method='greatcircle' or 'network', label of the x coordinate column
@@ -254,8 +254,8 @@ def distance_bands(dist_vector, distances):
 
     Returns
     -------
-    df : pandas DataFrame
-        a DataFrame multi-indexed by geography ID and distance band number, with
+    pandas Series
+        a series multi-indexed by geography ID and distance band number, with
         values of arrays of geography IDs with the corresponding distances from
         that ID
     """
@@ -278,7 +278,6 @@ def distance_bands(dist_vector, distances):
             # ID and distance band number
             bands[row.name][band_number] = place_ids
 
-    # convert geography bands to a dataframe indexed by geography ID and
+    # convert geography bands to a series multi-indexed by geography ID and
     # distance band number
-    df = pd.DataFrame(bands).T.stack()
-    return df
+    return pd.DataFrame(bands).T.stack()
