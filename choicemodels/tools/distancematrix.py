@@ -95,12 +95,12 @@ def great_circle_distance_matrix(df, x, y, earth_radius=6371009,
     labels = df.index.values
     df_dist_matrix.columns = labels
     df_dist_matrix.index = labels
-    return df_dist_matrix
+    return df_dist_matrix.stack()
 
 
 
 
-def euclidean_distance_matrix(df, x, y):
+def euclidean_distance_matrix(df):
     """
     Calculate a pairwise euclidean distance matrix from a DataFrame of points.
     Distances returned are in units of x and y columns.
@@ -110,15 +110,12 @@ def euclidean_distance_matrix(df, x, y):
     df : pandas DataFrame
         a DataFrame of points, uniquely indexed by place identifier (e.g., tract
         ID or parcel ID), represented by x and y coordinate columns
-    x : str
-        label of the x coordinate column in the DataFrame
-    y : str
-        label of the y coordinate column in the DataFrame
 
     Returns
     -------
-    df_dist_matrix : pandas DataFrame
-        square distance matrix in units of x and y
+    pandas Series
+        Multi-indexed distance vector in units of df's values, with top-level
+        index representing "from" and second-level index representing "to".
     """
 
     # calculate pairwise euclidean distances between all rows
@@ -127,10 +124,10 @@ def euclidean_distance_matrix(df, x, y):
     # convert the distance vector to a square distance matrix
     dist_matrix = squareform(distance_vector)
 
-    # convert the distance matrix to a dataframe and return it
+    # convert the distance matrix to a multi-indexed vector and return it
     labels = df.index.values
     df_dist_matrix = pd.DataFrame(data=dist_matrix, columns=labels, index=labels)
-    return df_dist_matrix
+    return df_dist_matrix.stack()
 
 
 
@@ -174,9 +171,11 @@ def distance_matrix(df, method='euclidean', x='lng', y='lat',
     method : str, {'euclidean', 'greatcircle', 'network'}
         which algorithm to use for calculating pairwise distances
     x : str
-        label of the x coordinate column in the DataFrame
+        if method='greatcircle' or 'network', label of the x coordinate column
+        in the DataFrame
     y : str
-        label of the y coordinate column in the DataFrame
+        if method='greatcircle' or 'network', label of the y coordinate column
+        in the DataFrame
     earth_radius : numeric
         if method='greatcircle', radius of earth in units in which distance will
         be returned (default is meters)
@@ -185,21 +184,22 @@ def distance_matrix(df, method='euclidean', x='lng', y='lat',
 
     Returns
     -------
-    df_dist_matrix : pandas DataFrame
-        square distance matrix in units of earth_radius
+    pandas Series
+        Multi-indexed distance vector in units of df's values, with top-level
+        index representing "from" and second-level index representing "to".
     """
 
     if not df.index.is_unique:
         raise ValueError('The passed-in DataFrame must have a unique index')
 
     if method == 'euclidean':
-        return euclidean_distance_matrix(df=df, x=x, y=y)
+        return euclidean_distance_matrix(df=df)
     elif method == 'greatcircle':
         return great_circle_distance_matrix(df=df, x=x, y=y,
                                             earth_radius=earth_radius,
                                             return_int=return_int)
     elif method == 'network':
-        return network_distance_matrix(df=df)
+        return network_distance_matrix(df=df, x=x, y=y)
     else:
         raise ValueError('argument `method` must be one of "euclidean", "greatcircle", or "network"')
 
@@ -228,7 +228,7 @@ def pairwise(iterable):
 
 
 
-def distance_bands(dist_matrix, distances):
+def distance_bands(dist_vector, distances):
     """
     Identify all geographies located within each distance band of each
     geography.
@@ -246,8 +246,9 @@ def distance_bands(dist_matrix, distances):
 
     Parameters
     ----------
-    dist_matrix : pandas DataFrame
-        a distance matrix with rows and columns indexed by geography ID
+    dist_vector : pandas Series
+        Multi-indexed distance vector in units of df's values, with top-level
+        index representing "from" and second-level index representing "to".
     distances : list
         a list of distance band increments
 
@@ -262,6 +263,7 @@ def distance_bands(dist_matrix, distances):
     # loop through each row in distance matrix, identifying all geographies
     # within each distance band of the row's geography
     bands = {}
+    dist_matrix = dist_vector.unstack()
     for _, row in dist_matrix.iterrows():
         bands[row.name] = {}
 
