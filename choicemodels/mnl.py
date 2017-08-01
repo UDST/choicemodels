@@ -154,7 +154,7 @@ class MultinomialLogit(object):
             self._estimation_engine = 'ChoiceModels'
             self._numobs = self._data[[self._observation_id_col]].\
                                     drop_duplicates().shape[0]
-            self._numalts = self._data.shape[0] / self._numobs
+            self._numalts = self._data.shape[0] // self._numobs
             
             # TO DO: parse initial coefs
         
