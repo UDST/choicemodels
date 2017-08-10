@@ -40,7 +40,7 @@ class MergedChoiceTable(object):
     Attributes that vary based on interaction between the choosers and alternatives 
     (distance, for example) will need to be added in post-processing. 
     
-    Reserved column names: 'chosen'.
+    Reserved column names: 'chosen', 'join_index', 'observation_id'.
     
     Parameters
     ----------
@@ -216,7 +216,8 @@ def mnl_interaction_dataset(choosers, alternatives, SAMPLE_SIZE,
             "ERROR: alternatives index is not unique, "
             "sample will not work correctly")
 
-    alts_sample = alternatives.take(sample)
+    # Specify deep copy to resolve a later SettingWithCopy warning
+    alts_sample = alternatives.take(sample).copy(deep=True)
     assert len(alts_sample.index) == SAMPLE_SIZE * len(choosers.index)
     alts_sample['join_index'] = np.repeat(choosers.index.values, SAMPLE_SIZE)
 
