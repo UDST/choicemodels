@@ -216,8 +216,7 @@ def mnl_interaction_dataset(choosers, alternatives, SAMPLE_SIZE,
             "ERROR: alternatives index is not unique, "
             "sample will not work correctly")
 
-    # Specify deep copy to avoid chained indexing warnings
-    alts_sample = alternatives.take(sample).copy(deep=True)
+    alts_sample = alternatives.take(sample).copy()
     assert len(alts_sample.index) == SAMPLE_SIZE * len(choosers.index)
     alts_sample['join_index'] = np.repeat(choosers.index.values, SAMPLE_SIZE)
 
