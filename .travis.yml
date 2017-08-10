@@ -12,9 +12,8 @@ before_install:
   - hash -r
   - conda config --set always_yes yes --set show_channel_urls true
   - conda update conda
-  - conda config --add channels udst --force
   - conda config --add channels conda-forge --force
-  - conda create --quiet --name TESTENV python=$TRAVIS_PYTHON_VERSION future numpy pandas patsy scipy statsmodels urbansim coverage coveralls pytest
+  - conda create --quiet --name TESTENV python=$TRAVIS_PYTHON_VERSION future numpy pandas patsy scipy statsmodels coverage coveralls pytest
   - source activate TESTENV
   - pip install pylogit
   - conda info --all
