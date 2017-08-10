@@ -1,4 +1,4 @@
-# This generates tests data and results for testing UrbanSim's MNL machinery
+# This generates tests data and results for testing ChoiceModels' MNL machinery
 
 library('mlogit')
 
