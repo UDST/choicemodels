@@ -649,7 +649,8 @@ def mnl_estimate(data, chosen, numalts, GPU=False, coeffrange=(-1000, 1000),
         beta = np.zeros(numvars)
     bounds = [coeffrange] * numvars
 
-    # removed urbansim logger here - could replace with another timer/logger
+    # scipy optimization for MNL fit
+    logger.debug('start: scipy optimization for MNL fit')
     args = (data, chosen, numalts, weights, lcgrad)
     bfgs_result = scipy.optimize.fmin_l_bfgs_b(mnl_loglik,
                                                beta,
@@ -658,6 +659,8 @@ def mnl_estimate(data, chosen, numalts, GPU=False, coeffrange=(-1000, 1000),
                                                factr=10,
                                                approx_grad=False,
                                                bounds=bounds)
+    logger.debug('finish: scipy optimization for MNL fit')
+
     beta = bfgs_result[0]
     stderr = mnl_loglik(
         beta, data, chosen, numalts, weights, stderr=1, lcgrad=lcgrad)
