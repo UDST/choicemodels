@@ -35,4 +35,4 @@ There's documentation in these classes' docstrings, and a usage demo in a Jupyte
 https://github.com/udst/choicemodels/blob/master/choicemodels/tools/interaction.py
 https://github.com/udst/choicemodels/blob/master/choicemodels/mnl.py
 
-https://github.com/udst/choicemodels/blob/master/notebooks/Destination-choice-models-01.ipynb
+https://github.com/udst/choicemodels/blob/master/notebooks/Destination-choice-models-02.ipynb
