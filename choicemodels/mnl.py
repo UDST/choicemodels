@@ -74,6 +74,7 @@ class MultinomialLogit(object):
     choosers (distance, for example), but this must be set up manually in the input data.
 
     [TO DO: comparison of the estimation engines]
+    [TO DO: testing and input validation]
 
     Note that prediction methods are in a separate class: see MultinomialLogitResults().
 
@@ -120,7 +121,7 @@ class MultinomialLogit(object):
         one being estimated. If None, initial coefficients will be 0.
 
     weights : 1D array, optional
-        Estimation weights. [TO DO: implement the pass-through]
+        NOT YET IMPLEMENTED - Estimation weights.
 
     """
     def __init__(self, data, observation_id_col, choice_col, model_expression,
@@ -178,10 +179,10 @@ class MultinomialLogit(object):
         Fit the model using maximum likelihood estimation. Uses either the ChoiceModels
         or PyLogit estimation engine as appropriate.
 
-        TO DO: should we add pass-through parameters here, or take them all in the
-        constructor?
+        [TO DO: should we add pass-through parameters here, or take them all in the
+        constructor?]
 
-        Parameters
+        Parameters - NOT YET IMPLEMENTED
         ----------
         GPU : bool, optional
             GPU acceleration.
@@ -355,10 +356,6 @@ def summary_table(title=None, dep_var='', model_name='', method='', date='',
 
     We can't use PyLogit's summary table generator either. It requires a PyLogit
     model class as input, and we can't create one from results parameters. Oh well!
-
-    Parameters
-    ----------
-    Should be pretty self-explanatory, but we'll write documentation as this firms up.
 
     """
     def fmt(value, format_str):
