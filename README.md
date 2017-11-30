@@ -5,18 +5,15 @@
 
 This is a package for discrete choice model estimation and simulation, with an emphasis on large choice sets and behavioral refinements to multinomial models. Most of these models are not available in Statsmodels or Scikit-learn.
 
-The underlying estimation routines come from two main places: (1) UrbanSim's `urbanchoice` codebase, which is being moved into ChoiceModels, and (2) Timothy Brathwaite's PyLogit package, which handles more flexible model specifications.
+The underlying estimation routines come from two main places: (1) the `urbanchoice` codebase, which has been moved into ChoiceModels, and (2) Timothy Brathwaite's PyLogit package, which handles more flexible model specifications.
 
 
 ## Installation
 
 Clone this repository and run `python setup.py develop`.
 
-Two required packages should also be installed the same way:
+This required package should also be installed the same way:
 - PyLogit: https://github.com/timothyb0912/pylogit
-- UrbanSim: https://github.com/udst/urbansim
-
-UrbanSim won't be a requirement any more after we finish refactoring the estimation code.
 
 
 ## Current functionality
