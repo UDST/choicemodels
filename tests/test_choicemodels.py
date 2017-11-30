@@ -10,7 +10,7 @@ def test_simple_estimation():
     exog = np.random.rand(50, 5)
     m = choicemodels.Logit(endog, exog)
     results = m.fit()
-    results.summary()
+#    results.summary()
 
 def test_distance_matrix():
     import pandas as pd, numpy as np
