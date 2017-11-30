@@ -35,13 +35,13 @@ There may be other properties we'll want for PyLogit compatibility, too.
 class MergedChoiceTable(object):
     """
     Generates a merged long-format table of choosers and alternatives, for discrete choice
-    model estimation or simulation.
-
-    Attributes that vary based on interaction between the choosers and alternatives
-    (distance, for example) will need to be added in post-processing.
-
-    Reserved column names: 'chosen'.
-
+    model estimation or simulation. 
+    
+    Attributes that vary based on interaction between the choosers and alternatives 
+    (distance, for example) will need to be added in post-processing. 
+    
+    Reserved column names: 'chosen', 'join_index', 'observation_id'.
+    
     Parameters
     ----------
     observations : pandas.DataFrame
@@ -215,7 +215,7 @@ def mnl_interaction_dataset(choosers, alternatives, SAMPLE_SIZE,
             "ERROR: alternatives index is not unique, "
             "sample will not work correctly")
 
-    alts_sample = alternatives.take(sample)
+    alts_sample = alternatives.take(sample).copy()
     assert len(alts_sample.index) == SAMPLE_SIZE * len(choosers.index)
     alts_sample['join_index'] = np.repeat(choosers.index.values, SAMPLE_SIZE)
 
