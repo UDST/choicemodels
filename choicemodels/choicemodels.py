@@ -13,8 +13,13 @@ def convert_wide_to_long(*args, **kwargs):
 
 class Logit(object):
     """
-    Wraps the functionality of statsmodels.discrete.discrete_model.Logit()
+    This class provides binary logit estimation and prediction by wrapping
+    statsmodels.discrete.discrete_model.Logit(). It wraps the default constructor along
+    with the `fit`, `from_formula`, and `predict` methods. 
     
+    See Statsmodels for additional documentation:
+    http://www.statsmodels.org/dev/generated/statsmodels.discrete.discrete_model.Logit.html
+
     """
     def __init__(self, *args, **kwargs):
         self.wrapped_model = sm.Logit(*args, **kwargs)
