@@ -1,0 +1,16 @@
+name: CHOICEMODELS_DOCS
+
+channels:
+  - defaults
+  - conda-forge
+
+dependencies:
+  - python=3
+  - future
+  - numpy
+  - pandas
+  - patsy
+  - pylogit
+  - scipy
+  - statsmodels
+  

@@ -4,4 +4,4 @@
 from .choicemodels import *
 from .mnl import MultinomialLogit, MultinomialLogitResults
 
-version = __version__ = '0.1dev'
+version = __version__ = '0.1'
