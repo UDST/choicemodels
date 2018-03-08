@@ -171,7 +171,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
     (master_doc, 'ChoiceModels', 'ChoiceModels Documentation',
-     author, 'ChoiceModels', 'Python package for discrete choice model estimation and simulation.',
+     author, 'ChoiceModels', 'Python package for discrete choice model estimation.',
      'Miscellaneous'),
 ]
 

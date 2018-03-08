@@ -8,12 +8,19 @@ This is a package for discrete choice model estimation and simulation, with an e
 The underlying estimation routines come from two main places: (1) the `urbanchoice` codebase, which has been moved into ChoiceModels, and (2) Timothy Brathwaite's PyLogit package, which handles more flexible model specifications.
 
 
+
+## Documentation
+
+Package documentation is available on [readthedocs](https://choicemodels.readthedocs.io/).
+
+
+
 ## Installation
 
-Clone this repository and run `python setup.py develop`.
+Install with pip:
 
-This required package should also be installed the same way:
-- PyLogit: https://github.com/timothyb0912/pylogit
+`pip install choicemodels`
+
 
 
 ## Current functionality
@@ -31,8 +38,5 @@ This required package should also be installed the same way:
 - Stores and reports fitted MNL models.
 
 There's documentation in these classes' docstrings, and a usage demo in a Jupyter notebook.
-
-https://github.com/udst/choicemodels/blob/master/choicemodels/tools/interaction.py
-https://github.com/udst/choicemodels/blob/master/choicemodels/mnl.py
 
 https://github.com/udst/choicemodels/blob/master/notebooks/Destination-choice-models-02.ipynb
