@@ -1,11 +1,7 @@
-# Install setuptools if not installed.
 try:
-    import setuptools
+    from setuptools import setup
 except ImportError:
-    from ez_setup import use_setuptools
-    use_setuptools()
-
-from setuptools import setup
+    from distutils.core import setup
 
 
 # read README as the long description
@@ -18,7 +14,7 @@ install_requires = [item.strip() for item in install_requires]
 
 setup(
     name='choicemodels',
-    version='0.1',
+    version='0.1.1',
     description='Tools for discrete choice estimation',
     long_description=long_description,
     author='UDST',
@@ -33,6 +29,6 @@ setup(
         'Programming Language :: Python :: 3.6',
         'License :: OSI Approved :: BSD License'
     ],
-    packages=['choicemodels'],
+    packages=['choicemodels', 'choicemodels.tools'],
     install_requires=install_requires
 )
