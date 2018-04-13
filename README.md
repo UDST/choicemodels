@@ -21,6 +21,8 @@ Install with pip:
 
 `pip install choicemodels`
 
+or with conda-forge.
+
 
 
 ## Current functionality
