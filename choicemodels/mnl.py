@@ -446,6 +446,9 @@ def mnl_probs(data, beta, numalts):
         raise Exception("Number of alternatives is zero")
     utilities.reshape(numalts, utilities.size() // numalts)
 
+    # https://stats.stackexchange.com/questions/304758/softmax-overflow
+    utilities = utilities.subtract(utilities.max(0))
+    
     exponentiated_utility = utilities.exp(inplace=True)
     if clamp:
         exponentiated_utility.inftoval(1e20)
@@ -658,6 +661,9 @@ def mnl_estimate(data, chosen, numalts, GPU=False, coeffrange=(-1000, 1000),
                                                bounds=bounds)
     logger.debug('finish: scipy optimization for MNL fit')
 
+    if bfgs_result[2]['warnflag'] > 0:
+        logger.warn("mnl did not converge correctly: %s",  bfgs_result)
+    
     beta = bfgs_result[0]
     stderr = mnl_loglik(
         beta, data, chosen, numalts, weights, stderr=1, lcgrad=lcgrad)
