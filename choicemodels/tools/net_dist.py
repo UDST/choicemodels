@@ -6,10 +6,15 @@ Allows better spatial sampling than Euclidean distances.
 
 
 
-import networkx as nx
 import pickle
 from itertools import tee
 
+# networkx is a dependency for network-distance calculation
+# but let this be an optional dependency for choicemodels
+try:
+    import networkx as nx
+except ImportError as e:
+    nx = None
 
 
 def pairwise(iterable):
@@ -37,7 +42,7 @@ def get_reachable_nodes(G, node, dists, weight='length'):
     """
     Get nodes in subgraphs that are reachable within some 
     distance (e.g. spatial, temporal, etc) from some reference
-    node.
+    node. Depends on the networkx package.
 
     Parameters
     ----------
@@ -60,6 +65,10 @@ def get_reachable_nodes(G, node, dists, weight='length'):
         node IDs reachable from some reference node within that
         distance
     """
+
+    # check if we were able to import networkx successfully
+    if not nx:
+        raise ImportError('The networkx package must be installed to use this feature.')
 
     reachable_nodes = {}
     
@@ -116,7 +125,7 @@ def get_band_nodes(dists, reachable_nodes):
 
 def get_bands(G, dists):
     """
-    Create distance bands from a list of distances then, for each
+    Create distance bands from a list of distance. Then, for each
     node in graph, find all the nodes that fall between these bands.
 
     Parameters
@@ -130,8 +139,9 @@ def get_bands(G, dists):
     Returns
     -------
     bands : dict
-        dictionary of node distance bands with nodes reachable
-        within each of those bands
+        dictionary of dictionaries keyed by graph node : distance
+        bands : all graph nodes reachable from the reference node
+        within this distance band
     """
 
     bands = {}
@@ -166,7 +176,6 @@ def pickle_bands(bands, filepath, mode='wb',
     Returns
     -------
     None
-        
     """
 
     with open(filepath, mode) as f:
