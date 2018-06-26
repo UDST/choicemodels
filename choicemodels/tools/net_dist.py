@@ -1,6 +1,7 @@
 """
 Utilities for working with network-based distances and calculating which
-network nodes are within various distance bands of other network nodes
+network nodes are within various distance bands of other network nodes.
+Allows better spatial sampling than Euclidean distances.
 """
 
 
@@ -32,9 +33,11 @@ def pairwise(iterable):
 
 
 
-def get_subgraph_nodes(G, node, dists, weight='length'):
+def get_reachable_nodes(G, node, dists, weight='length'):
     """
-    Get nodes in subgraphs some distance from reference node.
+    Get nodes in subgraphs that are reachable within some 
+    distance (e.g. spatial, temporal, etc) from some reference
+    node.
 
     Parameters
     ----------
@@ -52,52 +55,60 @@ def get_subgraph_nodes(G, node, dists, weight='length'):
 
     Returns
     -------
-    subgraph_nodes : dict
-        a dictionary keyed by (dist1, dist2) with value of
-        set of node IDs in that subgraph
+    reachable_nodes : dict
+        a dictionary keyed by dist with value of the set of
+        node IDs reachable from some reference node within that
+        distance
     """
 
-    subgraph_nodes = {}
+    reachable_nodes = {}
     
-    for dist1, dist2 in pairwise(dists):
-        G_sub = nx.ego_graph(G, node, radius=dist2, distance=weight, center=True, undirected=False)
-        subgraph_nodes[(dist1, dist2)] = set(G_sub.nodes())
+    for dist in dists:
+        if dist > 0:
+            subgraph = nx.ego_graph(G, node, radius=dist, distance=weight, 
+                                    center=True, undirected=False)
+            reachable_nodes[dist] = set(subgraph.nodes())
     
-    return subgraph_nodes
+    return reachable_nodes
 
 
 
-def get_band_nodes(dists, subgraph_nodes):
+def get_band_nodes(dists, reachable_nodes):
     """
-    Get nodes in distance bands from subgraph nodes.
+    Get nodes within delimited, annular distance bands from a
+    dict of nodes reachable within each distance from some
+    reference node.
 
     Parameters
     ----------
     dists : list
-        list of distances at which to induce subgraphs around
-        the reference node
-    subgraph_nodes : dict
-        a dictionary keyed by (dist1, dist2) with value of
-        set of node IDs in that subgraph
+        list of distances to make pairwise to create bands
+    reachable_nodes : dict
+        a dictionary keyed by dist with value of the set of
+        node IDs reachable from some reference node within that
+        distance
 
     Returns
     -------
     band_nodes : dict
-        
+        a dictionary keyed by distance-pair bands, with value of
+        the set of node IDs reachable from some reference node
+        within that distance band
     """
 
     band_nodes = {}
-    pairwise_dists = list(pairwise(dists))
-    
-    for idx1, dist_pair1 in reversed(list(enumerate(pairwise_dists))):
+    pairwise_dists = list(pairwise(sorted(dists)))
+    min_dist = min(dists)
 
-        if idx1 < 1:
-            break
-
-        dist_pair2 = pairwise_dists[idx1 - 1]
-        band_nodes[dist_pair1] = subgraph_nodes[dist_pair1] - subgraph_nodes[dist_pair2]
-
-    band_nodes[pairwise_dists[0]] = subgraph_nodes[pairwise_dists[0]]
+    for pair in reversed(pairwise_dists):
+        
+        inner_limit = min(pair)
+        outer_limit = max(pair)
+        
+        if inner_limit > min_dist:
+            band_nodes[pair] = reachable_nodes[outer_limit] - reachable_nodes[inner_limit]
+        else:
+            band_nodes[pair] = reachable_nodes[outer_limit]
     
     return band_nodes
 
@@ -118,20 +129,20 @@ def get_bands(G, dists):
 
     Returns
     -------
-    node_band_nodes : dict
+    bands : dict
         dictionary of node distance bands with nodes reachable
         within each of those bands
     """
 
-    node_band_nodes = {}
+    bands = {}
     nodes = list(G.nodes())
     
     for node in nodes[0:10]:    
     
-        subgraph_nodes = get_subgraph_nodes(G, node, dists)
-        node_band_nodes[node] = get_band_nodes(dists, subgraph_nodes)
+        reachable_nodes = get_reachable_nodes(G, node, dists)
+        bands[node] = get_band_nodes(dists, reachable_nodes)
 
-    return node_band_nodes
+    return bands
 
 
 def pickle_bands(bands, filepath, mode='wb',
