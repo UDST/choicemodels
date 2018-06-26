@@ -161,7 +161,7 @@ def get_bands(G, dists):
     
     # for each node in the graph, first get all reachable nodes
     # at each distance, then convert these into annular bands
-    for node in nodes[0:10]:    
+    for node in nodes:    
     
         reachable_nodes = get_reachable_nodes(G, node, dists)
         bands[node] = get_band_nodes(dists, reachable_nodes)
