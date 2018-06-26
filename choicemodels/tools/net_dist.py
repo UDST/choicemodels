@@ -64,17 +64,21 @@ def get_subgraph_nodes(G, node, dists, weight='length'):
 
 def get_band_nodes(dists, subgraph_nodes):
     """
-    Iterate through a list, pairwise.
+    Get nodes in distance bands from subgraph nodes.
 
     Parameters
     ----------
-    iterable : list-like
-        the list-like object to iterate through pairwise
+    dists : list
+    	list of distances at which to induce subgraphs around
+    	the reference node
+    subgraph_nodes : dict
+    	a dictionary keyed by (dist1, dist2) with value of
+        set of node IDs in that subgraph
 
     Returns
     -------
-    zip
-        a zipped iterable of pairwise tuples
+    band_nodes : dict
+        
     """
 
     band_nodes = {}
