@@ -103,7 +103,7 @@ def get_band_nodes(dists, subgraph_nodes):
 
 
 
-def get_distance_bands(G, dists):
+def get_bands(G, dists):
     """
     Create distance bands from a list of distances then, for each
     node in graph, find all the nodes that fall between these bands.
@@ -119,7 +119,8 @@ def get_distance_bands(G, dists):
     Returns
     -------
     node_band_nodes : dict
-        
+        dictionary of node distance bands with nodes reachable
+        within each of those bands
     """
 
     node_band_nodes = {}
@@ -131,3 +132,31 @@ def get_distance_bands(G, dists):
         node_band_nodes[node] = get_band_nodes(dists, subgraph_nodes)
 
     return node_band_nodes
+
+
+def pickle_bands(bands, filepath, mode='wb',
+                 protocol=pickle.HIGHEST_PROTOCOL):
+    """
+    Pickle a node distance bands dictionary and save it
+    to disk.
+
+    Parameters
+    ----------
+    bands : dict
+        dictionary of node distance bands with nodes reachable
+        within each of those bands
+    filepath : string
+        location where to save the pickled dictionary
+    mode : string
+        file i/o mode
+    protocol : int
+        protocol for pickler to use
+
+    Returns
+    -------
+    None
+        
+    """
+
+    with open(filepath, mode) as f:
+        pickle.dump(bands, f, protocol=protocol)
