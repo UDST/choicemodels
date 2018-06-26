@@ -41,14 +41,14 @@ def get_subgraph_nodes(G, node, dists, weight='length'):
     G : networkx MultiDiGraph
         the street network graph
     node : int
-    	the OSM ID of the reference node around which to
-    	induce subgraphs
+        the OSM ID of the reference node around which to
+        induce subgraphs
     dists : list
-    	list of distances at which to induce subgraphs around
-    	the reference node
+        list of distances at which to induce subgraphs around
+        the reference node
     weight : string
-    	the name of the edge attribute to weight shortest
-    	path distance calculation by
+        the name of the edge attribute to weight shortest
+        path distance calculation by
 
     Returns
     -------
@@ -74,10 +74,10 @@ def get_band_nodes(dists, subgraph_nodes):
     Parameters
     ----------
     dists : list
-    	list of distances at which to induce subgraphs around
-    	the reference node
+        list of distances at which to induce subgraphs around
+        the reference node
     subgraph_nodes : dict
-    	a dictionary keyed by (dist1, dist2) with value of
+        a dictionary keyed by (dist1, dist2) with value of
         set of node IDs in that subgraph
 
     Returns
@@ -100,3 +100,34 @@ def get_band_nodes(dists, subgraph_nodes):
     band_nodes[pairwise_dists[0]] = subgraph_nodes[pairwise_dists[0]]
     
     return band_nodes
+
+
+
+def get_distance_bands(G, dists):
+    """
+    Create distance bands from a list of distances then, for each
+    node in graph, find all the nodes that fall between these bands.
+
+    Parameters
+    ----------
+    G : networkx MultiDiGraph
+        the street network graph
+    dists : list
+        list of distances at which to induce subgraphs around
+        the reference node
+
+    Returns
+    -------
+    node_band_nodes : dict
+        
+    """
+
+    node_band_nodes = {}
+    nodes = list(G.nodes())
+    
+    for node in nodes[0:10]:    
+    
+        subgraph_nodes = get_subgraph_nodes(G, node, dists)
+        node_band_nodes[node] = get_band_nodes(dists, subgraph_nodes)
+
+    return node_band_nodes
