@@ -72,6 +72,8 @@ def get_reachable_nodes(G, node, dists, weight='length'):
 
     reachable_nodes = {}
     
+    # for each distance value in the list, induce a subgraph of all nodes
+    # reachable from the reference node within this distance.
     for dist in dists:
         if dist > 0:
             subgraph = nx.ego_graph(G, node, radius=dist, distance=weight, 
@@ -105,18 +107,28 @@ def get_band_nodes(dists, reachable_nodes):
         within that distance band
     """
 
-    band_nodes = {}
-    pairwise_dists = list(pairwise(sorted(dists)))
     min_dist = min(dists)
+    pairwise_dists = reversed(list(pairwise(sorted(dists))))
+    band_nodes = {}
 
-    for pair in reversed(pairwise_dists):
+    # for each pair of distances (forming an annular band) in
+    # descending order of distance
+    for pair in pairwise_dists:
         
+        # get the inner and outer distance limits of this band
         inner_limit = min(pair)
         outer_limit = max(pair)
         
         if inner_limit > min_dist:
+            # get the set-theoretic difference between the nodes reachable
+            # at the outer limit of the ring and the nodes reachable at the
+            # inner limit of the ring. this gets the band of nodes.
             band_nodes[pair] = reachable_nodes[outer_limit] - reachable_nodes[inner_limit]
         else:
+            # if the band's inner limit is not greater than the minimal
+            # distance in the list, then the band is equivalent to all
+            # nodes reachable at its outer limit (i.e., it is the inner-
+            # most band).
             band_nodes[pair] = reachable_nodes[outer_limit]
     
     return band_nodes
@@ -147,6 +159,8 @@ def get_bands(G, dists):
     bands = {}
     nodes = list(G.nodes())
     
+    # for each node in the graph, first get all reachable nodes
+    # at each distance, then convert these into annular bands
     for node in nodes[0:10]:    
     
         reachable_nodes = get_reachable_nodes(G, node, dists)
