@@ -5,6 +5,11 @@ network nodes are within various distance bands of other network nodes
 
 
 
+import networkx as nx
+import pickle
+from itertools import tee
+
+
 
 def pairwise(iterable):
     """
