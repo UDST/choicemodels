@@ -6,10 +6,10 @@ import numpy as np
 import pandas as pd
 import pylogit
 import scipy.optimize
-
+import scipy.stats
+import datetime
 from .tools import pmat
 from .tools.pmat import PMAT
-
 from collections import OrderedDict
 from patsy import dmatrix
 from statsmodels.iolib.table import SimpleTable
@@ -315,20 +315,50 @@ class MultinomialLogitResults(object):
             # Pull out individual results components
             ll = self._results['log_likelihood']['convergence']
             ll_null = self._results['log_likelihood']['null']
+
+            rho_bar_squared = self._results['log_likelihood']['rho_bar_squared']
+            rho_squared = self._results['log_likelihood']['rho_squared']
+            df_model = self._results['log_likelihood']['df_model']
+            df_resid = self._results['log_likelihood']['df_resid']
+            num_obs = self._results['log_likelihood']['num_obs']
+            bic = self._results['log_likelihood']['bic']
+            aic = self._results['log_likelihood']['aic']
+
+
+
             x_names = self._results['x_names']
             coefs = self._results['fit_parameters']['Coefficient'].tolist()
             std_errs = self._results['fit_parameters']['Std. Error'].tolist()
             t_scores = self._results['fit_parameters']['T-Score'].tolist()
+            p_values = self._results['fit_parameters']['P-Values'].tolist()
+
+            def time_now(*args, **kwds):
+                now = datetime.datetime.now()
+                return now.strftime('%H:%M')
+
+            def date_now(*args, **kwds):
+                now = datetime.datetime.now()
+                return now.strftime('%Y-%m-%d')
 
             (header, body) = summary_table(dep_var = 'chosen',
                                            model_name = 'Multinomial Logit',
                                            method = 'Maximum Likelihood',
                                            log_likelihood = ll,
                                            null_log_likelihood = ll_null,
+                                           rho_squared = rho_squared,
+                                           rho_bar_squared = rho_bar_squared,
+                                           df_model = df_model,
+                                           df_resid = df_resid,
                                            x_names = x_names,
                                            coefs = coefs,
                                            std_errs = std_errs,
-                                           t_scores = t_scores)
+                                           t_scores = t_scores,
+                                           p_values = p_values,
+                                           bic = bic,
+                                           aic = aic,
+                                           num_obs = num_obs,
+                                           time = time_now(),
+                                           date = date_now())
 
             output = header.as_text() + '\n' + body.as_text()
 
@@ -339,7 +369,7 @@ def summary_table(title=None, dep_var='', model_name='', method='', date='',
                   time='', aic=None, bic=None, num_obs=None, df_resid=None,
                   df_model=None, rho_squared=None, rho_bar_squared=None,
                   log_likelihood=None, null_log_likelihood=None, x_names=[], coefs=[],
-                  std_errs=[], t_scores=[], alpha=None):
+                  std_errs=[], t_scores=[],p_values=[], alpha=None):
     """
     Generate a summary table of estimation results using Statsmodels SimpleTable. Still a
     work in progress.
@@ -399,7 +429,7 @@ def summary_table(title=None, dep_var='', model_name='', method='', date='',
     body_cells = [[fmt(coefs[i], "{:,.4f}"),
                    fmt(std_errs[i], "{:,.3f}"),
                    fmt(t_scores[i], "{:,.3f}"),
-                   '',  # p-value placeholder
+                   fmt(p_values[i], "{:,.3f}"),
                    '']  # conf int placeholder
                    for i in range(len(x_names))]
 
@@ -613,10 +643,43 @@ def mnl_estimate(data, chosen, numalts, GPU=False, coeffrange=(-1000, 1000),
     -------
     log_likelihood : dict
         Dictionary of log-likelihood values describing the quality of
-        the model fit.
+        the model fit. The  following keys is entered into `log_likelihood`.
+        
+        aic : float
+            Akaike information criterion for an estimated model. 
+            aic =  -2 * log_likelihood + 2 * num_estimated_parameters 
+        
+        bic : float
+            Bayesian information criterion for an estimated model. 
+            bic = -2 * log_likelihood + log(num_observations) * num_parameters
+        
+        num_obs : int
+            Number of observations in the model.
+
+        df_model : int
+            The number of parameters estimated in this model.
+
+        df_resid : int
+            The number of observations minus the number of estimated parameters.
+
+        llnull : float
+            Value of the constant-only loglikelihood
+        
+        ll : float
+            Value of the loglikelihood
+
+        rho_squared  : float
+            McFadden's pseudo-R-squared. 
+            rho_squared = 1.0 - final_log_likelihood / null_log_likelihood
+
+        rho_bar_squared : float
+            rho_bar_squared = 1.0 - ((final_log_likelihood - num_est_parameters) /
+                             null_log_likelihood)
+
+
     fit_parameters : pandas.DataFrame
         Table of fit parameters with columns 'Coefficient', 'Std. Error',
-        'T-Score'. Each row corresponds to a column in `data` and are given
+        'T-Score', and 'P-Values. Each row corresponds to a column in `data` and are given
         in the same order as in `data`.
 
     See Also
@@ -665,17 +728,33 @@ def mnl_estimate(data, chosen, numalts, GPU=False, coeffrange=(-1000, 1000),
     l0beta = np.zeros(numvars)
     l0 = -1 * mnl_loglik(l0beta, *args)[0]
     l1 = -1 * mnl_loglik(beta, *args)[0]
+    ll = float(l1[0][0])
+    ll_null = float(l0[0][0])
+    rho_squared = 1.0 - ll / ll_null
+    rho_bar_squared = 1.0 - ((ll - len(beta)) /ll_null)
+    num_obs = numobs
+    df_resid = numobs - len(beta)
+    p_values = 2 * scipy.stats.norm.sf(np.abs(beta / stderr))
+    bic = -2 * ll + np.log(numobs) * len(beta)
+    aic = -2 * ll + 2 * len(beta)
 
     log_likelihood = {
         'null': float(l0[0][0]),
         'convergence': float(l1[0][0]),
-        'ratio': float((1 - (l1 / l0))[0][0])
-    }
+        'ratio': float((1 - (l1 / l0))[0][0]),
+        'rho_bar_squared': rho_bar_squared,
+        'rho_squared': rho_squared,
+        'df_model': len(beta),
+        'df_resid': df_resid,
+        'num_obs':numobs,
+        'bic':bic,
+        'aic':aic}
 
     fit_parameters = pd.DataFrame({
         'Coefficient': beta,
         'Std. Error': stderr,
-        'T-Score': beta / stderr})
+        'T-Score': beta / stderr,
+        'P-Values' : p_values })
 
     logger.debug('finish: MNL fit')
     return log_likelihood, fit_parameters
