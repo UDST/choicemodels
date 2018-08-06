@@ -67,15 +67,19 @@ class MergedChoiceTable(object):
         Number of alternatives available for each chooser. These will be sampled randomly.
         If 'None', all of the alternatives will be available for each chooser.
 
-    sample_weights : ???, optional
-        Not yet implemented. The weights could either be alternative-specific,
-        (len = alts) or could vary for different choosers (len = alts x choosers). So we
-        might want to accept either (a) a column of the alternatives table, (b) a separate
-        lookup table, or (c) a function that returns weights.
+    weights : str, pandas.Series, or callable, optional
+        Weights to apply when sampling alternatives. (A) One weight per alternative. If 
+        str, interpreted as a column name from the alternatives table. If Series, it 
+        should have the same length as the alternatives table and its index should align.
+        (B) One weight per combination of observation and alternative. If Series, it
+        should have one row per combination of observation id and alternative id, with
+        the first index level corresponding to the former and the second index level
+        to the latter. If callable, it should accept two arguments in the form of 
+        `observation_id`, `alternative_id` and return the corresponding weight.
 
     """
     def __init__(self, observations, alternatives, chosen_alternatives=None,
-                 sample_size=None, sample_weights=None):
+                 sample_size=None, weights=None):
 
         # TO DO: implement case where sample_size = None
         # TO DO: implement case where chosen_alternatives is a string (might be nice to
