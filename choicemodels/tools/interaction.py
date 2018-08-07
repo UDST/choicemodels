@@ -32,6 +32,34 @@ There may be other properties we'll want for PyLogit compatibility, too.
 
 """
 
+class MCT(object):
+    """
+    Work in progress refactoring the choice table generation
+    
+    """
+
+    def __init__(self, observations, alternatives, chosen_alternatives=None,
+                 sample_size=None, replace=True, weights=None, random_state=None):
+        
+        n_obs = observations.shape[0]
+        n_alts = alternatives.shape[0]
+        
+        obs_id = np.repeat(observations.index, sample_size)
+        
+        # Sampling with replacement is most efficient
+        alt_id = 
+        
+        df = 
+        
+        self._merged_table = df
+        
+        
+        
+
+    def to_frame(self):
+        return self._merged_table
+
+
 class MergedChoiceTable(object):
     """
     Generates a merged long-format table of choosers and alternatives, for discrete choice
