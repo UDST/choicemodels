@@ -5,6 +5,7 @@ Used for location choice models.
 
 """
 import logging
+import random
 
 import numpy as np
 import pandas as pd
@@ -41,15 +42,37 @@ class MCT(object):
     def __init__(self, observations, alternatives, chosen_alternatives=None,
                  sample_size=None, replace=True, weights=None, random_state=None):
         
+        # TO DO - implement no-chosen case
+        # TO DO - implement availability
+        # TO DO - implement non-sampling case
+        
         n_obs = observations.shape[0]
         n_alts = alternatives.shape[0]
         
-        obs_id = np.repeat(observations.index, sample_size)
+        obs_ids = np.repeat(observations.index.values, sample_size)
         
-        # Sampling with replacement is most efficient
-        alt_id = 
+        # TO DO - 1d weights vs 2d weights will have different implementation
         
-        df = 
+        # Case 1: sampling with replacement, no weights
+        if ((sample_size is not None) & (replace == True) & (weights is None)):
+            alt_ids = random.choices(alternatives.index.values, k=n_obs*sample_size)
+        
+        df = pd.DataFrame({'obs_id': obs_ids, 'alt_id': alt_ids})
+        df = df.set_index(['obs_id', 'alt_id'])
+        
+        if (chosen_alternatives is not None):
+        
+            # Generate a binary chosen column: [1, 0, 0, 1, 0, 0, 1, 0, 0]
+            df['chosen'] = np.tile(np.append([1], np.repeat(0, sample_size-1)), n_obs)
+        
+            # TO DO - place chosen alts
+            
+            alternatives = alternatives.drop(chosen_alternatives, axis='columns')
+        
+        # Merge remaining attributes of the observations and alternatives
+        # (support for specifying index levels requires pandas 0.23)
+        df = df.join(observations, how='left', on='obs_id')
+        df = df.join(alternatives, how='left', on='alt_id')
         
         self._merged_table = df
         
