@@ -1,6 +1,6 @@
 future >= 0.16
 numpy >= 1.14
-pandas >= 0.22
+pandas >= 0.23
 patsy >= 0.5
 pylogit >= 0.2.2
 scipy >= 1.0
