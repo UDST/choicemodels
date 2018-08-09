@@ -42,41 +42,89 @@ class MCT(object):
     def __init__(self, observations, alternatives, chosen_alternatives=None,
                  sample_size=None, replace=True, weights=None, random_state=None):
         
-        # TO DO - implement no-chosen case
-        # TO DO - implement availability
-        # TO DO - implement non-sampling case
+        self.observations = observations
+        self.alternatives = alternatives
+        self.chosen_alternatives = chosen_alternatives
+        self.sample_size = sample_size
+        self.replace = replace
+        self.weights = weights
+        self.random_state = random_state
         
-        n_obs = observations.shape[0]
-        n_alts = alternatives.shape[0]
+        if (sample_size == 0):
+            raise ValueError("Cannot sample 0 alternatives; to run without sampling "
+                    "leave sample_size=None")
+
+        if (sample_size is not None) & (replace == False):
+            if (sample_size > alternatives.shape[0]):
+                raise ValueError("Cannot sample without replacement with sample_size {} "
+                        "and n_alts {}".format(sample_size, alternatives.shape[0]))
         
-        obs_ids = np.repeat(observations.index.values, sample_size)
+        # TO DO - check that dfs have unique indexes
+        # TO DO - check that chosen_alternatives correspond correctly to other dfs
+        # TO DO - same with weights
+        # TO DO - check for overlapping column names
         
-        # TO DO - 1d weights vs 2d weights will have different implementation
+        # Normalize chosen_alternatives to a pd.Series
+        if (chosen_alternatives is not None) & isinstance(chosen_alternatives, str):
+            self.chosen_alternatives = alternatives[chosen_alternatives]
+            self.alternatives.drop(chosen_alternatives, axis='columns', inplace=True)
         
-        # Case 1: sampling with replacement, no weights
-        if ((sample_size is not None) & (replace == True) & (weights is None)):
-            alt_ids = random.choices(alternatives.index.values, k=n_obs*sample_size)
+        # Normalize weights to a pd.Series
+        if (weights is not None) & isinstance(weights, str):
+            self.weights = alternatives[weights]
+        
+        self._merged_table = self._build_table()
+        
+        
+    def _build_table(self):
+        # TO DO - finish implementing chosen alternatives
+        # TO DO - implement case of looping through choosers
+        # TO DO - implement availability (maybe put off until later)
+        # TO DO - implement interaction terms
+        
+        n_obs = len(self.observations)
+        n_alts = len(self.alternatives)
+        
+        weights_2d = False
+        if (self.weights is not None):
+            if (len(self.weights) != n_alts):
+                weights_2d = True
+        
+        # Case 1: no sampling
+        if (self.sample_size is None):
+            obs_ids = np.repeat(self.observations.index.values, n_alts)
+            alt_ids = np.tile(self.alternatives.index.values, reps=n_obs)
+            
+        # Case 2: sampling with replacement (can incorporate 1d weights)
+        elif (self.replace == True) & (weights_2d == False):
+            obs_ids = np.repeat(self.observations.index.values, self.sample_size)
+            alt_ids = random.choices(self.alternatives.index.values, 
+                                     weights = self.weights,
+                                     k=n_obs * self.sample_size)
+        
+        # Case 3: must loop through choosers (no replacement and/or 2d weights)
+        else:
+            pass 
         
         df = pd.DataFrame({'obs_id': obs_ids, 'alt_id': alt_ids})
-        df = df.set_index(['obs_id', 'alt_id'])
+        df.set_index(['obs_id', 'alt_id'], inplace=True)
         
-        if (chosen_alternatives is not None):
+        if (self.chosen_alternatives is not None):
+            
+            # TO DO - implement this differently for the no-sampling case?
         
             # Generate a binary chosen column: [1, 0, 0, 1, 0, 0, 1, 0, 0]
-            df['chosen'] = np.tile(np.append([1], np.repeat(0, sample_size-1)), n_obs)
+            _one_obs = np.append([1], np.repeat(0, repeats=self.sample_size-1))
+            df['chosen'] = np.tile(_one_obs, reps=n_obs)
         
-            # TO DO - place chosen alts
-            
-            alternatives = alternatives.drop(chosen_alternatives, axis='columns')
+            # TO DO - place chosen alts (swap for no-sampling case)
         
         # Merge remaining attributes of the observations and alternatives
         # (support for specifying index levels requires pandas 0.23)
-        df = df.join(observations, how='left', on='obs_id')
-        df = df.join(alternatives, how='left', on='alt_id')
+        df = df.join(self.observations, how='left', on='obs_id')
+        df = df.join(self.alternatives, how='left', on='alt_id')
         
-        self._merged_table = df
-        
-        
+        return df
         
 
     def to_frame(self):
