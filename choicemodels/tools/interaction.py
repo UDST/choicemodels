@@ -73,41 +73,172 @@ class MCT(object):
         if (weights is not None) & isinstance(weights, str):
             self.weights = alternatives[weights]
         
-        self._merged_table = self._build_table()
-        
-        
-    def _build_table(self):
-        # TO DO - finish implementing chosen alternatives
-        # TO DO - implement case of looping through choosers
-        # TO DO - implement availability (maybe put off until later)
-        # TO DO - implement interaction terms
-        
-        n_obs = len(self.observations)
-        n_alts = len(self.alternatives)
-        
         weights_2d = False
         if (self.weights is not None):
-            if (len(self.weights) != n_alts):
-                weights_2d = True
+            if (len(self.weights) != len(self.alternatives)):
+                weights_2d = True        
         
-        # Case 1: no sampling
+        # Build choice table
         if (self.sample_size is None):
-            obs_ids = np.repeat(self.observations.index.values, n_alts)
-            alt_ids = np.tile(self.alternatives.index.values, reps=n_obs)
-            
-        # Case 2: sampling with replacement (can incorporate 1d weights)
-        elif (self.replace == True) & (weights_2d == False):
-            obs_ids = np.repeat(self.observations.index.values, self.sample_size)
-            alt_ids = random.choices(self.alternatives.index.values, 
-                                     weights = self.weights,
-                                     k=n_obs * self.sample_size)
+            self._merged_table = self._build_table_without_sampling()
         
-        # Case 3: must loop through choosers (no replacement and/or 2d weights)
-        else:
-            pass 
+        elif (self.replace == True) & (weights_2d == False):
+            self._merged_table = self._build_table_with_single_sample()
+        
+        else:    
+            self._merged_table = self._build_table_with_repeated_sample()
+        
+        
+    def _build_table_without_sampling(self):
+        """
+        This handles the cases where each alternative is available for each chooser.
+        
+        Expected class parameters
+        -------------------------
+        self.observations : pd.DataFrame
+        self.alternatives : pd.DataFrame
+        self.chosen_alternatives : pd.Series or None
+        self.sample_size : None
+
+        """
+        obs_ids = np.repeat(self.observations.index.values, len(self.alternatives))
+        alt_ids = np.tile(self.alternatives.index.values, reps=len(self.observations))
+        
+        # TO DO - implement chosen alternatives
         
         df = pd.DataFrame({'obs_id': obs_ids, 'alt_id': alt_ids})
         df.set_index(['obs_id', 'alt_id'], inplace=True)
+   
+        df = df.join(self.observations, how='left', on='obs_id')
+        df = df.join(self.alternatives, how='left', on='alt_id')
+        
+        return df
+
+    
+    def _build_table_with_single_sample(self):
+        """
+        This handles the cases where we can draw a single sample and distribute it among
+        the choosers -- sampling with replacement, with optional alternative-specific
+        weights but NOT weights that apply to combinations of observation x alternative.
+        
+        Expected class parameters
+        -------------------------
+        self.observations : pd.DataFrame
+        self.alternatives : pd.DataFrame
+        self.chosen_alternatives : pd.Series or None
+        self.sample_size : int
+        self.replace : True
+        self.weights : pd.Series or None
+        self.random_state : --TO DO--
+
+        """
+        n_obs = self.observations.shape[0]
+        
+        obs_ids = np.repeat(self.observations.index.values, self.sample_size)
+        
+        # No weights: core python is most efficient
+        if (self.weights is None):
+            alt_ids = random.choices(self.alternatives.index.values, 
+                                     k = n_obs * self.sample_size)
+        
+        # Alternative-specific weights: numpy is most efficient
+        else:
+            alt_ids = np.random.choice(self.alternatives.index.values, 
+                                       replace = True,
+                                       p = self.weights/self.weights.sum(),
+                                       size = n_obs * self.sample_size)
+        
+        # TO DO - implement chosen alternatives
+        
+        df = pd.DataFrame({'obs_id': obs_ids, 'alt_id': alt_ids})
+        df.set_index(['obs_id', 'alt_id'], inplace=True)
+   
+        df = df.join(self.observations, how='left', on='obs_id')
+        df = df.join(self.alternatives, how='left', on='alt_id')
+        
+        return df
+        
+    
+    def _get_weights(self, obs_id):
+        """
+        Get sampling weights corresponding to a single observation id. 
+        
+        Parameters
+        ----------
+        observation_id : int
+        
+        Expected class parameters
+        -------------------------
+        self.weights : pd.Series, callable, or None
+        
+        Returns
+        -------
+        pd.Series, normalized to sum to 1
+        
+        """
+        if (self.weights is None):
+            return None
+            
+        elif (callable(self.weights)):
+            # TO DO - implement
+            pass
+        
+        elif (self.weights.shape[0] == self.alternatives.shape[0]):
+            # TO DO - we'd gain some efficiency by storing normalized weights, but it 
+            #   wouldn't work with varying availability
+            return self.weights/self.weights.sum()
+        
+        else:
+            w = self.weights[self.weights.index.get_level_values('obs_id').isin([obs_id])]
+            return w/w.sum()
+            
+    
+    def _build_table_with_repeated_sample(self):
+        """
+        This handles the cases where we have to draw separate samples for each 
+        observation -- sampling without replacement, or weights that apply to combinations
+        of observation x alternative.
+        
+        Expected class parameters
+        -------------------------
+        self.observations : pd.DataFrame
+        self.alternatives : pd.DataFrame
+        self.chosen_alternatives : pd.Series or None
+        self.sample_size : int
+        self.replace : boolean
+        self.weights : pd.Series, callable, or None
+        self.random_state : --TO DO--
+
+        """
+        obs_ids = np.repeat(self.observations.index.values, self.sample_size)
+        alt_ids = []
+        
+        for i in self.observations.index.values:
+            sampled_alts = np.random.choice(self.alternatives.index.values,
+                                            replace = self.replace,
+                                            p = self._get_weights(i),
+                                            size = self.sample_size)
+            alt_ids += sampled_alts
+
+        # TO DO - implement chosen alternatives
+        
+        df = pd.DataFrame({'obs_id': obs_ids, 'alt_id': alt_ids})
+        df.set_index(['obs_id', 'alt_id'], inplace=True)
+   
+        df = df.join(self.observations, how='left', on='obs_id')
+        df = df.join(self.alternatives, how='left', on='alt_id')
+        
+        return df
+
+    
+    def _build_table(self):
+        """
+        Stub code to be refactored
+        
+        """
+        # TO DO - finish implementing chosen alternatives
+        # TO DO - implement availability (maybe put off until later)
+        # TO DO - implement interaction terms
         
         if (self.chosen_alternatives is not None):
             
@@ -118,13 +249,7 @@ class MCT(object):
             df['chosen'] = np.tile(_one_obs, reps=n_obs)
         
             # TO DO - place chosen alts (swap for no-sampling case)
-        
-        # Merge remaining attributes of the observations and alternatives
-        # (support for specifying index levels requires pandas 0.23)
-        df = df.join(self.observations, how='left', on='obs_id')
-        df = df.join(self.alternatives, how='left', on='alt_id')
-        
-        return df
+                
         
 
     def to_frame(self):
