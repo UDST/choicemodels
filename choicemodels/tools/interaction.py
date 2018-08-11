@@ -50,9 +50,9 @@ class MCT(object):
         self.weights = weights
         self.random_state = random_state
         
-        if (sample_size == 0):
-            raise ValueError("Cannot sample 0 alternatives; to run without sampling "
-                    "leave sample_size=None")
+        if (sample_size <= 0):
+            raise ValueError("Cannot sample {} alternatives; to run without sampling "
+                    "leave sample_size=None".format(sample_size))
 
         if (sample_size is not None) & (replace == False):
             if (sample_size > alternatives.shape[0]):
@@ -61,7 +61,7 @@ class MCT(object):
         
         # TO DO - check that dfs have unique indexes
         # TO DO - check that chosen_alternatives correspond correctly to other dfs
-        # TO DO - same with weights
+        # TO DO - same with weights (could join onto other tables and then split off)
         # TO DO - check for overlapping column names
         
         # Normalize chosen_alternatives to a pd.Series
@@ -73,7 +73,7 @@ class MCT(object):
         if (weights is not None) & isinstance(weights, str):
             self.weights = alternatives[weights]
         
-        weights_2d = False
+        weights_2d = False  # set 1d and 2d weights as a flag on the class object
         if (self.weights is not None):
             if (len(self.weights) != len(self.alternatives)):
                 weights_2d = True        
@@ -210,13 +210,15 @@ class MCT(object):
         self.random_state : --TO DO--
 
         """
+        # TO DO - test this stuff
+        
         obs_ids = np.repeat(self.observations.index.values, self.sample_size)
         alt_ids = []
         
-        for i in self.observations.index.values:
+        for obs_id in self.observations.index.values:
             sampled_alts = np.random.choice(self.alternatives.index.values,
                                             replace = self.replace,
-                                            p = self._get_weights(i),
+                                            p = self._get_weights(obs_id),
                                             size = self.sample_size)
             alt_ids += sampled_alts
 
@@ -238,6 +240,7 @@ class MCT(object):
         """
         # TO DO - finish implementing chosen alternatives
         # TO DO - implement availability (maybe put off until later)
+        # TO DO - is availability the way to implement sampling buckets?
         # TO DO - implement interaction terms
         
         if (self.chosen_alternatives is not None):
