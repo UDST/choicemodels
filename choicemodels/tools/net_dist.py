@@ -10,7 +10,7 @@ import pickle
 from itertools import tee
 
 # networkx is a dependency for network-distance calculation
-# but let this be an optional dependency for choicemodels
+# but let this be an optional dependency for choicemodels itself
 try:
     import networkx as nx
 except ImportError as e:
@@ -42,7 +42,7 @@ def get_reachable_nodes(G, node, dists, weight='length'):
     """
     Get nodes in subgraphs that are reachable within some 
     distance (e.g. spatial, temporal, etc) from some reference
-    node. Depends on the networkx package.
+    node. Function depends on the networkx package.
 
     Parameters
     ----------
