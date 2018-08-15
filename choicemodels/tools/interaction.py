@@ -42,6 +42,8 @@ class MCT(object):
     def __init__(self, observations, alternatives, chosen_alternatives=None,
                  sample_size=None, replace=True, weights=None, random_state=None):
         
+        # Validate the inputs...
+        
         if isinstance(sample_size, float):
             sample_size = int(sample_size)
         
@@ -61,8 +63,8 @@ class MCT(object):
         
         # Normalize chosen_alternatives to a pd.Series
         if (chosen_alternatives is not None) & isinstance(chosen_alternatives, str):
-            chosen_alternatives = alternatives[chosen_alternatives]
-            alternatives.drop(chosen_alternatives, axis='columns', inplace=True)
+            chosen_alternatives = observations[chosen_alternatives]
+            observations.drop(chosen_alternatives.name, axis='columns', inplace=True)
         
         # Normalize weights to a pd.Series
         if (weights is not None) & isinstance(weights, str):
@@ -87,14 +89,16 @@ class MCT(object):
         self.weights_1d = weights_1d
         self.weights_2d = weights_2d
         
-        # Build choice table
-        if (self.sample_size is None):
+        # Build choice table...
+        
+        if (sample_size is None):
             self._merged_table = self._build_table_without_sampling()
         
-        elif (self.replace == True) & (weights_2d == False):
+        elif (replace == True) & (weights_2d == False):
             self._merged_table = self._build_table_with_single_sample()
         
-        else:    
+        else:
+            # TO DO - make third condition explicit
             self._merged_table = self._build_table_with_repeated_sample()
         
         
@@ -119,11 +123,17 @@ class MCT(object):
         # TO DO - implement chosen alternatives
         
         df = pd.DataFrame({oid_name: obs_ids, aid_name: alt_ids})
-        df.set_index([oid_name, aid_name], inplace=True)
    
         df = df.join(self.observations, how='left', on=oid_name)
         df = df.join(self.alternatives, how='left', on=aid_name)
         
+        if (self.chosen_alternatives is not None):
+            df['chosen'] = 0
+            df = df.join(self.chosen_alternatives, how='left', on=oid_name)
+            df.loc[df[aid_name] == df[self.chosen_alternatives.name], 'chosen'] = 1
+            df.drop(self.chosen_alternatives.name, axis='columns', inplace=True)
+        
+        df.set_index([oid_name, aid_name], inplace=True)
         return df
 
     
