@@ -42,20 +42,15 @@ class MCT(object):
     def __init__(self, observations, alternatives, chosen_alternatives=None,
                  sample_size=None, replace=True, weights=None, random_state=None):
         
-        self.observations = observations
-        self.alternatives = alternatives
-        self.chosen_alternatives = chosen_alternatives
-        self.sample_size = sample_size
-        self.replace = replace
-        self.weights = weights
-        self.random_state = random_state
+        if isinstance(sample_size, float):
+            sample_size = int(sample_size)
         
-        if (sample_size <= 0):
-            raise ValueError("Cannot sample {} alternatives; to run without sampling "
-                    "leave sample_size=None".format(sample_size))
+        if (sample_size is not None):
+            if (sample_size <= 0):
+                raise ValueError("Cannot sample {} alternatives; to run without sampling "
+                        "leave sample_size=None".format(sample_size))
 
-        if (sample_size is not None) & (replace == False):
-            if (sample_size > alternatives.shape[0]):
+            if (replace == False) & (sample_size > alternatives.shape[0]):
                 raise ValueError("Cannot sample without replacement with sample_size {} "
                         "and n_alts {}".format(sample_size, alternatives.shape[0]))
         
@@ -66,17 +61,31 @@ class MCT(object):
         
         # Normalize chosen_alternatives to a pd.Series
         if (chosen_alternatives is not None) & isinstance(chosen_alternatives, str):
-            self.chosen_alternatives = alternatives[chosen_alternatives]
-            self.alternatives.drop(chosen_alternatives, axis='columns', inplace=True)
+            chosen_alternatives = alternatives[chosen_alternatives]
+            alternatives.drop(chosen_alternatives, axis='columns', inplace=True)
         
         # Normalize weights to a pd.Series
         if (weights is not None) & isinstance(weights, str):
-            self.weights = alternatives[weights]
+            weights = alternatives[weights]
         
-        weights_2d = False  # set 1d and 2d weights as a flag on the class object
-        if (self.weights is not None):
-            if (len(self.weights) != len(self.alternatives)):
-                weights_2d = True        
+        weights_1d = False
+        weights_2d = False
+        if (weights is not None):
+            if (len(weights) == len(alternatives)):
+                weights_1d = True
+            elif (len(weights) == len(observations) * len(alternatives)):
+                weights_2d = True
+        
+        self.observations = observations
+        self.alternatives = alternatives
+        self.chosen_alternatives = chosen_alternatives
+        self.sample_size = sample_size
+        self.replace = replace
+        self.weights = weights
+        self.random_state = random_state
+
+        self.weights_1d = weights_1d
+        self.weights_2d = weights_2d
         
         # Build choice table
         if (self.sample_size is None):
@@ -101,16 +110,19 @@ class MCT(object):
         self.sample_size : None
 
         """
+        oid_name = self.observations.index.name
+        aid_name = self.alternatives.index.name
+        
         obs_ids = np.repeat(self.observations.index.values, len(self.alternatives))
         alt_ids = np.tile(self.alternatives.index.values, reps=len(self.observations))
         
         # TO DO - implement chosen alternatives
         
-        df = pd.DataFrame({'obs_id': obs_ids, 'alt_id': alt_ids})
-        df.set_index(['obs_id', 'alt_id'], inplace=True)
+        df = pd.DataFrame({oid_name: obs_ids, aid_name: alt_ids})
+        df.set_index([oid_name, aid_name], inplace=True)
    
-        df = df.join(self.observations, how='left', on='obs_id')
-        df = df.join(self.alternatives, how='left', on='alt_id')
+        df = df.join(self.observations, how='left', on=oid_name)
+        df = df.join(self.alternatives, how='left', on=aid_name)
         
         return df
 
@@ -129,7 +141,7 @@ class MCT(object):
         self.sample_size : int
         self.replace : True
         self.weights : pd.Series or None
-        self.random_state : --TO DO--
+        self.random_state : NOT YET IMPLEMENTED
 
         """
         n_obs = self.observations.shape[0]
@@ -165,7 +177,7 @@ class MCT(object):
         
         Parameters
         ----------
-        observation_id : int
+        observation_id : value from index of self.observations
         
         Expected class parameters
         -------------------------
@@ -173,7 +185,7 @@ class MCT(object):
         
         Returns
         -------
-        pd.Series, normalized to sum to 1
+        pd.Series of weights
         
         """
         if (self.weights is None):
@@ -184,8 +196,6 @@ class MCT(object):
             pass
         
         elif (self.weights.shape[0] == self.alternatives.shape[0]):
-            # TO DO - we'd gain some efficiency by storing normalized weights, but it 
-            #   wouldn't work with varying availability
             return self.weights/self.weights.sum()
         
         else:
@@ -207,7 +217,7 @@ class MCT(object):
         self.sample_size : int
         self.replace : boolean
         self.weights : pd.Series, callable, or None
-        self.random_state : --TO DO--
+        self.random_state : NOT YET IMPLEMENTED
 
         """
         # TO DO - test this stuff
