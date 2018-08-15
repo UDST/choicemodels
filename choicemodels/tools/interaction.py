@@ -161,10 +161,10 @@ class MCT(object):
         
         obs_ids = np.repeat(self.observations.index.values, samp_size)
         
-        # SINGLE SAMPLE: this covers cases where we can draw a single sample and 
-        # distribute it among the choosers, e.g. sampling without replacement, with 
-        # optional alternative-specific weights but NOT weights that apply to combinations
-        # of observation x alternative
+        # SINGLE SAMPLE: this covers cases where we can draw a single, large sample of 
+        # alternatives and distribute them among the choosers, e.g. sampling without 
+        # replacement, with optional alternative-specific weights but NOT weights that 
+        # apply to combinations of observation x alternative
         
         # No weights: core python is most efficient
         if (self.replace == True) & (self.weights is None):
@@ -184,16 +184,21 @@ class MCT(object):
         # each observation, e.g. sampling without replacement, or weights that apply to
         # combinations of observation x alternative
         
-        else:
-            # TO DO - define this case explicitly
+        elif (self.replace == False) | (self.weights_2d == True):
+            
             alt_ids = []
 
             for obs_id in self.observations.index.values:
-                sampled_alts = np.random.choice(self.alternatives.index.values,
-                                                replace = self.replace,
-                                                p = self._get_weights(obs_id),
-                                                size = samp_size)
-                alt_ids = np.append(alt_ids, sampled_alts)
+                a = self._get_availability(obs_id)                
+                available_alts = self.alternatives.loc[a].index.values
+                
+                w = self._get_weights(obs_id)
+                if (w is not None):
+                    w = w.loc[a]/w.loc[a].sum()                
+                
+                sampled_alts = np.random.choice(available_alts, replace=self.replace, 
+                                                p=w, size=samp_size).tolist()
+                alt_ids += sampled_alts
 
         
         # Append chosen ids if necessary
@@ -217,8 +222,7 @@ class MCT(object):
     
     def _get_weights(self, obs_id):
         """
-        Get sampling weights corresponding to a single observation id. If the chosen
-        alternative is known, it receives a weight of zero.
+        Get sampling weights corresponding to a single observation id.
         
         Parameters
         ----------
@@ -236,8 +240,6 @@ class MCT(object):
         pd.Series of weights
         
         """
-        w = None
-        
         if (self.weights is None):
             return
             
@@ -246,20 +248,42 @@ class MCT(object):
             pass
         
         elif (self.weights_1d == True):
-            w = self.weights
+            return self.weights
         
         elif (self.weights_2d == True):
-            w = self.weights.loc[obs_id]
+            return self.weights.loc[obs_id]
         
         else:
             raise ValueError  # unexpected inputs
+                    
+
+    def _get_availability(self, obs_id):
+        """
+        Get alternative availability for a single observation id. For now, this just 
+        checks whether the chosen alternative is known and if so makes it unavailable.
+        
+        Parameters
+        ----------
+        observation_id : value from index of self.observations
+        
+        Expected class parameters
+        -------------------------
+        self.alternatives : pd.DataFrame
+        self.chosen_alternatives : pd.Series or None
+        
+        Returns
+        -------
+        list of booleans
+        
+        """
+        a = np.repeat(True, self.alternatives.shape[0])
         
         if (self.chosen_alternatives is not None):
-            w.loc[self.chosen_alternatives[obs_id]] = 0
-            
-        return w
-            
+            a = (self.alternatives.index != self.chosen_alternatives[obs_id])
 
+        return a        
+    
+    
     def to_frame(self):
         return self._merged_table
 
