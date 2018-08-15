@@ -19,7 +19,7 @@ alts = pd.DataFrame(d2).set_index('aid')
 
 # NO SAMPLING, TABLE FOR SIMULATION
 
-mct = choicemodels.tools.MCT(obs, alts).to_frame()
+mct = choicemodels.tools.MergedChoiceTable(obs, alts).to_frame()
 
 df = pd.DataFrame({'oid': [0,0,0,1,1,1],
                    'aid': [0,1,2,0,1,2],
@@ -33,7 +33,7 @@ pd.testing.assert_frame_equal(mct, df)
 
 # NO SAMPLING, TABLE FOR ESTIMATION
 
-mct = choicemodels.tools.MCT(obs, alts, 
+mct = choicemodels.tools.MergedChoiceTable(obs, alts, 
                              chosen_alternatives = 'choice').to_frame()
 
 df = pd.DataFrame({'oid': [0,0,0,1,1,1],
@@ -48,7 +48,7 @@ pd.testing.assert_frame_equal(mct, df)
 
 # REPLACEMENT, NO WEIGHTS, TABLE FOR SIMULATION
 
-mct = choicemodels.tools.MCT(obs, alts, 
+mct = choicemodels.tools.MergedChoiceTable(obs, alts, 
                              sample_size = 2).to_frame()
 
 assert len(mct) == 4
@@ -57,7 +57,7 @@ assert sum(mct.altval==30) < 4
 
 # REPLACEMENT, NO WEIGHTS, TABLE FOR ESTIMATION
 
-mct = choicemodels.tools.MCT(obs, alts, 
+mct = choicemodels.tools.MergedChoiceTable(obs, alts, 
                              sample_size = 2,
                              chosen_alternatives = 'choice').to_frame()
 
@@ -67,7 +67,7 @@ assert sum(mct.chosen==1) == 2
 
 # REPLACEMENT, ALT-SPECIFIC WEIGHTS, TABLE FOR SIMULATION
 
-mct = choicemodels.tools.MCT(obs, alts, 
+mct = choicemodels.tools.MergedChoiceTable(obs, alts, 
                              sample_size = 2,
                              weights = 'w').to_frame()
 
@@ -77,7 +77,7 @@ assert sum(mct.altval==30) > 2
 
 # REPLACEMENT, ALT-SPECIFIC WEIGHTS, TABLE FOR ESTIMATION
 
-mct = choicemodels.tools.MCT(obs, alts, 
+mct = choicemodels.tools.MergedChoiceTable(obs, alts, 
                              sample_size = 2,
                              weights = 'w',
                              chosen_alternatives = 'choice').to_frame()
@@ -85,7 +85,7 @@ mct = choicemodels.tools.MCT(obs, alts,
 
 # NO REPLACEMENT, NO WEIGHTS, TABLE FOR SIMULATION
 
-mct = choicemodels.tools.MCT(obs, alts, 
+mct = choicemodels.tools.MergedChoiceTable(obs, alts, 
                              sample_size = 3,
                              replace = False).to_frame()
 
@@ -95,10 +95,86 @@ assert len(mct.loc[0].index.unique()) == 3
 
 # NO REPLACEMENT, NO WEIGHTS, TABLE FOR ESTIMATION
 
-mct = choicemodels.tools.MCT(obs, alts, 
+mct = choicemodels.tools.MergedChoiceTable(obs, alts, 
                              sample_size = 3,
                              replace = False,
                              chosen_alternatives = 'choice').to_frame()
 
+assert len(mct) == 6
+assert len(mct.loc[0].index.unique()) == 3
+assert sum(mct.chosen==1) == 2
+
+
+# NO REPLACEMENT, ALT-SPECIFIC WEIGHTS, TABLE FOR SIMULATION
+
+mct = choicemodels.tools.MergedChoiceTable(obs, alts, 
+                             sample_size = 2,
+                             replace = False,
+                             weights = 'w').to_frame()
+
+assert len(mct) == 4
+assert len(mct.loc[0].index.unique()) == 2
+assert sum(mct.altval==30) == 2
+
+
+# NO REPLACEMENT, ALT-SPECIFIC WEIGHTS, TABLE FOR ESTIMATION
+
+mct = choicemodels.tools.MergedChoiceTable(obs, alts, 
+                             sample_size = 2,
+                             replace = False,
+                             weights = 'w',
+                             chosen_alternatives = 'choice').to_frame()
+
+assert len(mct) == 4
+assert len(mct.loc[0].index.unique()) == 2
+assert sum(mct.altval==30) == 2
+assert sum(mct.chosen==1) == 2
+
+
+# REPLACEMENT, OBS-ALT INTERACTION WEIGHTS, TABLE FOR SIMULATION
+
+w = {'w': [1,1,100,25,25,25],
+     'oid': [0,0,0,1,1,1],
+     'aid': [0,1,2,0,1,2]}
+
+wgt = pd.DataFrame(w).set_index(['oid','aid']).w
+
+mct = choicemodels.tools.MergedChoiceTable(obs, alts, 
+                             sample_size = 2,
+                             replace = True,
+                             weights = wgt).to_frame()
+
+
+# REPLACEMENT, OBS-ALT INTERACTION WEIGHTS, TABLE FOR ESTIMATION
+
+mct = choicemodels.tools.MergedChoiceTable(obs, alts, 
+                             sample_size = 2,
+                             replace = True,
+                             weights = wgt,
+                             chosen_alternatives = 'choice').to_frame()
+
+
+# NO REPLACEMENT, OBS-ALT INTERACTION WEIGHTS, TABLE FOR SIMULATION
+
+mct = choicemodels.tools.MergedChoiceTable(obs, alts, 
+                             sample_size = 2,
+                             replace = False,
+                             weights = wgt).to_frame()
+
+
+# NO REPLACEMENT, OBS-ALT INTERACTION WEIGHTS, TABLE FOR ESTIMATION
+
+mct = choicemodels.tools.MergedChoiceTable(obs, alts, 
+                             sample_size = 2,
+                             replace = False,
+                             weights = wgt,
+                             chosen_alternatives = 'choice').to_frame()
+
 print(mct)
+
+
+
+
+
+
 

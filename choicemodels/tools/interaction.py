@@ -1,7 +1,6 @@
 """
-Utilities for making merged interaction tables of choosers and
-the alternatives from which they are choosing.
-Used for location choice models.
+Utilities for making merged interaction tables of choosers and the alternatives from which 
+they are choosing. Used for location choice models.
 
 """
 import logging
@@ -12,31 +11,62 @@ import pandas as pd
 
 from . import pmat
 
-"""
-########################
-NEW FUNCTION DEFINITIONS
-########################
 
-I'm trying setting this up as a class instead of a function. Generally I'm not a fan of
-functions that return multiple items. If MergedChoiceTable() is a class, then we can
-provide access to different properties as needed..
-
-The original function returns three things:
-- ID's of the alternatives that were sampled. I don't think this is necessary, because
-  you can easily determine it from the merged dataset, right?
-- Merged dataset in long format. This is the key output.
-- 2D binary matrix representing chosen alternatives. This is the format expected by the
-  MNL estimation function, but it could also be provided as a named column in the merged
-  dataset.
-
-There may be other properties we'll want for PyLogit compatibility, too.
-
-"""
-
-class MCT(object):
+class MergedChoiceTable(object):
     """
-    Work in progress refactoring the choice table generation
+    Generates a merged long-format table of choosers and alternatives, for discrete choice
+    model estimation or simulation. 
     
+    Reserved column names: 'chosen'.
+    
+    Parameters
+    ----------
+    observations : pandas.DataFrame
+        Table with one row for each chooser or choice scenario, with unique ID's in the 
+        index field. Additional columns can contain fixed attributes of the choosers. 
+
+    alternatives : pandas.DataFrame
+        Table with one row for each alternative, with unique ID's in the index field.
+        Additional columns can contain fixed attributes of the alternatives.
+
+    chosen_alternatives : str or pandas.Series, optional
+        List of the alternative ID selected in each choice scenario. (This is required for
+        preparing estimation data, but not for simulation data.) If str, interpreted as a
+        column name from the observations table. If Series, it will be joined onto the
+        obserations table before processing. The column will be dropped from the merged 
+        table and replaced with a binary column named 'chosen'.
+
+    sample_size : int, optional
+        Number of alternatives to sample for each choice scenario. If 'None', all of the 
+        alternatives will be available for each chooser in the merged table. The sample 
+        size includes the chosen alternative, if applicable. If replace=False, the sample
+        size must be less than or equal to the total number of alternatives. 
+
+    replace : boolean, optional
+        Whether to sample alternatives with or without replacement, at the level of a 
+        single chooser or choice scenario. If replace=True (default), alternatives may
+        appear multiple times in a single choice set. If replace=False, an alternative
+        will appear at most once per choice set. Sampling with replacement is much more
+        efficient, so setting replace=False may have performance implications if there are
+        very large numbers of observations or alternatives.        
+    
+    weights : str, pandas.Series, or callable, optional
+        Numerical weights to apply when sampling alternatives. If str, interpreted as a 
+        column from the alternatives table. If Series, it can contain either (a) one 
+        weight for each alternative or (b) one weight for each combination of observation 
+        and alternative. The former should include a single index with ID's from the 
+        alternatives table. The latter should include a MultiIndex with the first level 
+        corresponding to the observations table and the second level corresponding to the 
+        alternatives table. If callable, it should accept two arguments (obs_id, alt_id) 
+        and return the corresponding weight.
+    
+    availability : NOT YET IMPLEMENTED
+        Binary representation of the availability of alternatives. Specified and applied 
+        similarly to the weights.
+    
+    random_state : NOT YET IMPLEMENTED
+        Representation of random state, for replicability of the sampling.
+
     """
 
     def __init__(self, observations, alternatives, chosen_alternatives=None,
@@ -288,7 +318,7 @@ class MCT(object):
         return self._merged_table
 
 
-class MergedChoiceTable(object):
+class MergedChoiceTable_deprecated(object):
     """
     Generates a merged long-format table of choosers and alternatives, for discrete choice
     model estimation or simulation. 
