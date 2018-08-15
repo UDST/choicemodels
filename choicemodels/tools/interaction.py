@@ -64,7 +64,7 @@ class MCT(object):
         # Normalize chosen_alternatives to a pd.Series
         if (chosen_alternatives is not None) & isinstance(chosen_alternatives, str):
             chosen_alternatives = observations[chosen_alternatives]
-            observations.drop(chosen_alternatives.name, axis='columns', inplace=True)
+            observations = observations.drop(chosen_alternatives.name, axis='columns')
         
         # Normalize weights to a pd.Series
         if (weights is not None) & isinstance(weights, str):
@@ -120,8 +120,6 @@ class MCT(object):
         obs_ids = np.repeat(self.observations.index.values, len(self.alternatives))
         alt_ids = np.tile(self.alternatives.index.values, reps=len(self.observations))
         
-        # TO DO - implement chosen alternatives
-        
         df = pd.DataFrame({oid_name: obs_ids, aid_name: alt_ids})
    
         df = df.join(self.observations, how='left', on=oid_name)
@@ -156,28 +154,43 @@ class MCT(object):
         """
         n_obs = self.observations.shape[0]
         
-        obs_ids = np.repeat(self.observations.index.values, self.sample_size)
+        oid_name = self.observations.index.name
+        aid_name = self.alternatives.index.name
+        
+        samp_size = self.sample_size
+        if (self.chosen_alternatives is not None):
+            samp_size = self.sample_size - 1
+        
+        obs_ids = np.repeat(self.observations.index.values, samp_size)
         
         # No weights: core python is most efficient
         if (self.weights is None):
             alt_ids = random.choices(self.alternatives.index.values, 
-                                     k = n_obs * self.sample_size)
+                                     k = n_obs * samp_size)
         
         # Alternative-specific weights: numpy is most efficient
         else:
             alt_ids = np.random.choice(self.alternatives.index.values, 
                                        replace = True,
                                        p = self.weights/self.weights.sum(),
-                                       size = n_obs * self.sample_size)
+                                       size = n_obs * samp_size)
         
-        # TO DO - implement chosen alternatives
+        chosen = np.repeat(0, samp_size * len(self.observations))
+        if (self.chosen_alternatives is not None):
+            obs_ids = np.append(obs_ids, self.observations.index.values)
+            alt_ids = np.append(alt_ids, self.chosen_alternatives)
+            chosen = np.append(chosen, np.repeat(1, len(self.observations)))
         
-        df = pd.DataFrame({'obs_id': obs_ids, 'alt_id': alt_ids})
-        df.set_index(['obs_id', 'alt_id'], inplace=True)
+        df = pd.DataFrame({oid_name: obs_ids, aid_name: alt_ids})
    
-        df = df.join(self.observations, how='left', on='obs_id')
-        df = df.join(self.alternatives, how='left', on='alt_id')
+        df = df.join(self.observations, how='left', on=oid_name)
+        df = df.join(self.alternatives, how='left', on=aid_name)
         
+        if (self.chosen_alternatives is not None):
+            df['chosen'] = chosen
+            df.sort_values([oid_name, 'chosen'], ascending=False, inplace=True)
+        
+        df.set_index([oid_name, aid_name], inplace=True)
         return df
         
     

@@ -5,18 +5,21 @@ import numpy as np
 import pandas as pd
 import choicemodels
 
-obs = pd.DataFrame({'oid': [0,1], 
-                    'obsval': [6,8],
-                    'choice': [1,2]}).set_index('oid')
+d1 = {'oid': [0,1], 
+      'obsval': [6,8],
+      'choice': [1,2]}
 
-alts = pd.DataFrame({'aid': [0,1,2], 
-                     'altval': [10,20,30], 
-                     'w': [1,1,100]}).set_index('aid')
+d2 = {'aid': [0,1,2], 
+      'altval': [10,20,30],
+      'w': [1,1,100]}
+
+obs = pd.DataFrame(d1).set_index('oid')
+alts = pd.DataFrame(d2).set_index('aid')
 
 
-# No sampling, simulation table
+# NO SAMPLING, TABLE FOR SIMULATION
 
-mct = choicemodels.tools.MCT(obs, alts, sample_size=None).to_frame()
+mct = choicemodels.tools.MCT(obs, alts).to_frame()
 
 df = pd.DataFrame({'oid': [0,0,0,1,1,1],
                    'aid': [0,1,2,0,1,2],
@@ -28,12 +31,10 @@ df = pd.DataFrame({'oid': [0,0,0,1,1,1],
 pd.testing.assert_frame_equal(mct, df)
 
 
-# No sampling, estimation table
+# NO SAMPLING, TABLE FOR ESTIMATION
 
-mct = choicemodels.tools.MCT(obs, 
-                             alts, 
-                             chosen_alternatives = 'choice',
-                             sample_size = None).to_frame()
+mct = choicemodels.tools.MCT(obs, alts, 
+                             chosen_alternatives = 'choice').to_frame()
 
 df = pd.DataFrame({'oid': [0,0,0,1,1,1],
                    'aid': [0,1,2,0,1,2],
@@ -43,4 +44,44 @@ df = pd.DataFrame({'oid': [0,0,0,1,1,1],
                    'chosen': [0,1,0,0,0,1]}).set_index(['oid','aid'])
 
 pd.testing.assert_frame_equal(mct, df)
+
+
+# RANDOM SAMPLING, REPLACEMENT, NO WEIGHTS, TABLE FOR SIMULATION
+
+mct = choicemodels.tools.MCT(obs, alts, 
+                             sample_size = 2).to_frame()
+
+# TO DO - why is the 'choice' column missing?
+assert len(mct) == 4
+assert sum(mct.altval==30) < 4
+
+
+# RANDOM SAMPLING, REPLACEMENT, NO WEIGHTS, TABLE FOR ESTIMATION
+
+mct = choicemodels.tools.MCT(obs, alts, 
+                             sample_size = 2,
+                             chosen_alternatives = 'choice').to_frame()
+
+assert len(mct) == 4
+assert sum(mct.chosen==1) == 2
+
+
+# RANDOM SAMPLING, REPLACEMENT, ALT-SPECIFIC WEIGHTS, TABLE FOR SIMULATION
+
+mct = choicemodels.tools.MCT(obs, alts, 
+                             sample_size = 2,
+                             weights = 'w').to_frame()
+
+assert len(mct) == 4
+assert sum(mct.altval==30) > 2
+
+
+# RANDOM SAMPLING, REPLACEMENT, ALT-SPECIFIC WEIGHTS, TABLE FOR ESTIMATION
+
+mct = choicemodels.tools.MCT(obs, alts, 
+                             sample_size = 2,
+                             weights = 'w',
+                             chosen_alternatives = 'choice').to_frame()
+
+print(mct)
 
