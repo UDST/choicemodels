@@ -83,5 +83,5 @@ mct = choicemodels.tools.MCT(obs, alts,
                              weights = 'w',
                              chosen_alternatives = 'choice').to_frame()
 
-print(mct)
+
 
