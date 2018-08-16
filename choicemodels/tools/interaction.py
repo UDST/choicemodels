@@ -297,7 +297,7 @@ class MergedChoiceTable(object):
                 alt_ids += sampled_alts
 
         
-        # Append chosen ids if necessary
+        # Append chosen ids if applicable
         if (self.chosen_alternatives is not None):
             obs_ids = np.append(obs_ids, self.observations.index.values)
             alt_ids = np.append(alt_ids, self.chosen_alternatives)
@@ -322,8 +322,8 @@ class MergedChoiceTable(object):
         a particular chooser are contiguous, with the chosen alternative listed first if
         applicable. (Unless no sampling is performed, in which case the alternatives are
         listed in order.) The DataFrame includes a two-level MultiIndex. The first level
-        corresponds to the index of the observations table and the second level to the 
-        index of the alternatives table. 
+        corresponds to the index of the observations table and the second to the index of 
+        the alternatives table. 
         
         Returns
         -------
@@ -337,7 +337,7 @@ class MergedChoiceTable(object):
     def observation_id_col(self):
         """
         Name of column in the merged table containing the observation id. Name and values 
-        will match the index of the 'choosers' table.
+        will match the index of the observations table.
         
         Returns
         -------
@@ -351,7 +351,7 @@ class MergedChoiceTable(object):
     def alternative_id_col(self):
         """
         Name of column in the merged table containing the alternative id. Name and values
-        will match the index of the 'alternatives' table.
+        will match the index of the alternatives table.
 
         Returns
         -------
@@ -365,7 +365,7 @@ class MergedChoiceTable(object):
     def choice_col(self):
         """
         Name of the generated column containing a binary representation of whether each
-        alternative was chosen in the given choice scenario.
+        alternative was chosen in the given choice scenario, if applicable.
 
         Returns
         -------
