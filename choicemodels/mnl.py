@@ -87,8 +87,8 @@ class MultinomialLogit(object):
         'model_expression'. May include extra columns.
 
     observation_id_col : str
-        Name of column containing the observation id. This should uniquely identify each
-        distinct choice scenario.
+        Name of column or index containing the observation id. This should uniquely 
+        identify each distinct choice scenario.
 
     choice_col : str
         Name of column containing an indication of which alternative has been chosen in
@@ -112,8 +112,8 @@ class MultinomialLogit(object):
         https://github.com/timothyb0912/pylogit/blob/master/pylogit/pylogit.py#L151-L165
 
     alternative_id_col : str, optional
-        Name of column containing the alternative id. This is only required if the model
-        expression varies for different alternatives.
+        Name of column or index containing the alternative id. This is only required if 
+        the model expression varies for different alternatives.
 
     initial_coefs : float, list, or 1D array, optional
         Initial coefficients (beta values) to begin the optimization process with. Provide
@@ -152,7 +152,7 @@ class MultinomialLogit(object):
 
         else:
             self._estimation_engine = 'ChoiceModels'
-            self._numobs = self._data[[self._observation_id_col]].\
+            self._numobs = self._data.reset_index()[[self._observation_id_col]].\
                                     drop_duplicates().shape[0]
             self._numalts = self._data.shape[0] // self._numobs
 
@@ -169,9 +169,9 @@ class MultinomialLogit(object):
          - verify chosen alternative listed first]
 
         """
-        self._data = self._data.sort_values(by = [self._observation_id_col,
-                                                  self._choice_col],
-                                            ascending = [True, False])
+        self._data = self._data.reset_index().sort_values(by = [self._observation_id_col,
+                                                                self._choice_col],
+                                                          ascending = [True, False])
         return
 
     def fit(self):

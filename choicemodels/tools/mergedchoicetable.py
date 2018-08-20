@@ -21,10 +21,12 @@ class MergedChoiceTable(object):
     observations : pandas.DataFrame
         Table with one row for each chooser or choice scenario, with unique ID's in the 
         index field. Additional columns can contain fixed attributes of the choosers. 
+        Index name is set to 'obs_id' if none provided.
 
     alternatives : pandas.DataFrame
         Table with one row for each alternative, with unique ID's in the index field.
-        Additional columns can contain fixed attributes of the alternatives.
+        Additional columns can contain fixed attributes of the alternatives. Index name
+        is set to 'alt_id' if none provided.
 
     chosen_alternatives : str or pandas.Series, optional
         List of the alternative ID selected in each choice scenario. (This is required for
@@ -86,6 +88,12 @@ class MergedChoiceTable(object):
             if (replace == False) & (sample_size > alternatives.shape[0]):
                 raise ValueError("Cannot sample without replacement with sample_size {} "
                         "and n_alts {}".format(sample_size, alternatives.shape[0]))
+        
+        if (observations.index.name == None):
+            observations.index.name = 'obs_id'
+        
+        if (alternatives.index.name == None):
+            alternatives.index.name = 'alt_id'
         
         # TO DO - check that dfs have unique indexes
         # TO DO - check that chosen_alternatives correspond correctly to other dfs
