@@ -3,6 +3,8 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 
 import numpy as np
 import pandas as pd
+import pytest
+
 import choicemodels
 
 d1 = {'oid': [0,1], 
@@ -43,7 +45,8 @@ df = pd.DataFrame({'oid': [0,0,0,1,1,1],
                    'w': [1,1,100,1,1,100],
                    'chosen': [0,1,0,0,0,1]}).set_index(['oid','aid'])
 
-pd.testing.assert_frame_equal(mct, df)
+def test_one():
+    pd.testing.assert_frame_equal(mct, df)
 
 
 # REPLACEMENT, NO WEIGHTS, TABLE FOR SIMULATION
