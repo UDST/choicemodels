@@ -63,10 +63,12 @@ class MergedChoiceTable(object):
         Binary representation of the availability of alternatives. Specified and applied 
         similarly to the weights.
     
-    interaction_terms : NOT YET IMPLEMENTED
-        Additional columns of interaction terms whose values depend on the combination of 
-        observation and the alternative, to be joined onto the final data table. Specified 
-        similarly to the weights.
+    interaction_terms : pandas.Series or pandas.DataFrame, optional
+        Additional column(s) of interaction terms whose values depend on the combination 
+        of observation and alternative, to be joined onto the final data table. Should 
+        contain two index columns, one with name and values matching a column or index
+        from the observations table, and the other matching a column or index from the
+        alternatives table. (SUPPORT FOR CALLABLE NOT YET IMPLEMENTED)
             
     random_state : NOT YET IMPLEMENTED
         Representation of random state, for replicability of the sampling.
@@ -137,6 +139,34 @@ class MergedChoiceTable(object):
             self._merged_table = self._build_table()
         
         
+    _merge_interaction_terms(self, df):
+        """
+        Merges interaction terms (if they exist) onto the input DataFrame.
+        
+        Parameters
+        ----------
+        df : pd.DataFrame
+            Must contain two columns or indexes whose names match the index levels of
+            the interaction data.
+        
+        Expected class parameters
+        -------------------------
+        self.interaction_terms : pd.Series or pd.DataFrame, optional
+            Must have a two-level, named MultiIndex. If self.interaction_terms is None, 
+            function returns the input DataFrame.
+            
+        Returns
+        -------
+        pd.DataFrame
+            Same format as input, with interaction term column(s) added.
+        
+        """
+        if (self.interaction_terms is None):
+            return df
+            
+        return pd.merge(df, self.interaction_terms)
+    
+    
     def _build_table_without_sampling(self):
         """
         This handles the cases where each alternative is available for each chooser.
@@ -167,6 +197,7 @@ class MergedChoiceTable(object):
             df.drop(self.chosen_alternatives.name, axis='columns', inplace=True)
         
         df.set_index([oid_name, aid_name], inplace=True)
+        df = _merge_interaction_terms(df)
         return df
 
     
@@ -321,6 +352,7 @@ class MergedChoiceTable(object):
             df.sort_values([oid_name, 'chosen'], ascending=False, inplace=True)
         
         df.set_index([oid_name, aid_name], inplace=True)
+        df = _merge_interaction_terms(df)
         return df
         
     
