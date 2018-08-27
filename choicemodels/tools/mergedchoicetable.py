@@ -65,17 +65,19 @@ class MergedChoiceTable(object):
     
     interaction_terms : pandas.Series or pandas.DataFrame, optional
         Additional column(s) of interaction terms whose values depend on the combination 
-        of observation and alternative, to be joined onto the final data table. Should 
-        contain two index columns, one with name and values matching a column or index
-        from the observations table, and the other matching a column or index from the
-        alternatives table. (SUPPORT FOR CALLABLE NOT YET IMPLEMENTED)
+        of observation and alternative, to be merged onto the final data table. If passed
+        as a Series or DataFrame, it should include a two-level MultiIndex. One level's 
+        name and values should match an index or column from the observations table, and 
+        the other should match an index or column from the alternatives table. 
+        (SUPPORT FOR CALLABLE NOT YET IMPLEMENTED)
             
     random_state : NOT YET IMPLEMENTED
         Representation of random state, for replicability of the sampling.
 
     """
     def __init__(self, observations, alternatives, chosen_alternatives=None,
-                 sample_size=None, replace=True, weights=None, random_state=None):
+                 sample_size=None, replace=True, weights=None, availability=None,
+                 interaction_terms=None, random_state=None):
         
         # Validate the inputs...
         
@@ -125,6 +127,7 @@ class MergedChoiceTable(object):
         self.sample_size = sample_size
         self.replace = replace
         self.weights = weights
+        self.interaction_terms = interaction_terms
         self.random_state = random_state
 
         self.weights_1d = weights_1d
@@ -139,20 +142,20 @@ class MergedChoiceTable(object):
             self._merged_table = self._build_table()
         
         
-    _merge_interaction_terms(self, df):
+    def _merge_interaction_terms(self, df):
         """
-        Merges interaction terms (if they exist) onto the input DataFrame.
+        Merges interaction terms (if they exist) onto the input DataFrame. 
         
         Parameters
         ----------
         df : pd.DataFrame
-            Must contain two columns or indexes whose names match the index levels of
-            the interaction data.
+            Should contain two columns whose names match the index levels of the 
+            interaction data.
         
         Expected class parameters
         -------------------------
         self.interaction_terms : pd.Series or pd.DataFrame, optional
-            Must have a two-level, named MultiIndex. If self.interaction_terms is None, 
+            Should have a two-level, named MultiIndex. If self.interaction_terms is None, 
             function returns the input DataFrame.
             
         Returns
@@ -163,8 +166,11 @@ class MergedChoiceTable(object):
         """
         if (self.interaction_terms is None):
             return df
-            
-        return pd.merge(df, self.interaction_terms)
+        
+        df = df.join(pd.DataFrame(self.interaction_terms), how='left', 
+                     on=self.interaction_terms.index.names)
+        
+        return df
     
     
     def _build_table_without_sampling(self):
@@ -196,8 +202,8 @@ class MergedChoiceTable(object):
             df.loc[df[aid_name] == df[self.chosen_alternatives.name], 'chosen'] = 1
             df.drop(self.chosen_alternatives.name, axis='columns', inplace=True)
         
+        df = self._merge_interaction_terms(df)
         df.set_index([oid_name, aid_name], inplace=True)
-        df = _merge_interaction_terms(df)
         return df
 
     
@@ -351,8 +357,8 @@ class MergedChoiceTable(object):
             df['chosen'] = chosen
             df.sort_values([oid_name, 'chosen'], ascending=False, inplace=True)
         
+        df = self._merge_interaction_terms(df)
         df.set_index([oid_name, aid_name], inplace=True)
-        df = _merge_interaction_terms(df)
         return df
         
     
