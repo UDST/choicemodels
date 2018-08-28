@@ -49,7 +49,7 @@ class MergedChoiceTable(object):
         efficient, so setting replace=False may have performance implications if there are
         very large numbers of observations or alternatives.        
     
-    weights : str, pandas.Series, or callable, optional (CALLABLE NOT YET IMPLEMENTED)
+    weights : str, pandas.Series, optional
         Numerical weights to apply when sampling alternatives. If str, interpreted as a 
         column from the alternatives table. If Series, it can contain either (a) one 
         weight for each alternative or (b) one weight for each combination of observation 
@@ -58,6 +58,12 @@ class MergedChoiceTable(object):
         corresponding to the observations table and the second level corresponding to the 
         alternatives table. If callable, it should accept two arguments (obs_id, alt_id) 
         and return the corresponding weight.
+        
+        TO DO - accept weights specified with respect to derivative characteristics, like
+        how the interaction terms work (for example weights could be based on home census
+        tract rather than observation id if there are multiple observations per tract)
+        
+        TO DO - implement support for a callable
     
     availability : pandas.Series or callable, optional (NOT YET IMPLEMENTED)
         Binary representation of the availability of alternatives. Specified and applied 
@@ -69,7 +75,8 @@ class MergedChoiceTable(object):
         as a Series or DataFrame, it should include a two-level MultiIndex. One level's 
         name and values should match an index or column from the observations table, and 
         the other should match an index or column from the alternatives table. 
-        (SUPPORT FOR CALLABLE NOT YET IMPLEMENTED)
+        
+        TO DO - implement support for a callable
             
     random_state : NOT YET IMPLEMENTED
         Representation of random state, for replicability of the sampling.
@@ -116,10 +123,18 @@ class MergedChoiceTable(object):
         weights_1d = False
         weights_2d = False
         if (weights is not None):
+            # TO DO - would be nicer to test using the dimensionality of the index and 
+            #   then automatically filter for applicable weights if there are too many
             if (len(weights) == len(alternatives)):
                 weights_1d = True
             elif (len(weights) == len(observations) * len(alternatives)):
                 weights_2d = True
+            else:
+                raise ValueError("Length of weights is not aligned with length of "
+                                 "alternatives and/or observations")
+        
+        # TO DO - if user passes a single-column df of weights instead of a series, we
+        #   should just silently convert it
         
         self.observations = observations
         self.alternatives = alternatives
@@ -226,6 +241,8 @@ class MergedChoiceTable(object):
         list of booleans
         
         """
+        # TO DO - seems inefficient?
+
         a = np.repeat(True, self.alternatives.shape[0])
         
         if (self.chosen_alternatives is not None):
