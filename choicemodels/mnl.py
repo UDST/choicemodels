@@ -45,7 +45,8 @@ class MultinomialLogit(object):
        location choice.
 
        The following parameters are required: 'data', 'observation_id_col', 'choice_col',
-       'model_expression' in Patsy format.
+       'model_expression' in Patsy format. If data is provided as a MergedChoiceTable,
+       the observation id and choice column names can be read directly from its metadata.
 
        To fit this type of model, ChoiceModels will use its own estimation engine adapted
        from the UrbanSim MNL codebase.
@@ -81,18 +82,10 @@ class MultinomialLogit(object):
     Parameters
     ----------
 
-    data : pandas.DataFrame
+    data : pandas.DataFrame or choicemodels.tools.MergedChoiceTable
         A table of estimation data in "long" format, with one row for each combination of
         chooser and alternative. Column labeling must be consistent with the
         'model_expression'. May include extra columns.
-
-    observation_id_col : str
-        Name of column or index containing the observation id. This should uniquely 
-        identify each distinct choice scenario.
-
-    choice_col : str
-        Name of column containing an indication of which alternative has been chosen in
-        each scenario. Values should evaluate as binary: 1/0, True/False, etc.
 
     model_expression : Patsy 'formula-like' or PyLogit 'specification'
         For the simpler use case where each choice scenario has the same number of
@@ -106,6 +99,16 @@ class MultinomialLogit(object):
         model specification. See here:
         https://github.com/timothyb0912/pylogit/blob/master/pylogit/pylogit.py#L116-L130
 
+    observation_id_col : str, optional
+        Name of column or index containing the observation id. This should uniquely 
+        identify each distinct choice scenario. Not required if data is passed as a 
+        MergedChoiceTable.
+
+    choice_col : str, optional
+        Name of column containing an indication of which alternative has been chosen in
+        each scenario. Values should evaluate as binary: 1/0, True/False, etc. Not
+        required if data is passed as a MergedChoiceTable.
+
     model_labels : PyLogit 'names', optional
         If the model expression is a PyLogit OrderedDict, you can provide a corresponding
         OrderedDict of labels. See here:
@@ -113,7 +116,8 @@ class MultinomialLogit(object):
 
     alternative_id_col : str, optional
         Name of column or index containing the alternative id. This is only required if 
-        the model expression varies for different alternatives.
+        the model expression varies for different alternatives. Not required if data is 
+        passed as a MergedChoiceTable.
 
     initial_coefs : float, list, or 1D array, optional
         Initial coefficients (beta values) to begin the optimization process with. Provide
@@ -124,18 +128,23 @@ class MultinomialLogit(object):
         NOT YET IMPLEMENTED - Estimation weights.
 
     """
-    def __init__(self, data, observation_id_col, choice_col, model_expression,
+    def __init__(self, data, model_expression, observation_id_col=None, choice_col=None,
                  model_labels=None, alternative_id_col=None, initial_coefs=None,
                  weights=None):
         self._data = data
+        self._model_expression = model_expression
         self._observation_id_col = observation_id_col
         self._alternative_id_col = alternative_id_col
         self._choice_col = choice_col
-        self._model_expression = model_expression
         self._model_labels = model_labels
         self._initial_coefs = initial_coefs
         self._weights = weights
 
+        if isinstance(self._data, choicemodels.tools.MergedChoiceTable):
+            self._df = self._data.to_frame()
+        else:
+            self._df = self._data
+        
         if isinstance(self._model_expression, OrderedDict):
             self._estimation_engine = 'PyLogit'
 
@@ -152,9 +161,9 @@ class MultinomialLogit(object):
 
         else:
             self._estimation_engine = 'ChoiceModels'
-            self._numobs = self._data.reset_index()[[self._observation_id_col]].\
+            self._numobs = self._df.reset_index()[[self._observation_id_col]].\
                                     drop_duplicates().shape[0]
-            self._numalts = self._data.shape[0] // self._numobs
+            self._numalts = self._df.shape[0] // self._numobs
 
             # TO DO: parse initial coefs
 
