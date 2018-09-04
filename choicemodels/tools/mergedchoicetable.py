@@ -4,6 +4,7 @@ sampling functionality.
 
 """
 import random
+import sys
 
 import numpy as np
 import pandas as pd
@@ -324,11 +325,19 @@ class MergedChoiceTable(object):
         # replacement, with optional alternative-specific weights but NOT weights that 
         # apply to combinations of observation x alternative
         
-        # No weights: core python is most efficient
+        # No weights
         if (self.replace == True) & (self.weights is None):
             
-            alt_ids = random.choices(self.alternatives.index.values, 
-                                     k = n_obs * samp_size)
+            if (sys.version_info[0] >= 3) & (sys.version_info[1] >= 6):
+                # 'random.choices' was added in python 3.6, and in my testing it's about
+                # 2x faster than 'np.random.choice' for unweighted sampling without
+                # replacement, as of numpy 1.13
+                alt_ids = random.choices(self.alternatives.index.values, 
+                                         k = n_obs * samp_size)
+            else:
+                alt_ids = np.random.choice(self.alternatives.index.values, 
+                                           replace = True,
+                                           size = n_obs * samp_size)
         
         # Alternative-specific weights: numpy is most efficient
         elif (self.replace == True) & (self.weights_1d == True):
