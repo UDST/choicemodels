@@ -8,6 +8,7 @@ import pylogit
 import scipy.optimize
 import scipy.stats
 import datetime
+from .tools import MergedChoiceTable
 from .tools import pmat
 from .tools.pmat import PMAT
 from collections import OrderedDict
@@ -140,8 +141,12 @@ class MultinomialLogit(object):
         self._initial_coefs = initial_coefs
         self._weights = weights
 
-        if isinstance(self._data, choicemodels.tools.MergedChoiceTable):
+        if isinstance(self._data, MergedChoiceTable):
             self._df = self._data.to_frame()
+            self._observation_id_col = self._data.observation_id_col
+            self._alternative_id_col = self._data.alternative_id_col
+            self._choice_col = self._data.choice_col
+        
         else:
             self._df = self._data
         
@@ -207,7 +212,7 @@ class MultinomialLogit(object):
         """
         if (self._estimation_engine == 'PyLogit'):
 
-            m = pylogit.create_choice_model(data = self._data,
+            m = pylogit.create_choice_model(data = self._df,
                                             obs_id_col = self._observation_id_col,
                                             alt_id_col = self._alternative_id_col,
                                             choice_col = self._choice_col,
@@ -221,11 +226,11 @@ class MultinomialLogit(object):
 
         elif (self._estimation_engine == 'ChoiceModels'):
 
-            model_design = dmatrix(self._model_expression, data=self._data,
+            model_design = dmatrix(self._model_expression, data=self._df,
                                    return_type='dataframe')
 
             # generate 2D array from choice column, for mnl_estimate()
-            chosen = np.reshape(self._data[[self._choice_col]].as_matrix(),
+            chosen = np.reshape(self._df[[self._choice_col]].as_matrix(),
                                 (self._numobs, self._numalts))
 
             log_lik, fit = mnl_estimate(model_design.as_matrix(), chosen, self._numalts)
