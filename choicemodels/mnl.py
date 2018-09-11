@@ -175,6 +175,7 @@ class MultinomialLogit(object):
         self._validate_input_data()
         return
 
+    
     def _validate_input_data(self):
         """
         [TO DO for ChoiceModels engine:
@@ -188,6 +189,7 @@ class MultinomialLogit(object):
                                                           ascending = [True, False])
         return
 
+    
     def fit(self):
         """
         Fit the model using maximum likelihood estimation. Uses either the ChoiceModels
@@ -222,6 +224,7 @@ class MultinomialLogit(object):
 
             m.fit_mle(init_vals = self._initial_coefs)
             results = MultinomialLogitResults(self._estimation_engine,
+                                              self._model_expression,
                                               results = m)
 
         elif (self._estimation_engine == 'ChoiceModels'):
@@ -240,6 +243,7 @@ class MultinomialLogit(object):
                                  x_names = model_design.design_info.column_names)
 
             results = MultinomialLogitResults(self._estimation_engine,
+                                              self._model_expression,
                                               results = result_params)
 
         return results
@@ -268,66 +272,106 @@ class MultinomialLogitResults(object):
     estimation_engine : str
         'ChoiceModels' or 'PyLogit'.
 
-    results : dict or object
+    model_expression : str or OrderedDict
+        Patsy 'formula-like' (str) or PyLogit 'specification' (OrderedDict).
+    
+    results : dict or object, optional
         Raw results as currently provided by the estimation engine. This should be
         replaced with a more consistent and comprehensive set of inputs.
 
-    """
-    def __init__(self, estimation_engine, results):
-        self._estimation_engine = estimation_engine
-        self._results = results
-        return
+    fitted_parameters : list of floats, optional
+        If not provided, these will be extracted from the raw results.
 
+    """
+    def __init__(self, estimation_engine, model_expression, results=None, 
+                 fitted_parameters=None):
+        
+        if (fitted_parameters is None) & (results is not None):
+            if (estimation_engine == 'choicemodels'):
+                fitted_parameters = results['fit_parameters']['Coefficient'].tolist()
+
+        self.estimation_engine = estimation_engine
+        self.results = results
+        self.fitted_parameters = fitted_parameters
+        
+    
     def __repr__(self):
     	return self.report_fit()
 
+    
     def __str__(self):
         return self.report_fit()
 
+    
     @property
     def estimation_engine(self):
         """
         Estimation engine that generated the results. 'ChoiceModels' or 'PyLogit'.
 
         """
-        return self._estimation_engine
+        return self.estimation_engine
 
+    
     def get_raw_results(self):
         """
         Return the raw results as provided by the estimation engine. Dict or object.
 
         """
-        return self._results
+        return self.results
 
+    
+    def probabilities(self, data):
+        """
+        Generate predicted probabilities for a table of choice scenarios, using the fitted
+        parameters stored in the results object.
+        
+        TO DO - handle pylogit case
+        
+        Parameters
+        ----------
+        data : choicemodels.tools.MergedChoiceTable
+            Long-format table of choice scenarios. TO DO - accept other data formats.
+        
+        Expected class parameters
+        -------------------------
+        self.model_expression : patsy string
+        self.fitted_parameters : list of floats
+        
+        Returns
+        -------
+        pandas.Series with indexes matching the input
+        
+        """
+        pass
+    
+    
     def report_fit(self):
         """
         Print a report of the model estimation results.
 
         """
-        if (self._estimation_engine == 'PyLogit'):
-            output = self._results.get_statsmodels_summary().as_text()
+        if (self.estimation_engine == 'PyLogit'):
+            output = self.results.get_statsmodels_summary().as_text()
 
-        elif (self._estimation_engine == 'ChoiceModels'):
+        elif (self.estimation_engine == 'ChoiceModels'):
 
             # Pull out individual results components
-            ll = self._results['log_likelihood']['convergence']
-            ll_null = self._results['log_likelihood']['null']
+            ll = self.results['log_likelihood']['convergence']
+            ll_null = self.results['log_likelihood']['null']
 
-            rho_bar_squared = self._results['log_likelihood']['rho_bar_squared']
-            rho_squared = self._results['log_likelihood']['rho_squared']
-            df_model = self._results['log_likelihood']['df_model']
-            df_resid = self._results['log_likelihood']['df_resid']
-            num_obs = self._results['log_likelihood']['num_obs']
-            bic = self._results['log_likelihood']['bic']
-            aic = self._results['log_likelihood']['aic']
+            rho_bar_squared = self.results['log_likelihood']['rho_bar_squared']
+            rho_squared = self.results['log_likelihood']['rho_squared']
+            df_model = self.results['log_likelihood']['df_model']
+            df_resid = self.results['log_likelihood']['df_resid']
+            num_obs = self.results['log_likelihood']['num_obs']
+            bic = self.results['log_likelihood']['bic']
+            aic = self.results['log_likelihood']['aic']
 
-
-
-            x_names = self._results['x_names']
-            coefs = self._results['fit_parameters']['Coefficient'].tolist()
-            std_errs = self._results['fit_parameters']['Std. Error'].tolist()
-            t_scores = self._results['fit_parameters']['T-Score'].tolist()
-            p_values = self._results['fit_parameters']['P-Values'].tolist()
+            x_names = self.results['x_names']
+            coefs = self.results['fit_parameters']['Coefficient'].tolist()
+            std_errs = self.results['fit_parameters']['Std. Error'].tolist()
+            t_scores = self.results['fit_parameters']['T-Score'].tolist()
+            p_values = self.results['fit_parameters']['P-Values'].tolist()
 
             def time_now(*args, **kwds):
                 now = datetime.datetime.now()
