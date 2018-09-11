@@ -270,7 +270,7 @@ class MultinomialLogitResults(object):
     Parameters
     ----------
     estimation_engine : str
-        'ChoiceModels' or 'PyLogit'.
+        'ChoiceModels' or 'PyLogit'. # TO DO - infer from model_expression?
 
     model_expression : str or OrderedDict
         Patsy 'formula-like' (str) or PyLogit 'specification' (OrderedDict).
@@ -287,10 +287,11 @@ class MultinomialLogitResults(object):
                  fitted_parameters=None):
         
         if (fitted_parameters is None) & (results is not None):
-            if (estimation_engine == 'choicemodels'):
+            if (estimation_engine == 'ChoiceModels'):
                 fitted_parameters = results['fit_parameters']['Coefficient'].tolist()
 
         self.estimation_engine = estimation_engine
+        self.model_expression = model_expression
         self.results = results
         self.fitted_parameters = fitted_parameters
         
@@ -301,15 +302,6 @@ class MultinomialLogitResults(object):
     
     def __str__(self):
         return self.report_fit()
-
-    
-    @property
-    def estimation_engine(self):
-        """
-        Estimation engine that generated the results. 'ChoiceModels' or 'PyLogit'.
-
-        """
-        return self.estimation_engine
 
     
     def get_raw_results(self):
@@ -342,7 +334,31 @@ class MultinomialLogitResults(object):
         pandas.Series with indexes matching the input
         
         """
-        pass
+        df = data.to_frame()
+        numalts = data.sample_size  # TO DO - make this an official MCT param
+        
+        dm = dmatrix(self.model_expression, data=df, return_type='dataframe')
+
+        # utility is sum of data values times fitted betas
+        u = np.dot(self.fitted_parameters, np.transpose(dm))
+        
+        # reshape so axis 0 lists alternatives and axis 1 lists choosers
+        u = np.reshape(u, (numalts, u.size // numalts))
+    
+        # scale the utilities to make exponentiation easier
+        # https://stats.stackexchange.com/questions/304758/softmax-overflow
+        u = u - u.max(axis=0)
+        
+        exponentiated_utility = np.exp(u)
+        sum_exponentiated_utility = np.sum(exponentiated_utility, axis=0)
+        
+        probs = exponentiated_utility / sum_exponentiated_utility
+        
+        # convert back to ordering of the input data
+        probs = np.reshape(np.transpose(probs), (probs.size, 1))
+        
+        df['prob'] = probs  # adds indexes
+        return df.prob
     
     
     def report_fit(self):
