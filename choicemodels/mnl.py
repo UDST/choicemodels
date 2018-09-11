@@ -178,10 +178,10 @@ class MultinomialLogit(object):
     
     def _validate_input_data(self):
         """
-        [TO DO for ChoiceModels engine:
+        TO DO for ChoiceModels engine:
          - verify number of alternatives consistent for each chooser
          - verify each chooser's alternatives in contiguous rows
-         - verify chosen alternative listed first]
+         - verify chosen alternative listed first
 
         """
         # Sort order is required by PyLogit
@@ -195,10 +195,9 @@ class MultinomialLogit(object):
         Fit the model using maximum likelihood estimation. Uses either the ChoiceModels
         or PyLogit estimation engine as appropriate.
 
-        [TO DO: should we add pass-through parameters here, or take them all in the
-        constructor?]
-
-        Parameters - NOT YET IMPLEMENTED
+        TO DO - implement parameters?
+        
+        Parameters
         ----------
         GPU : bool, optional
             GPU acceleration.
@@ -265,7 +264,7 @@ class MultinomialLogitResults(object):
     
     A full-featured results object is returned by MultinomialLogit.fit(). A results object
     with more limited functionality can also be built directly from fitted parameters and
-    a model expression. (TO DO - latter not yet implemented)
+    a model expression.
 
     Parameters
     ----------
