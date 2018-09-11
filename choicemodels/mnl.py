@@ -184,10 +184,10 @@ class MultinomialLogit(object):
          - verify chosen alternative listed first]
 
         """
-        self._data = self._data.reset_index().sort_values(by = [self._observation_id_col,
-                                                                self._choice_col],
-                                                          ascending = [True, False])
-        return
+        # Sort order is required by PyLogit
+        # self._data = self._data.reset_index().sort_values(by = [self._observation_id_col,
+        #                                                         self._choice_col],
+        #                                                   ascending = [True, False])
 
     
     def fit(self):
@@ -317,7 +317,7 @@ class MultinomialLogitResults(object):
         Generate predicted probabilities for a table of choice scenarios, using the fitted
         parameters stored in the results object.
         
-        TO DO - handle pylogit case
+        TO DO - make sure this handles pylogit case
         
         Parameters
         ----------
@@ -338,12 +338,12 @@ class MultinomialLogitResults(object):
         numalts = data.sample_size  # TO DO - make this an official MCT param
         
         dm = dmatrix(self.model_expression, data=df, return_type='dataframe')
-
+        
         # utility is sum of data values times fitted betas
         u = np.dot(self.fitted_parameters, np.transpose(dm))
         
         # reshape so axis 0 lists alternatives and axis 1 lists choosers
-        u = np.reshape(u, (numalts, u.size // numalts))
+        u = np.reshape(u, (numalts, u.size // numalts), order='F')
     
         # scale the utilities to make exponentiation easier
         # https://stats.stackexchange.com/questions/304758/softmax-overflow
