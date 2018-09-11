@@ -256,29 +256,12 @@ class MultinomialLogit(object):
 
 class MultinomialLogitResults(object):
     """
-    This is a work in progress. The rationale for having a separate results class is that
-    users don't have to keep track of which methods they're allowed to run depending on
-    the status of the object. An estimation object is always ready to estimate, and a
-    results object is always ready to report the results or predict.
-
-    Anticipated functionality:
-    - Store estimation results, test statistics, and other metadata
-    - Report these in a standard estimation results table
-    - Provide access to individual values as needed
-
-    Possible functionality:
-    - Write results to a human-readable text file, and read them back in? Currently this
-      is handled at a higher level by UrbanSim.
-    - Prediction?? Maybe this should be separate and take a results object as input..
-
-    Most of this functionality can be inherited from a generic results class; it doesn't
-    need to be MNL-specific. Statsmodels has some patterns for this that we could follow.
-    Or it might be best to do something that integrates with PyLogit as smoothly as
-    possible.
-
-    Note that the PyLogit estimation engine provides a full suite of output (test
-    statistics, p-values, confidence intervals, etc), while the ChoiceModels engine
-    only provides the basics at this point. More can be added as needed.
+    The results class represents a fitted model. It can report the model fit, generate
+    choice probabilties, etc.
+    
+    A full-featured results object is returned by MultinomialLogit.fit(). A results object
+    with more limited functionality can also be built directly from fitted parameters and
+    a model expression. (TO DO - latter not yet implemented)
 
     Parameters
     ----------
