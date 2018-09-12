@@ -15,6 +15,7 @@ before_install:
   - conda config --set always_yes yes --set show_channel_urls true
   - conda update conda
   - conda config --add channels conda-forge --force
+  - conda config --add channels udst --force
   - conda create --quiet --name TESTENV python=$TRAVIS_PYTHON_VERSION --file requirements.txt --file requirements-dev.txt
   - source activate TESTENV
   - conda info --all
