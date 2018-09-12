@@ -3,9 +3,6 @@ Utilities for generating merged tables of choosers and alternatives, including e
 sampling functionality.
 
 """
-import random
-import sys
-
 import numpy as np
 import pandas as pd
 
