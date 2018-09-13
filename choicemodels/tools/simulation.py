@@ -19,14 +19,14 @@ def simulate_choices(probabilities):
     
     Parameters
     ----------
-    probabilities: pandas.Series
+    probabilities: pd.Series
         List of probabilities for each observation (choice scenario) and alternative. 
         Should contain a two-level MultiIndex, the first level representing the 
         observation id and the second the alternative id.
     
     Returns
     -------
-    pandas.Series
+    pd.Series
         List of chosen alternative id's, indexed with the observation id.
     
     """
