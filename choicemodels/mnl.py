@@ -83,7 +83,7 @@ class MultinomialLogit(object):
     Parameters
     ----------
 
-    data : pandas.DataFrame or choicemodels.tools.MergedChoiceTable
+    data : pd.DataFrame or choicemodels.tools.MergedChoiceTable
         A table of estimation data in "long" format, with one row for each combination of
         chooser and alternative. Column labeling must be consistent with the
         'model_expression'. May include extra columns.
@@ -120,7 +120,7 @@ class MultinomialLogit(object):
         the model expression varies for different alternatives. Not required if data is 
         passed as a MergedChoiceTable.
 
-    initial_coefs : float, list, or 1D array, optional
+    initial_coefs : numeric or list-like of numerics, optional
         Initial coefficients (beta values) to begin the optimization process with. Provide
         a single value for all coefficients, or an array containing a value for each
         one being estimated. If None, initial coefficients will be 0.
@@ -354,6 +354,7 @@ class MultinomialLogitResults(object):
         probs = exponentiated_utility / sum_exponentiated_utility
         
         # convert back to ordering of the input data
+        # TO DO - try probs.flatten(order='F')
         probs = np.reshape(np.transpose(probs), (probs.size, 1))
         
         df['prob'] = probs  # adds indexes

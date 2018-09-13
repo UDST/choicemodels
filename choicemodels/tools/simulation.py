@@ -32,6 +32,7 @@ def simulate_choices(probabilities):
     """
     # TO DO 
     # - check input for consistent num_alts, probs that sum to 1
+    # - if input is a single-column df, silently convert it to series
     # - MAKE SURE ALTERNATIVES ARE CONSECUTIVE
     
     obs_name, alts_name = probabilities.index.names
@@ -55,7 +56,7 @@ def simulate_choices(probabilities):
     choice_ix_1d = choice_ix + (np.arange(num_obs) * num_alts)
     
     choices = pd.DataFrame({obs_name: obs.values.take(choice_ix_1d),
-                            alts_name: alts.values.take(choice_ix_1d)}
+                            alts_name: alts.values.take(choice_ix_1d)})
     
     return choices.set_index(obs_name)[alts_name]
 
