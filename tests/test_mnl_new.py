@@ -41,7 +41,7 @@ def test_prediction():
                              numalts=mct.sample_size, returnprobs=True)
 
     df = mct.to_frame()
-    df['prob'] = np.reshape(probs, (probs.size, 1))
+    df['prob'] = probs.flatten()
     probs2 = df.prob
     
     pd.testing.assert_series_equal(probs1, probs2)

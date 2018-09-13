@@ -336,7 +336,7 @@ class MultinomialLogitResults(object):
         df = data.to_frame()
         numalts = data.sample_size  # TO DO - make this an official MCT param
         
-        dm = dmatrix(self.model_expression, data=df, return_type='dataframe')
+        dm = dmatrix(self.model_expression, data=df)
         
         # utility is sum of data values times fitted betas
         u = np.dot(self.fitted_parameters, np.transpose(dm))
@@ -354,8 +354,7 @@ class MultinomialLogitResults(object):
         probs = exponentiated_utility / sum_exponentiated_utility
         
         # convert back to ordering of the input data
-        # TO DO - try probs.flatten(order='F')
-        probs = np.reshape(np.transpose(probs), (probs.size, 1))
+        probs = probs.flatten(order='F')
         
         df['prob'] = probs  # adds indexes
         return df.prob

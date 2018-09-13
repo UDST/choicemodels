@@ -43,15 +43,16 @@ def simulate_choices(probabilities):
     num_obs = obs.unique().size
     num_alts = probabilities.size // num_obs
     
-    # Generate choices by adapting an approach from urbansim.urbanchoice.mnl_simulate()
+    # This Monte Carlo approach is adapted from urbansim.urbanchoice.mnl_simulate()
     probs = np.array(probabilities)
     cumprobs = probs.reshape((num_obs, num_alts)).cumsum(axis=1)
-    rands = np.random.random(num_obs)
-    diff = np.subtract(cumprobs.transpose(), rands).transpose()
     
-    # The diff conversion replaces negative values with 0 and positive values with 1,
-    # so that argmax can return the position of the first positive value
-    choice_ix = np.argmax((diff + 1.0).astype('i4'), axis=1)
+    # Simulate choice by subtracting a random float
+    scaledprobs = np.subtract(cumprobs, np.random.rand(num_obs, 1))
+
+    # Replace negative values with 0 and positive values with 1, then use argmax to
+    # return the position of the first postive value
+    choice_ix = np.argmax((scaledprobs + 1.0).astype('i4'), axis=1)
     choice_ix_1d = choice_ix + (np.arange(num_obs) * num_alts)
     
     choices = pd.DataFrame({obs_name: obs.values.take(choice_ix_1d),
