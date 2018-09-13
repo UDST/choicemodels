@@ -43,8 +43,7 @@ def simulate_choices(probabilities):
     num_obs = obs.unique().size
     num_alts = probabilities.size // num_obs
     
-    # Generate choices by adapting an approach from UrbanSim MNL
-    # https://github.com/UDST/choicemodels/blob/master/choicemodels/mnl.py#L578-L583
+    # Generate choices by adapting an approach from urbansim.urbanchoice.mnl_simulate()
     probs = np.array(probabilities)
     cumprobs = probs.reshape((num_obs, num_alts)).cumsum(axis=1)
     rands = np.random.random(num_obs)

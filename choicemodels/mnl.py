@@ -241,8 +241,8 @@ class MultinomialLogit(object):
                                  fit_parameters = fit,
                                  x_names = model_design.design_info.column_names)
 
-            results = MultinomialLogitResults(self._estimation_engine,
-                                              self._model_expression,
+            results = MultinomialLogitResults(estimation_engine = self._estimation_engine,
+                                              model_expression = self._model_expression,
                                               results = result_params)
 
         return results
@@ -268,9 +268,6 @@ class MultinomialLogitResults(object):
 
     Parameters
     ----------
-    estimation_engine : str
-        'ChoiceModels' or 'PyLogit'. # TO DO - infer from model_expression?
-
     model_expression : str or OrderedDict
         Patsy 'formula-like' (str) or PyLogit 'specification' (OrderedDict).
     
@@ -281,9 +278,12 @@ class MultinomialLogitResults(object):
     fitted_parameters : list of floats, optional
         If not provided, these will be extracted from the raw results.
 
+    estimation_engine : str, optional
+        'ChoiceModels' (default) or 'PyLogit'.  # TO DO - infer from model_expression?
+
     """
-    def __init__(self, estimation_engine, model_expression, results=None, 
-                 fitted_parameters=None):
+    def __init__(self, model_expression, results=None, fitted_parameters=None, 
+                 estimation_engine='ChoiceModels'):
         
         if (fitted_parameters is None) & (results is not None):
             if (estimation_engine == 'ChoiceModels'):
