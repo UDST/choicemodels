@@ -222,8 +222,8 @@ class MultinomialLogit(object):
                                             model_type = 'MNL')
 
             m.fit_mle(init_vals = self._initial_coefs)
-            results = MultinomialLogitResults(self._estimation_engine,
-                                              self._model_expression,
+            results = MultinomialLogitResults(estimation_engine = self._estimation_engine,
+                                              model_expression = self._model_expression,
                                               results = m)
 
         elif (self._estimation_engine == 'ChoiceModels'):
