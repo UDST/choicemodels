@@ -8,7 +8,16 @@ import pandas as pd
 
 def simulate_choices(probabilities):
     """
-    Monte Carlo simulation of choices for a set of scenarios. 
+    TO DO:
+    - document performance advantages vs df.apply
+    - data requirements: consistent num_alts, probs sum to 1, consecutive alternatives
+    - wish list: a "safe" flag that performs costly checks of the inputs?
+    - accept an 'obs_ids' param for single-distribution use case, and/or faster
+      inference of num_obs? -> no, people should use np.random.choice
+    - rename monte_carlo_choices and probs
+    
+    Monte Carlo simulation of choices for a set of K scenarios, each having different
+    probability distributions (and potentially different alternatives). 
     
     Alternatives and probabilities can vary across scenarios. Choices are independent and 
     unconstrained, meaning that one alternative can be chosen multiple times. (Support is 
@@ -31,7 +40,7 @@ def simulate_choices(probabilities):
     
     """
     # TO DO 
-    # - check input for consistent num_alts, probs that sum to 1
+    # - check input for consistent num_alts, probs that sum to 1 (COSTLY TO TEST)
     # - if input is a single-column df, silently convert it to series
     # - MAKE SURE ALTERNATIVES ARE CONSECUTIVE
     
