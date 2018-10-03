@@ -49,7 +49,7 @@ def monte_carlo_choices(probabilities):
         List of chosen alternative id's, indexed with the observation id.
     
     """
-    # TO DO - if input is a single-column df, silently convert it to series
+    # TO DO - if input is a single-column dataframe, silently convert it to series
 
     obs_name, alts_name = probabilities.index.names
 
