@@ -83,7 +83,7 @@ class MultinomialLogit(object):
     Parameters
     ----------
 
-    data : pandas.DataFrame or choicemodels.tools.MergedChoiceTable
+    data : pd.DataFrame or choicemodels.tools.MergedChoiceTable
         A table of estimation data in "long" format, with one row for each combination of
         chooser and alternative. Column labeling must be consistent with the
         'model_expression'. May include extra columns.
@@ -120,7 +120,7 @@ class MultinomialLogit(object):
         the model expression varies for different alternatives. Not required if data is 
         passed as a MergedChoiceTable.
 
-    initial_coefs : float, list, or 1D array, optional
+    initial_coefs : numeric or list-like of numerics, optional
         Initial coefficients (beta values) to begin the optimization process with. Provide
         a single value for all coefficients, or an array containing a value for each
         one being estimated. If None, initial coefficients will be 0.
@@ -222,8 +222,8 @@ class MultinomialLogit(object):
                                             model_type = 'MNL')
 
             m.fit_mle(init_vals = self._initial_coefs)
-            results = MultinomialLogitResults(self._estimation_engine,
-                                              self._model_expression,
+            results = MultinomialLogitResults(estimation_engine = self._estimation_engine,
+                                              model_expression = self._model_expression,
                                               results = m)
 
         elif (self._estimation_engine == 'ChoiceModels'):
@@ -241,8 +241,8 @@ class MultinomialLogit(object):
                                  fit_parameters = fit,
                                  x_names = model_design.design_info.column_names)
 
-            results = MultinomialLogitResults(self._estimation_engine,
-                                              self._model_expression,
+            results = MultinomialLogitResults(estimation_engine = self._estimation_engine,
+                                              model_expression = self._model_expression,
                                               results = result_params)
 
         return results
@@ -268,9 +268,6 @@ class MultinomialLogitResults(object):
 
     Parameters
     ----------
-    estimation_engine : str
-        'ChoiceModels' or 'PyLogit'. # TO DO - infer from model_expression?
-
     model_expression : str or OrderedDict
         Patsy 'formula-like' (str) or PyLogit 'specification' (OrderedDict).
     
@@ -281,9 +278,12 @@ class MultinomialLogitResults(object):
     fitted_parameters : list of floats, optional
         If not provided, these will be extracted from the raw results.
 
+    estimation_engine : str, optional
+        'ChoiceModels' (default) or 'PyLogit'.  # TO DO - infer from model_expression?
+
     """
-    def __init__(self, estimation_engine, model_expression, results=None, 
-                 fitted_parameters=None):
+    def __init__(self, model_expression, results=None, fitted_parameters=None, 
+                 estimation_engine='ChoiceModels'):
         
         if (fitted_parameters is None) & (results is not None):
             if (estimation_engine == 'ChoiceModels'):
@@ -336,7 +336,7 @@ class MultinomialLogitResults(object):
         df = data.to_frame()
         numalts = data.sample_size  # TO DO - make this an official MCT param
         
-        dm = dmatrix(self.model_expression, data=df, return_type='dataframe')
+        dm = dmatrix(self.model_expression, data=df)
         
         # utility is sum of data values times fitted betas
         u = np.dot(self.fitted_parameters, np.transpose(dm))
@@ -354,7 +354,7 @@ class MultinomialLogitResults(object):
         probs = exponentiated_utility / sum_exponentiated_utility
         
         # convert back to ordering of the input data
-        probs = np.reshape(np.transpose(probs), (probs.size, 1))
+        probs = probs.flatten(order='F')
         
         df['prob'] = probs  # adds indexes
         return df.prob

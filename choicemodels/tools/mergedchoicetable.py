@@ -3,18 +3,27 @@ Utilities for generating merged tables of choosers and alternatives, including e
 sampling functionality.
 
 """
-import random
-import sys
-
 import numpy as np
 import pandas as pd
 
 
 class MergedChoiceTable(object):
     """
-    Generates a merged long-format table of choosers and alternatives, for discrete choice
-    model estimation or simulation. 
+    Generates a merged long-format table of observations (choosers) and alternatives, for 
+    discrete choice model estimation or simulation. 
     
+    Supports random sampling of alternatives (uniform or weighted). Supports sampling with
+    or without replacement. Supports merging observations and alternatives without 
+    sampling them. Supports alternative-specific weights, as well as interaction weights
+    that depend on both the observation and alternative. Supports automatic merging of 
+    interaction terms onto the final data table.
+    
+    Support is PLANNED for specifying availability of alternatives, specifying random 
+    state, and passing interaction-type parameters as callable generator functions.
+    
+    Does NOT support cases where the number of alternatives in the final table varies 
+    across observations.
+
     Reserved column names: 'chosen'.
     
     Parameters
