@@ -6,32 +6,42 @@ import numpy as np
 import pandas as pd
 
 
-def simulate_choices(probabilities):
+def monte_carlo_choices(probabilities):
     """
-    TO DO:
-    - document performance advantages vs df.apply
-    - data requirements: consistent num_alts, probs sum to 1, consecutive alternatives
-    - wish list: a "safe" flag that performs costly checks of the inputs?
-    - accept an 'obs_ids' param for single-distribution use case, and/or faster
-      inference of num_obs? -> no, people should use np.random.choice
-    - rename monte_carlo_choices and probs
-    
     Monte Carlo simulation of choices for a set of K scenarios, each having different
     probability distributions (and potentially different alternatives). 
     
-    Alternatives and probabilities can vary across scenarios. Choices are independent and 
-    unconstrained, meaning that one alternative can be chosen multiple times. (Support is 
-    planned for capacity-constrained choices.)
+    Choices are independent and unconstrained, meaning that the same alternative can be 
+    chosen in multiple scenarios.
     
-    Does not support cases where the number of alternatives varies across choice 
-    scenarios.
+    This function is equivalent to applying np.random.choice() to each of the K scenarios,
+    but it's implemented as a single-pass matrix calculation. This is about 50x faster
+    than using df.apply() or a loop. 
+    
+    If all the choice scenarios have the same probability distribution among alternatives,
+    you don't need this function. You can use np.random.choice() with size=K, which will 
+    be more efficient. (For example, that would work for a choice model whose expression 
+    includes only attributes of the alternatives.)
+
+    NOTE ABOUT THE INPUT FORMATS: It's important for the probabilities to be structured
+    correctly. This is computationally expensive to verify, so you will not get a warning
+    if it's wrong! (TO DO: we should provide an option to perform these checks, though)
+    
+    1. Probabilities (pd.Series) must include a two-level MultiIndex, the first level 
+       representing the scenario (observation) id and the second the alternative id.
+
+    2. Probabilities must be sorted so that each scenario's alternatives are consecutive.
+    
+    3. Each scenario must have the same number of alternatives. You can pad a scenario 
+       with zero-probability alternatives if needed.
+       
+    4. Each scenario's alternative probabilities must sum to 1. 
     
     Parameters
     ----------
     probabilities: pd.Series
         List of probabilities for each observation (choice scenario) and alternative. 
-        Should contain a two-level MultiIndex, the first level representing the 
-        observation id and the second the alternative id.
+        Please verify that the formatting matches the four requirements described above.
     
     Returns
     -------
@@ -39,11 +49,8 @@ def simulate_choices(probabilities):
         List of chosen alternative id's, indexed with the observation id.
     
     """
-    # TO DO 
-    # - check input for consistent num_alts, probs that sum to 1 (COSTLY TO TEST)
-    # - if input is a single-column df, silently convert it to series
-    # - MAKE SURE ALTERNATIVES ARE CONSECUTIVE
-    
+    # TO DO - if input is a single-column df, silently convert it to series
+
     obs_name, alts_name = probabilities.index.names
 
     obs = probabilities.index.get_level_values(0)
