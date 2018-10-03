@@ -11,6 +11,9 @@ import pytest
 import choicemodels
 
 
+# TO DO - could we set a random seed and then verify that monte_carlo_choices() provides
+# the same output as np.random.choice()?
+
 def build_data(num_obs, num_alts):
     """
     Build a simulated list of scenarios, alternatives, and probabilities
@@ -35,7 +38,7 @@ def test_unconstrained_simulation():
     
     """
     data = build_data(1000, 100)
-    choicemodels.tools.simulate_choices(data)
+    choicemodels.tools.monte_carlo_choices(data)
 
 
 def test_simulation_accuracy():
@@ -56,7 +59,7 @@ def test_simulation_accuracy():
     n = 1000
     count = 0
     for i in range(n):
-        choices = choicemodels.tools.simulate_choices(data)
+        choices = choicemodels.tools.monte_carlo_choices(data)
         if (choices.loc[oid] == aid):
             count += 1
 
