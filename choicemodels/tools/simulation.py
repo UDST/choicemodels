@@ -78,10 +78,10 @@ def monte_carlo_choices(probabilities):
 
 
 def iterative_lottery_choices(choosers, alternatives, mct_callable, probs_callable, 
-        alt_capacity=None, chooser_size=None):
+        alt_capacity=None, chooser_size=None, max_iter=None):
     """
-    Simulation of choices where (a) the alternatives have limited capacity and (b) the 
-    choosers have varying probability distributions over the alternatives. 
+    Monte Carlo simulation of choices where (a) the alternatives have limited capacity and 
+    (b) the choosers have varying probability distributions over the alternatives. 
     
     Effectively, we simulate the choices sequentially, each time removing the chosen
     alternative or reducing its available capacity. (It's actually done in batches for
@@ -89,14 +89,18 @@ def iterative_lottery_choices(choosers, alternatives, mct_callable, probs_callab
     alternatives and calculating choice probabilities multiple times, which is why
     callables for those actions are required inputs.
     
-    (Note that if the alternatives have count-based capacities and all the choosers have
-    the same probability distribution over alternatives, you don't need this function.)
+    (Note that if all the choosers are the same "size" and have the same probability 
+    distribution over alternatives, you don't need this function.)
     
     Parameters
     ----------
     choosers : pd.DataFrame
+        Table with one row for each chooser or choice scenario, with unique ID's in the
+        index field. Additional columns can contain fixed attributes of the choosers.
     
     alternatives : pd.DataFrame
+        Table with one row for each alternative, with unique ID's in the index field.
+        Additional columns can contain fixed attributes of the alternatives.
     
     mct_callable : callable
         Callable that samples alternatives to generate a table of choice scenarios. It 
@@ -115,10 +119,13 @@ def iterative_lottery_choices(choosers, alternatives, mct_callable, probs_callab
     
     chooser_size : str, optional
         Name of a column in the choosers table that expresses the size of choosers. 
-        Choosers might have varying sizes if the alternative capacities are _amounts_ 
+        Choosers might have varying sizes if the alternative capacities are amounts 
         rather than counts -- e.g. square footage or employment capacity. Chooser sizes 
         must be in the same units as alternative capacities. If not provided, each chooser
         has a size of 1. 
+    
+    max_iter : int, optional
+        Maximum number of iterations.
 
     Returns
     -------
@@ -126,7 +133,11 @@ def iterative_lottery_choices(choosers, alternatives, mct_callable, probs_callab
         List of chosen alternative id's, indexed with the chooser (observation) id. 
             
     """
+    # 1. Start by coding a single pass
+    # 2. Then multiple passes with unitary capacities
+    # 3. Then counts, then amounts
     
+    pass
     
     
     
