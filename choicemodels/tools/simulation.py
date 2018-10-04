@@ -15,8 +15,8 @@ def monte_carlo_choices(probabilities):
     chosen in multiple scenarios.
     
     This function is equivalent to applying np.random.choice() to each of the K scenarios,
-    but it's implemented as a single-pass matrix calculation. This is about 50x faster
-    than using df.apply() or a loop. 
+    but it's implemented as a single-pass matrix calculation. When the number of scenarios 
+    is large, this is about 50x faster than using df.apply() or a loop.
     
     If all the choice scenarios have the same probability distribution among alternatives,
     you don't need this function. You can use np.random.choice() with size=K, which will 
@@ -76,3 +76,59 @@ def monte_carlo_choices(probabilities):
     
     return choices.set_index(obs_name)[alts_name]
 
+
+def iterative_lottery_choices(choosers, alternatives, mct_callable, probs_callable, 
+        alt_capacity=None, chooser_size=None):
+    """
+    Simulation of choices where (a) the alternatives have limited capacity and (b) the 
+    choosers have varying probability distributions over the alternatives. 
+    
+    Effectively, we simulate the choices sequentially, each time removing the chosen
+    alternative or reducing its available capacity. (It's actually done in batches for
+    better performance, but the outcome is equivalent.) This requires sampling 
+    alternatives and calculating choice probabilities multiple times, which is why
+    callables for those actions are required inputs.
+    
+    (Note that if the alternatives have count-based capacities and all the choosers have
+    the same probability distribution over alternatives, you don't need this function.)
+    
+    Parameters
+    ----------
+    choosers : pd.DataFrame
+    
+    alternatives : pd.DataFrame
+    
+    mct_callable : callable
+        Callable that samples alternatives to generate a table of choice scenarios. It 
+        should accept subsets of the choosers and alternatives tables and return a 
+        choicemodels.tools.MergedChoiceTable.
+    
+    probs_callable : callable
+        Callable that generates predicted probabilities for a table of choice scenarios.
+        It should accept a choicemodels.tools.MergedChoiceTable and return a pd.Series
+        with indexes matching the input.
+    
+    alt_capacity : str, optional
+        Name of a column in the alternatives table that expresses the capacity of 
+        alternatives. If not provided, each alternative is interpreted as accommodating a
+        single chooser.
+    
+    chooser_size : str, optional
+        Name of a column in the choosers table that expresses the size of choosers. 
+        Choosers might have varying sizes if the alternative capacities are _amounts_ 
+        rather than counts -- e.g. square footage or employment capacity. Chooser sizes 
+        must be in the same units as alternative capacities. If not provided, each chooser
+        has a size of 1. 
+
+    Returns
+    -------
+    pd.Series
+        List of chosen alternative id's, indexed with the chooser (observation) id. 
+            
+    """
+    
+    
+    
+    
+    
+    
