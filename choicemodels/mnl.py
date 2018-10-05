@@ -318,6 +318,9 @@ class MultinomialLogitResults(object):
         
         TO DO - make sure this handles pylogit case
         
+        TO DO - does MergedChoiceTable guarantee that alternatives for a single scenario
+        are consecutive? seems like a requirement here; should document it
+        
         Parameters
         ----------
         data : choicemodels.tools.MergedChoiceTable

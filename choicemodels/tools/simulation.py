@@ -97,10 +97,12 @@ def iterative_lottery_choices(choosers, alternatives, mct_callable, probs_callab
     choosers : pd.DataFrame
         Table with one row for each chooser or choice scenario, with unique ID's in the
         index field. Additional columns can contain fixed attributes of the choosers.
+        (Reserved column names: '_size'.)
     
     alternatives : pd.DataFrame
         Table with one row for each alternative, with unique ID's in the index field.
-        Additional columns can contain fixed attributes of the alternatives.
+        Additional columns can contain fixed attributes of the alternatives. (Reserved 
+        column names: '_capacity'.)
     
     mct_callable : callable
         Callable that samples alternatives to generate a table of choice scenarios. It 
@@ -133,11 +135,59 @@ def iterative_lottery_choices(choosers, alternatives, mct_callable, probs_callab
         List of chosen alternative id's, indexed with the chooser (observation) id. 
             
     """
-    # 1. Start by coding a single pass
-    # 2. Then multiple passes with unitary capacities
-    # 3. Then counts, then amounts
+    # TO DO - make the code cleaner, write some tests
+    # - how does MCT handle sample size greater than the number of available alts?
     
-    pass
+    if alt_capacity is None:
+        alt_capacity = '_capacity'
+        alternatives[alt_capacity] = 1
+    
+    if chooser_size is None:
+        chooser_size = '_size'
+        choosers[chooser_size] = 1
+    
+    # TO DO - permutate choosers to randomize priority
+    
+    alts = alternatives
+    capacity, size = (alt_capacity, chooser_size)
+    
+    len_choosers = len(choosers)
+    valid_choices = pd.Series()
+    iter = 0
+    
+    while (len(valid_choices) < len_choosers):
+        iter += 1
+        if max_iter is not None:
+            if (iter > max_iter):
+                break
+
+        mct = mct_callable(choosers, alts)
+        probs = probs_callable(mct)
+        choices = pd.DataFrame(monte_carlo_choices(probs))
+    
+        # join capacities and sizes
+        oid, aid = (mct.observation_id_col, mct.alternative_id_col)
+        c = choices.join(alts[capacity], on=aid)
+        c = c.join(choosers[size], on=oid)
+        c['_cumsize'] = c.groupby(aid)[size].cumsum()
+    
+        # save valid choices
+        c_valid = (c._cumsize <= c[capacity])
+        valid_choices = pd.concat([valid_choices, c[aid].loc[c_valid]])
+        
+        print("Iteration {}: {} of {} valid choices".format(iter, len(valid_choices), 
+                len_choosers))
+        
+        # update choosers and alternatives
+        choosers = choosers.drop(c.loc[c_valid].index.values)
+        
+        placed_capacity = c.loc[c_valid].groupby(aid)._cumsize.max()
+        alts[capacity] = alts[capacity].subtract(placed_capacity, fill_value=0)
+
+        full = alts.loc[alts[capacity] == 0]
+        alts = alts.drop(full.index)
+        
+    return valid_choices
     
     
     

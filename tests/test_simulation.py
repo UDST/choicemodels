@@ -31,7 +31,7 @@ def build_data(num_obs, num_alts):
     return data
 
 
-def test_unconstrained_simulation():
+def test_monte_carlo_choices():
     """
     Test simulation of choices without capacity constraints. This test just verifies that
     the code runs, using a fairly large synthetic dataset.
@@ -65,3 +65,59 @@ def test_simulation_accuracy():
 
     assert(count/n > prob-0.1)
     assert(count/n < prob+0.1)
+
+
+@pytest.fixture
+def obs():
+    d1 = {'oid': np.arange(50), 
+          'obsval': np.random.random(50),
+          'choice': np.random.choice(np.arange(60), size=50)}
+    return pd.DataFrame(d1).set_index('oid')
+
+
+@pytest.fixture
+def alts():
+    d2 = {'aid': np.arange(60), 
+          'altval': np.random.random(60)}
+    return pd.DataFrame(d2).set_index('aid')
+
+
+@pytest.fixture
+def fitted_model(obs, alts):
+    mct = choicemodels.tools.MergedChoiceTable(obs, alts, 'choice', sample_size=5)
+    m = choicemodels.MultinomialLogit(mct, model_expression='obsval + altval - 1')
+    return m.fit()
+
+
+def test_iterative_lottery_choices(obs, alts, fitted_model):
+    """
+    """
+    def mct(obs, alts):
+        return choicemodels.tools.MergedChoiceTable(obs, alts, sample_size=10)
+    
+    def probs(mct):
+        return fitted_model.probabilities(mct)
+    
+    choices = choicemodels.tools.iterative_lottery_choices(obs, alts, mct, probs)
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
