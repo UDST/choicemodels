@@ -161,6 +161,13 @@ def test_chooser_priority(obs, alts, mct, probs):
     assert (choices.index.values[:3].tolist != [0, 1, 2])
     
     
+def test_max_iter(obs, alts, mct, probs):
+    """
+    Confirm that max_iter param will prevent infinite loop.
     
+    """
+    obs['size'] = 2
+    choices = iterative_lottery_choices(obs, alts, mct, probs,
+                                        chooser_size='size', max_iter=10)
     
     

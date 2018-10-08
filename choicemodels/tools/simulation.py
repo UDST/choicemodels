@@ -78,7 +78,7 @@ def monte_carlo_choices(probabilities):
 
 
 def iterative_lottery_choices(choosers, alternatives, mct_callable, probs_callable, 
-        alt_capacity=None, chooser_size=None, max_iter=15):
+        alt_capacity=None, chooser_size=None, max_iter=None):
     """
     Monte Carlo simulation of choices for a set of choice scenarios where (a) the 
     alternatives have limited capacity and (b) the choosers have varying probability 
@@ -133,8 +133,8 @@ def iterative_lottery_choices(choosers, alternatives, mct_callable, probs_callab
         has a size of 1. 
     
     max_iter : int or None, optional
-        Maximum number of iterations. If None, the algorithm will iterate until all 
-        choosers are matched or no alternatives remain.
+        Maximum number of iterations. If None (default), the algorithm will iterate until 
+        all choosers are matched or no alternatives remain.
 
     Returns
     -------
@@ -142,8 +142,7 @@ def iterative_lottery_choices(choosers, alternatives, mct_callable, probs_callab
         List of chosen alternative id's, indexed with the chooser (observation) id. 
             
     """
-    # TO DO - make the code cleaner, write some tests
-    # - how does MCT handle sample size greater than the number of available alts?
+    # TO DO - how does MCT handle sample size greater than the number of available alts?
     
     if alt_capacity is None:
         alt_capacity = '_capacity'
@@ -177,8 +176,7 @@ def iterative_lottery_choices(choosers, alternatives, mct_callable, probs_callab
     
         # join capacities and sizes
         oid, aid = (mct.observation_id_col, mct.alternative_id_col)
-        c = choices.join(alts[capacity], on=aid)
-        c = c.join(choosers[size], on=oid)
+        c = choices.join(alts[capacity], on=aid).join(choosers[size], on=oid)
         c['_cumsize'] = c.groupby(aid)[size].cumsum()
     
         # save valid choices
