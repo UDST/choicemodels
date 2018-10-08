@@ -89,7 +89,10 @@ def iterative_lottery_choices(choosers, alternatives, mct_callable, probs_callab
     alternatives and calculating choice probabilities multiple times, which is why
     callables for those actions are required inputs.
     
-    (Note that if all the choosers are the same "size" and have the same probability 
+    Capacities can be specified as counts (number of choosers that can be accommodated) or 
+    as amounts (e.g. square footage) with corresponding chooser sizes.
+    
+    (Note that if all the choosers are the same size and have the same probability 
     distribution over alternatives, you don't need this function.)
     
     Parameters

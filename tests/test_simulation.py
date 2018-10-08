@@ -8,7 +8,9 @@ import numpy as np
 import pandas as pd
 import pytest
 
-import choicemodels
+from choicemodels import MultinomialLogit
+from choicemodels.tools import (iterative_lottery_choices, monte_carlo_choices,
+        MergedChoiceTable)
 
 
 # TO DO - could we set a random seed and then verify that monte_carlo_choices() provides
@@ -38,7 +40,7 @@ def test_monte_carlo_choices():
     
     """
     data = build_data(1000, 100)
-    choicemodels.tools.monte_carlo_choices(data)
+    monte_carlo_choices(data)
 
 
 def test_simulation_accuracy():
@@ -59,13 +61,15 @@ def test_simulation_accuracy():
     n = 1000
     count = 0
     for i in range(n):
-        choices = choicemodels.tools.monte_carlo_choices(data)
+        choices = monte_carlo_choices(data)
         if (choices.loc[oid] == aid):
             count += 1
 
     assert(count/n > prob-0.1)
     assert(count/n < prob+0.1)
 
+
+# CHOICE SIMULATION WITH CAPACITY CONSTRAINTS
 
 @pytest.fixture
 def obs():
@@ -74,43 +78,54 @@ def obs():
           'choice': np.random.choice(np.arange(60), size=50)}
     return pd.DataFrame(d1).set_index('oid')
 
-
 @pytest.fixture
 def alts():
     d2 = {'aid': np.arange(60), 
           'altval': np.random.random(60)}
     return pd.DataFrame(d2).set_index('aid')
 
-
 @pytest.fixture
 def fitted_model(obs, alts):
-    mct = choicemodels.tools.MergedChoiceTable(obs, alts, 'choice', sample_size=5)
-    m = choicemodels.MultinomialLogit(mct, model_expression='obsval + altval - 1')
+    mct = MergedChoiceTable(obs, alts, 'choice', sample_size=5)
+    m = MultinomialLogit(mct, model_expression='obsval + altval - 1')
     return m.fit()
 
+@pytest.fixture
+def mct(obs, alts):
+    def mct_callable(obs, alts):
+        return MergedChoiceTable(obs, alts, sample_size=10)
+    return mct_callable
 
-def test_iterative_lottery_choices(obs, alts, fitted_model):
-    """
-    """
-    def mct(obs, alts):
-        return choicemodels.tools.MergedChoiceTable(obs, alts, sample_size=10)
-    
-    def probs(mct):
+@pytest.fixture
+def probs(fitted_model, mct):
+    def probs_callable(mct):
         return fitted_model.probabilities(mct)
+    return probs_callable
+
+
+def test_iterative_lottery_choices(obs, alts, mct, probs):
+    """
+    """
+    choices = iterative_lottery_choices(obs, alts, mct, probs)
+
     
-    choices = choicemodels.tools.iterative_lottery_choices(obs, alts, mct, probs)
+def test_count_capacity(obs, alts, mct, probs):
+    """
+    """
+    alts['capacity'] = np.random.choice([1,2,3], size=len(alts))
+    choices = iterative_lottery_choices(obs, alts, mct, probs, alt_capacity='capacity')
+
     
+def test_size_capacity(obs, alts, mct, probs):
+    """
+    """
+    alts['capacity'] = np.random.choice([1,2,3], size=len(alts))
+    obs['size'] = np.random.choice([1,2], size=len(obs))
+    choices = iterative_lottery_choices(obs, alts, mct, probs, alt_capacity='capacity',
+                                        chooser_size='size')
+
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+
     
     
     
