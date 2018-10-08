@@ -168,6 +168,6 @@ def test_max_iter(obs, alts, mct, probs):
     """
     obs['size'] = 2
     choices = iterative_lottery_choices(obs, alts, mct, probs,
-                                        chooser_size='size', max_iter=10)
+                                        chooser_size='size', max_iter=5)
     
     
