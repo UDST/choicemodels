@@ -92,7 +92,8 @@ def iterative_lottery_choices(choosers, alternatives, mct_callable, probs_callab
     
     Chooser priority is randomized. Capacities can be specified as counts (number of 
     choosers that can be accommodated) or as amounts (e.g. square footage) with 
-    corresponding chooser sizes.
+    corresponding chooser sizes. If total capacity is insufficient to accommodate all the 
+    choosers, as many choices will be simulated as possible.
     
     Note that if all the choosers are the same size and have the same probability 
     distribution over alternatives, you don't need this function.
@@ -152,8 +153,6 @@ def iterative_lottery_choices(choosers, alternatives, mct_callable, probs_callab
         chooser_size = '_size'
         choosers[chooser_size] = 1
     
-    # TO DO - permutate choosers to randomize priority
-    
     alts = alternatives
     capacity, size = (alt_capacity, chooser_size)
     
@@ -167,7 +166,7 @@ def iterative_lottery_choices(choosers, alternatives, mct_callable, probs_callab
             if (iter > max_iter):
                 break
 
-        mct = mct_callable(choosers, alts)
+        mct = mct_callable(choosers.sample(frac=1), alts)
         
         if len(mct.to_frame()) == 0:
             print("No valid alternatives for the remaining choosers")

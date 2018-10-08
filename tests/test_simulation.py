@@ -136,12 +136,21 @@ def test_size_capacity(obs, alts, mct, probs):
     
 def test_insufficient_capacity(obs, alts, mct, probs):
     """
+    Confirm that choices are simulated even if there is insufficient overall capacity.
+    
     """
     alts = alts.ix[:30]
     choices = iterative_lottery_choices(obs, alts, mct, probs)
+    assert len(choices) > 0
     
 
+def test_chooser_priority(obs, alts, mct, probs):
+    """
+    Confirm that chooser priority is randomized.
     
+    """
+    choices = iterative_lottery_choices(obs, alts, mct, probs)
+    assert (choices.index.values[:3].tolist != [0, 1, 2])
     
     
     
