@@ -78,10 +78,11 @@ def monte_carlo_choices(probabilities):
 
 
 def iterative_lottery_choices(choosers, alternatives, mct_callable, probs_callable, 
-        alt_capacity=None, chooser_size=None, max_iter=None):
+        alt_capacity=None, chooser_size=None, max_iter=15):
     """
-    Monte Carlo simulation of choices where (a) the alternatives have limited capacity and 
-    (b) the choosers have varying probability distributions over the alternatives. 
+    Monte Carlo simulation of choices for a set of choice scenarios where (a) the 
+    alternatives have limited capacity and (b) the choosers have varying probability 
+    distributions over the alternatives. 
     
     Effectively, we simulate the choices sequentially, each time removing the chosen
     alternative or reducing its available capacity. (It's actually done in batches for
@@ -89,11 +90,12 @@ def iterative_lottery_choices(choosers, alternatives, mct_callable, probs_callab
     alternatives and calculating choice probabilities multiple times, which is why
     callables for those actions are required inputs.
     
-    Capacities can be specified as counts (number of choosers that can be accommodated) or 
-    as amounts (e.g. square footage) with corresponding chooser sizes.
+    Chooser priority is randomized. Capacities can be specified as counts (number of 
+    choosers that can be accommodated) or as amounts (e.g. square footage) with 
+    corresponding chooser sizes.
     
-    (Note that if all the choosers are the same size and have the same probability 
-    distribution over alternatives, you don't need this function.)
+    Note that if all the choosers are the same size and have the same probability 
+    distribution over alternatives, you don't need this function.
     
     Parameters
     ----------
@@ -129,8 +131,9 @@ def iterative_lottery_choices(choosers, alternatives, mct_callable, probs_callab
         must be in the same units as alternative capacities. If not provided, each chooser
         has a size of 1. 
     
-    max_iter : int, optional
-        Maximum number of iterations.
+    max_iter : int or None, optional
+        Maximum number of iterations. If None, the algorithm will iterate until all 
+        choosers are matched or no alternatives remain.
 
     Returns
     -------
@@ -165,6 +168,11 @@ def iterative_lottery_choices(choosers, alternatives, mct_callable, probs_callab
                 break
 
         mct = mct_callable(choosers, alts)
+        
+        if len(mct.to_frame()) == 0:
+            print("No valid alternatives for the remaining choosers")
+            break
+        
         probs = probs_callable(mct)
         choices = pd.DataFrame(monte_carlo_choices(probs))
     

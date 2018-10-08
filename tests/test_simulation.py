@@ -108,12 +108,20 @@ def test_iterative_lottery_choices(obs, alts, mct, probs):
     """
     choices = iterative_lottery_choices(obs, alts, mct, probs)
 
-    
+
+def test_unique_choices(obs, alts, mct, probs):
+    """
+    """
+    choices = iterative_lottery_choices(obs, alts, mct, probs)
+    assert len(choices) == len(choices.unique())
+
+
 def test_count_capacity(obs, alts, mct, probs):
     """
     """
     alts['capacity'] = np.random.choice([1,2,3], size=len(alts))
     choices = iterative_lottery_choices(obs, alts, mct, probs, alt_capacity='capacity')
+    # TO DO - confirm constraints are satisfied
 
     
 def test_size_capacity(obs, alts, mct, probs):
@@ -123,13 +131,16 @@ def test_size_capacity(obs, alts, mct, probs):
     obs['size'] = np.random.choice([1,2], size=len(obs))
     choices = iterative_lottery_choices(obs, alts, mct, probs, alt_capacity='capacity',
                                         chooser_size='size')
+    # TO DO - confirm constraints are satisfied
 
     
+def test_insufficient_capacity(obs, alts, mct, probs):
+    """
+    """
+    alts = alts.ix[:30]
+    choices = iterative_lottery_choices(obs, alts, mct, probs)
+    
 
-    
-    
-    
-    
     
     
     

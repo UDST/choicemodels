@@ -96,7 +96,7 @@ class MergedChoiceTable(object):
                  sample_size=None, replace=True, weights=None, availability=None,
                  interaction_terms=None, random_state=None):
         
-        # Validate the inputs...
+        # Standardize and validate the inputs...
         
         if isinstance(sample_size, float):
             sample_size = int(sample_size)
@@ -106,6 +106,8 @@ class MergedChoiceTable(object):
                 raise ValueError("Cannot sample {} alternatives; to run without sampling "
                         "leave sample_size=None".format(sample_size))
 
+            # TO DO - should probably just return as many alternatives as we can (and wait 
+            # to evaluate this until after evaluating the sampling filters)
             if (replace == False) & (sample_size > alternatives.shape[0]):
                 raise ValueError("Cannot sample without replacement with sample_size {} "
                         "and n_alts {}".format(sample_size, alternatives.shape[0]))
@@ -159,8 +161,11 @@ class MergedChoiceTable(object):
         self.weights_2d = weights_2d
         
         # Build choice table...
+
+        if (len(observations) == 0) or (len(alternatives) == 0):
+            self._merged_table = pd.DataFrame()
         
-        if (sample_size is None):
+        elif (sample_size is None):
             self._merged_table = self._build_table_without_sampling()
         
         else:

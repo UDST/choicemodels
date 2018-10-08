@@ -6,6 +6,7 @@ import pandas as pd
 import pytest
 
 import choicemodels
+from choicemodels.tools import MergedChoiceTable
 
 d1 = {'oid': [0,1], 
       'obsval': [6,8],
@@ -162,4 +163,21 @@ def test_mergedchoicetable():
                                  chosen_alternatives = 'choice').to_frame()
 
 
+def test_no_alternatives():
+    """
+    Empty alternatives should produce empty choice table.
+    
+    """
+    mct = MergedChoiceTable(obs, pd.DataFrame()).to_frame()
+    assert len(mct) == 0
 
+
+def test_no_choosers():
+    """
+    Empty observations should produce empty choice table.
+    
+    """
+    mct = MergedChoiceTable(pd.DataFrame(), alts).to_frame()
+    assert len(mct) == 0
+
+    
