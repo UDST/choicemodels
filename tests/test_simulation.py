@@ -105,12 +105,16 @@ def probs(fitted_model, mct):
 
 def test_iterative_lottery_choices(obs, alts, mct, probs):
     """
+    Test that iterative lottery choices can run.
+    
     """
     choices = iterative_lottery_choices(obs, alts, mct, probs)
 
 
 def test_unique_choices(obs, alts, mct, probs):
     """
+    Confirm unique choices with implicit capacity of 1.
+    
     """
     choices = iterative_lottery_choices(obs, alts, mct, probs)
     assert len(choices) == len(choices.unique())
@@ -118,6 +122,8 @@ def test_unique_choices(obs, alts, mct, probs):
 
 def test_count_capacity(obs, alts, mct, probs):
     """
+    Confirm count-based capacity constraints are respected.
+    
     """
     alts['capacity'] = np.random.choice([1,2,3], size=len(alts))
     choices = iterative_lottery_choices(obs, alts, mct, probs, alt_capacity='capacity')
@@ -126,6 +132,8 @@ def test_count_capacity(obs, alts, mct, probs):
     
 def test_size_capacity(obs, alts, mct, probs):
     """
+    Confirm size-based capacity constraints are respected.
+    
     """
     alts['capacity'] = np.random.choice([1,2,3], size=len(alts))
     obs['size'] = np.random.choice([1,2], size=len(obs))
