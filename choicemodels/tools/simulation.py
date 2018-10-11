@@ -96,7 +96,9 @@ def iterative_lottery_choices(choosers, alternatives, mct_callable, probs_callab
     choosers, as many choices will be simulated as possible.
     
     Note that if all the choosers are the same size and have the same probability 
-    distribution over alternatives, you don't need this function.
+    distribution over alternatives, you don't need this function. You can use
+    np.random.choice() with size=K to draw chosen alternatives, which will be more 
+    efficient. (This function also works, though.)
     
     Parameters
     ----------
