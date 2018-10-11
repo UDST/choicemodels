@@ -147,7 +147,7 @@ def test_insufficient_capacity(obs, alts, mct, probs):
     Confirm that choices are simulated even if there is insufficient overall capacity.
     
     """
-    alts = alts.ix[:30]
+    alts = alts.ix[:30].copy()
     choices = iterative_lottery_choices(obs, alts, mct, probs)
     assert len(choices) > 0
     
@@ -166,7 +166,7 @@ def test_max_iter(obs, alts, mct, probs):
     Confirm that max_iter param will prevent infinite loop.
     
     """
-    obs['size'] = 2
+    obs.loc[:,'size'] = 2
     choices = iterative_lottery_choices(obs, alts, mct, probs,
                                         chooser_size='size', max_iter=5)
     

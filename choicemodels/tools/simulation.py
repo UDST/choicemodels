@@ -146,11 +146,11 @@ def iterative_lottery_choices(choosers, alternatives, mct_callable, probs_callab
     
     if alt_capacity is None:
         alt_capacity = '_capacity'
-        alternatives[alt_capacity] = 1
+        alternatives.loc[:,alt_capacity] = 1
     
     if chooser_size is None:
         chooser_size = '_size'
-        choosers[chooser_size] = 1
+        choosers.loc[:,chooser_size] = 1
     
     alts = alternatives
     capacity, size = (alt_capacity, chooser_size)
@@ -177,7 +177,7 @@ def iterative_lottery_choices(choosers, alternatives, mct_callable, probs_callab
         # join capacities and sizes
         oid, aid = (mct.observation_id_col, mct.alternative_id_col)
         c = choices.join(alts[capacity], on=aid).join(choosers[size], on=oid)
-        c['_cumsize'] = c.groupby(aid)[size].cumsum()
+        c.loc[:,'_cumsize'] = c.groupby(aid)[size].cumsum()
     
         # save valid choices
         c_valid = (c._cumsize <= c[capacity])
@@ -191,7 +191,7 @@ def iterative_lottery_choices(choosers, alternatives, mct_callable, probs_callab
         # print("{} remaining choosers".format(len(choosers)))
         
         placed_capacity = c.loc[c_valid].groupby(aid)._cumsize.max()
-        alts[capacity] = alts[capacity].subtract(placed_capacity, fill_value=0)
+        alts.loc[:,capacity] = alts[capacity].subtract(placed_capacity, fill_value=0)
 
         full = alts.loc[alts[capacity] == 0]
         alts = alts.drop(full.index)
