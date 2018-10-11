@@ -199,6 +199,10 @@ def iterative_lottery_choices(choosers, alternatives, mct_callable, probs_callab
         alts = alts.drop(full.index)
         # print("{} remaining alternatives".format(len(alts)))
         
+    # retain original index names
+    valid_choices.index.name = choosers.index.name
+    valid_choices.name = alts.index.name
+    
     return valid_choices
     
     

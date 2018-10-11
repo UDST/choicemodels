@@ -111,6 +111,17 @@ def test_iterative_lottery_choices(obs, alts, mct, probs):
     choices = iterative_lottery_choices(obs, alts, mct, probs)
 
 
+def test_index_name_retention(obs, alts, mct, probs):
+    """
+    Confirm retention of index names.
+    
+    """
+    choices = iterative_lottery_choices(obs, alts, mct, probs)
+    assert(choices.index.name == obs.index.name)
+    assert(choices.name == alts.index.name)
+    # TO DO - check for this in the monte carlo choices too
+    
+
 def test_unique_choices(obs, alts, mct, probs):
     """
     Confirm unique choices with implicit capacity of 1.
@@ -127,7 +138,13 @@ def test_count_capacity(obs, alts, mct, probs):
     """
     alts['capacity'] = np.random.choice([1,2,3], size=len(alts))
     choices = iterative_lottery_choices(obs, alts, mct, probs, alt_capacity='capacity')
-    # TO DO - confirm constraints are satisfied
+    
+    choices = pd.DataFrame(choices).join(alts['capacity'], on='aid')
+    choosers_placed = choices.groupby('aid').size()
+    
+    # TO DO - NOT WORKING
+    print(pd.merge(choosers_placed, alts.capacity))
+    assert(all(choosers_placed.le(alts.capacity, fill_value=0)))
 
     
 def test_size_capacity(obs, alts, mct, probs):
@@ -166,7 +183,7 @@ def test_max_iter(obs, alts, mct, probs):
     Confirm that max_iter param will prevent infinite loop.
     
     """
-    obs.loc[:,'size'] = 2
+    obs['size'] = 2
     choices = iterative_lottery_choices(obs, alts, mct, probs,
                                         chooser_size='size', max_iter=5)
     
