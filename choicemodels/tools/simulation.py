@@ -188,12 +188,14 @@ def iterative_lottery_choices(choosers, alternatives, mct_callable, probs_callab
         
         # update choosers and alternatives
         choosers = choosers.drop(c.loc[c_valid].index.values)
+        # print("{} remaining choosers".format(len(choosers)))
         
         placed_capacity = c.loc[c_valid].groupby(aid)._cumsize.max()
         alts[capacity] = alts[capacity].subtract(placed_capacity, fill_value=0)
 
         full = alts.loc[alts[capacity] == 0]
         alts = alts.drop(full.index)
+        # print("{} remaining alternatives".format(len(alts)))
         
     return valid_choices
     
