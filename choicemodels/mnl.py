@@ -200,17 +200,16 @@ class MultinomialLogit(object):
 
         elif (self._estimation_engine == 'ChoiceModels'):
 
-            model_design = dmatrix(self._model_expression, data=self._df,
-                                   return_type='dataframe')
+            dm = dmatrix(self._model_expression, data=self._df)
 
             chosen = np.reshape(self._df[[self._choice_col]].values,
                                 (self._numobs, self._numalts))
 
-            log_lik, fit = mnl_estimate(model_design.values, chosen, self._numalts)
+            log_lik, fit = mnl_estimate(np.array(dm), chosen, self._numalts)
 
             result_params = dict(log_likelihood = log_lik,
                                  fit_parameters = fit,
-                                 x_names = model_design.design_info.column_names)
+                                 x_names = dm.design_info.column_names)
 
             results = MultinomialLogitResults(estimation_engine = self._estimation_engine,
                                               model_expression = self._model_expression,
