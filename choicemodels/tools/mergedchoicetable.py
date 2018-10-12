@@ -79,7 +79,7 @@ class MergedChoiceTable(object):
         Binary representation of the availability of alternatives. Specified and applied 
         similarly to the weights.
     
-    interaction_terms : pandas.Series or pandas.DataFrame, optional
+    interaction_terms : pandas.Series, pandas.DataFrame, or list of either, optional
         Additional column(s) of interaction terms whose values depend on the combination 
         of observation and alternative, to be merged onto the final data table. If passed
         as a Series or DataFrame, it should include a two-level MultiIndex. One level's 
@@ -196,9 +196,13 @@ class MergedChoiceTable(object):
         """
         if (self.interaction_terms is None):
             return df
-        
-        df = df.join(pd.DataFrame(self.interaction_terms), how='left', 
-                     on=self.interaction_terms.index.names)
+
+        if not isinstance(self.interaction_terms, list):
+            self.interaction_terms = [self.interaction_terms]
+
+        for intx_table in self.interaction_terms:
+            df = df.join(pd.DataFrame(intx_table), how='left', 
+                         on=intx_table.index.names)
         
         return df
     
