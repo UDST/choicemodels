@@ -166,7 +166,12 @@ def test_size_capacity(obs, alts, mct, probs):
     obs['size'] = np.random.choice([1,2], size=len(obs))
     choices = iterative_lottery_choices(obs, alts, mct, probs, alt_capacity='capacity',
                                         chooser_size='size')
-    # TO DO - confirm constraints are satisfied
+    
+    choice_df = pd.DataFrame(choices).join(obs['size'], on='oid')
+    placed = choice_df.groupby('aid')['size'].sum().rename('placed')
+    df = pd.DataFrame(alts.capacity).join(placed, on='aid').fillna(0)
+        
+    assert(all(df.placed.le(df.capacity)))
 
     
 def test_insufficient_capacity(obs, alts, mct, probs):
@@ -185,7 +190,7 @@ def test_chooser_priority(obs, alts, mct, probs):
     
     """
     choices = iterative_lottery_choices(obs, alts, mct, probs)
-    assert (choices.index.values[:3].tolist != [0, 1, 2])
+    assert (choices.index.values[:5].tolist != [0, 1, 2, 3, 4])
     
     
 def test_max_iter(obs, alts, mct, probs):
@@ -193,7 +198,7 @@ def test_max_iter(obs, alts, mct, probs):
     Confirm that max_iter param will prevent infinite loop.
     
     """
-    obs['size'] = 2
+    obs['size'] = 2  # (alts have capacity of 1)
     choices = iterative_lottery_choices(obs, alts, mct, probs,
                                         chooser_size='size', max_iter=5)
     
