@@ -146,15 +146,18 @@ def iterative_lottery_choices(choosers, alternatives, mct_callable, probs_callab
     """
     # TO DO - how does MCT handle sample size greater than the number of available alts?
     
+    # Copy the input dataframes to avoid editing the originals
+    choosers = choosers.copy()
+    alts = alternatives.copy()
+    
     if alt_capacity is None:
         alt_capacity = '_capacity'
-        alternatives.loc[:,alt_capacity] = 1
+        alts.loc[:,alt_capacity] = 1
     
     if chooser_size is None:
         chooser_size = '_size'
         choosers.loc[:,chooser_size] = 1
     
-    alts = alternatives
     capacity, size = (alt_capacity, chooser_size)
     
     len_choosers = len(choosers)
