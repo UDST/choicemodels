@@ -170,41 +170,13 @@ class MultinomialLogit(object):
                                     drop_duplicates().shape[0]
             self._numalts = self._df.shape[0] // self._numobs
 
-            # TO DO: parse initial coefs
-
-        self._validate_input_data()
         return
-
-    
-    def _validate_input_data(self):
-        """
-        TO DO for ChoiceModels engine:
-         - verify number of alternatives consistent for each chooser
-         - verify each chooser's alternatives in contiguous rows
-         - verify chosen alternative listed first
-
-        """
-        # Sort order is required by PyLogit
-        # self._data = self._data.reset_index().sort_values(by = [self._observation_id_col,
-        #                                                         self._choice_col],
-        #                                                   ascending = [True, False])
 
     
     def fit(self):
         """
         Fit the model using maximum likelihood estimation. Uses either the ChoiceModels
         or PyLogit estimation engine as appropriate.
-
-        TO DO - implement parameters?
-        
-        Parameters
-        ----------
-        GPU : bool, optional
-            GPU acceleration.
-        coefrange : tuple of floats, optional
-            Limits to which coefficients are held, in format (min, max).
-        initial_values : 1D array, optional
-            Initial values for the coefficients.
 
         Returns
         -------
@@ -228,18 +200,16 @@ class MultinomialLogit(object):
 
         elif (self._estimation_engine == 'ChoiceModels'):
 
-            model_design = dmatrix(self._model_expression, data=self._df,
-                                   return_type='dataframe')
+            dm = dmatrix(self._model_expression, data=self._df)
 
-            # generate 2D array from choice column, for mnl_estimate()
-            chosen = np.reshape(self._df[[self._choice_col]].as_matrix(),
+            chosen = np.reshape(self._df[[self._choice_col]].values,
                                 (self._numobs, self._numalts))
 
-            log_lik, fit = mnl_estimate(model_design.as_matrix(), chosen, self._numalts)
+            log_lik, fit = mnl_estimate(np.array(dm), chosen, self._numalts)
 
             result_params = dict(log_likelihood = log_lik,
                                  fit_parameters = fit,
-                                 x_names = model_design.design_info.column_names)
+                                 x_names = dm.design_info.column_names)
 
             results = MultinomialLogitResults(estimation_engine = self._estimation_engine,
                                               model_expression = self._model_expression,
@@ -317,6 +287,9 @@ class MultinomialLogitResults(object):
         parameters stored in the results object.
         
         TO DO - make sure this handles pylogit case
+        
+        TO DO - does MergedChoiceTable guarantee that alternatives for a single scenario
+        are consecutive? seems like a requirement here; should document it
         
         Parameters
         ----------

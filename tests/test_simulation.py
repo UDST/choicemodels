@@ -8,7 +8,9 @@ import numpy as np
 import pandas as pd
 import pytest
 
-import choicemodels
+from choicemodels import MultinomialLogit
+from choicemodels.tools import (iterative_lottery_choices, monte_carlo_choices,
+        MergedChoiceTable)
 
 
 # TO DO - could we set a random seed and then verify that monte_carlo_choices() provides
@@ -31,14 +33,14 @@ def build_data(num_obs, num_alts):
     return data
 
 
-def test_unconstrained_simulation():
+def test_monte_carlo_choices():
     """
     Test simulation of choices without capacity constraints. This test just verifies that
     the code runs, using a fairly large synthetic dataset.
     
     """
     data = build_data(1000, 100)
-    choicemodels.tools.monte_carlo_choices(data)
+    monte_carlo_choices(data)
 
 
 def test_simulation_accuracy():
@@ -59,9 +61,145 @@ def test_simulation_accuracy():
     n = 1000
     count = 0
     for i in range(n):
-        choices = choicemodels.tools.monte_carlo_choices(data)
+        choices = monte_carlo_choices(data)
         if (choices.loc[oid] == aid):
             count += 1
 
     assert(count/n > prob-0.1)
     assert(count/n < prob+0.1)
+
+
+# CHOICE SIMULATION WITH CAPACITY CONSTRAINTS
+
+@pytest.fixture
+def obs():
+    d1 = {'oid': np.arange(50), 
+          'obsval': np.random.random(50),
+          'choice': np.random.choice(np.arange(60), size=50)}
+    return pd.DataFrame(d1).set_index('oid')
+
+@pytest.fixture
+def alts():
+    d2 = {'aid': np.arange(60), 
+          'altval': np.random.random(60)}
+    return pd.DataFrame(d2).set_index('aid')
+
+@pytest.fixture
+def fitted_model(obs, alts):
+    mct = MergedChoiceTable(obs, alts, 'choice', sample_size=5)
+    m = MultinomialLogit(mct, model_expression='obsval + altval - 1')
+    return m.fit()
+
+@pytest.fixture
+def mct(obs, alts):
+    def mct_callable(obs, alts):
+        return MergedChoiceTable(obs, alts, sample_size=10)
+    return mct_callable
+
+@pytest.fixture
+def probs(fitted_model, mct):
+    def probs_callable(mct):
+        return fitted_model.probabilities(mct)
+    return probs_callable
+
+
+def test_iterative_lottery_choices(obs, alts, mct, probs):
+    """
+    Test that iterative lottery choices can run.
+    
+    """
+    choices = iterative_lottery_choices(obs, alts, mct, probs)
+
+
+def test_input_safety(obs, alts, mct, probs):
+    """
+    Confirm that original copies of the input dataframes are not modified.
+    
+    """
+    orig_obs = obs.copy()
+    orig_alts = alts.copy()
+    choices = iterative_lottery_choices(obs, alts, mct, probs)
+    pd.testing.assert_frame_equal(orig_obs, obs)
+    pd.testing.assert_frame_equal(orig_alts, alts)
+
+
+def test_index_name_retention(obs, alts, mct, probs):
+    """
+    Confirm retention of index names.
+    
+    """
+    choices = iterative_lottery_choices(obs, alts, mct, probs)
+    assert(choices.index.name == obs.index.name)
+    assert(choices.name == alts.index.name)
+    # TO DO - check for this in the monte carlo choices too
+    
+
+def test_unique_choices(obs, alts, mct, probs):
+    """
+    Confirm unique choices when there's an implicit capacity of 1.
+    
+    """
+    choices = iterative_lottery_choices(obs, alts, mct, probs)
+    assert len(choices) == len(choices.unique())
+
+
+def test_count_capacity(obs, alts, mct, probs):
+    """
+    Confirm count-based capacity constraints are respected.
+    
+    """
+    alts['capacity'] = np.random.choice([1,2,3], size=len(alts))
+    choices = iterative_lottery_choices(obs, alts, mct, probs, alt_capacity='capacity')
+    
+    placed = pd.DataFrame(choices).groupby('aid').size().rename('placed')
+    df = pd.DataFrame(alts.capacity).join(placed, on='aid').fillna(0)
+        
+    assert(all(df.placed.le(df.capacity)))
+
+    
+def test_size_capacity(obs, alts, mct, probs):
+    """
+    Confirm size-based capacity constraints are respected.
+    
+    """
+    alts['capacity'] = np.random.choice([1,2,3], size=len(alts))
+    obs['size'] = np.random.choice([1,2], size=len(obs))
+    choices = iterative_lottery_choices(obs, alts, mct, probs, alt_capacity='capacity',
+                                        chooser_size='size')
+    
+    choice_df = pd.DataFrame(choices).join(obs['size'], on='oid')
+    placed = choice_df.groupby('aid')['size'].sum().rename('placed')
+    df = pd.DataFrame(alts.capacity).join(placed, on='aid').fillna(0)
+        
+    assert(all(df.placed.le(df.capacity)))
+
+    
+def test_insufficient_capacity(obs, alts, mct, probs):
+    """
+    Confirm that choices are simulated even if there is insufficient overall capacity.
+    
+    """
+    alts = alts.ix[:30].copy()
+    choices = iterative_lottery_choices(obs, alts, mct, probs)
+    assert len(choices) > 0
+    
+
+def test_chooser_priority(obs, alts, mct, probs):
+    """
+    Confirm that chooser priority is randomized.
+    
+    """
+    choices = iterative_lottery_choices(obs, alts, mct, probs)
+    assert (choices.index.values[:5].tolist != [0, 1, 2, 3, 4])
+    
+    
+def test_max_iter(obs, alts, mct, probs):
+    """
+    Confirm that max_iter param will prevent infinite loop.
+    
+    """
+    obs['size'] = 2  # (alts have capacity of 1)
+    choices = iterative_lottery_choices(obs, alts, mct, probs,
+                                        chooser_size='size', max_iter=5)
+    
+    
