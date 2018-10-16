@@ -754,7 +754,7 @@ def mnl_estimate(data, chosen, numalts, GPU=False, coeffrange=(-1000, 1000),
     logger.debug('finish: scipy optimization for MNL fit')
 
     if bfgs_result[2]['warnflag'] > 0:
-        logger.warn("mnl did not converge correctly: %s",  bfgs_result)
+        logger.warning("mnl did not converge correctly: %s",  bfgs_result)
     
     beta = bfgs_result[0]
     stderr = mnl_loglik(
