@@ -138,7 +138,7 @@ def iterative_lottery_choices(choosers, alternatives, mct_callable, probs_callab
         Maximum number of iterations. If None (default), the algorithm will iterate until 
         all choosers are matched or no alternatives remain.
 
-    choice_batch_size : int or None, optional
+    chooser_batch_size : int or None, optional
         Size of the batches for processing smaller groups of choosers one at a time. Useful
         when the anticipated size of the merged choice tables (choosers X alternatives
         X covariates) will be too large for python/pandas to handle. 
@@ -174,10 +174,10 @@ def iterative_lottery_choices(choosers, alternatives, mct_callable, probs_callab
         if max_iter is not None:
             if (iter > max_iter):
                 break
-        if choice_batch_size is None or choice_batch_size > len(choosers):
+        if chooser_batch_size is None or chooser_batch_size > len(choosers):
             mct = mct_callable(choosers.sample(frac=1), alts)
         else:
-            mct = mct_callable(choosers.sample(choice_batch_size), alts)
+            mct = mct_callable(choosers.sample(chooser_batch_size), alts)
 
         if len(mct.to_frame()) == 0:
             print("No valid alternatives for the remaining choosers")
