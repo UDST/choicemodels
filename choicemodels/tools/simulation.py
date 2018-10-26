@@ -78,7 +78,7 @@ def monte_carlo_choices(probabilities):
 
 
 def iterative_lottery_choices(choosers, alternatives, mct_callable, probs_callable, 
-        alt_capacity=None, chooser_size=None, max_iter=None, sample_frac=1):
+        alt_capacity=None, chooser_size=None, max_iter=None, sample_size=None):
     """
     Monte Carlo simulation of choices for a set of choice scenarios where (a) the 
     alternatives have limited capacity and (b) the choosers have varying probability 
@@ -169,9 +169,11 @@ def iterative_lottery_choices(choosers, alternatives, mct_callable, probs_callab
         if max_iter is not None:
             if (iter > max_iter):
                 break
+        if sample_size is None or sample_size > len(choosers):
+            mct = mct_callable(choosers.sample(frac=1), alts)
+        else:
+            mct = mct_callable(choosers.sample(sample_size), alts)
 
-        mct = mct_callable(choosers.sample(frac=sample_frac), alts)
-        
         if len(mct.to_frame()) == 0:
             print("No valid alternatives for the remaining choosers")
             break
