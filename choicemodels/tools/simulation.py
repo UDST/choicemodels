@@ -78,7 +78,7 @@ def monte_carlo_choices(probabilities):
 
 
 def iterative_lottery_choices(choosers, alternatives, mct_callable, probs_callable, 
-        alt_capacity=None, chooser_size=None, max_iter=None):
+        alt_capacity=None, chooser_size=None, max_iter=None, chooser_batch_size=None):
     """
     Monte Carlo simulation of choices for a set of choice scenarios where (a) the 
     alternatives have limited capacity and (b) the choosers have varying probability 
@@ -138,6 +138,11 @@ def iterative_lottery_choices(choosers, alternatives, mct_callable, probs_callab
         Maximum number of iterations. If None (default), the algorithm will iterate until 
         all choosers are matched or no alternatives remain.
 
+    chooser_batch_size : int or None, optional
+        Size of the batches for processing smaller groups of choosers one at a time. Useful
+        when the anticipated size of the merged choice tables (choosers X alternatives
+        X covariates) will be too large for python/pandas to handle. 
+
     Returns
     -------
     pd.Series
@@ -169,9 +174,11 @@ def iterative_lottery_choices(choosers, alternatives, mct_callable, probs_callab
         if max_iter is not None:
             if (iter > max_iter):
                 break
+        if chooser_batch_size is None or chooser_batch_size > len(choosers):
+            mct = mct_callable(choosers.sample(frac=1), alts)
+        else:
+            mct = mct_callable(choosers.sample(chooser_batch_size), alts)
 
-        mct = mct_callable(choosers.sample(frac=1), alts)
-        
         if len(mct.to_frame()) == 0:
             print("No valid alternatives for the remaining choosers")
             break
