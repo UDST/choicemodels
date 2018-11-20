@@ -1,19 +1,20 @@
 from __future__ import print_function
 
+import datetime
 import logging
+from collections import OrderedDict
 
 import numpy as np
 import pandas as pd
 import pylogit
 import scipy.optimize
 import scipy.stats
-import datetime
+from patsy import dmatrix
+from statsmodels.iolib.table import SimpleTable
+
 from .tools import MergedChoiceTable
 from .tools import pmat
 from .tools.pmat import PMAT
-from collections import OrderedDict
-from patsy import dmatrix
-from statsmodels.iolib.table import SimpleTable
 
 
 """
@@ -589,60 +590,6 @@ def mnl_loglik(beta, data, chosen, numalts, weights=None, lcgrad=False,
 
     logger.debug('finish: calculate MNL log-likelihood')
     return -1 * loglik, -1 * gradarr
-
-
-def mnl_simulate(data, coeff, numalts, GPU=False, returnprobs=True):
-    """
-    Get the probabilities for each chooser choosing between `numalts`
-    alternatives.
-
-    Parameters
-    ----------
-    data : 2D array
-        The data are expected to be in "long" form where each row is for
-        one alternative. Alternatives are in groups of `numalts` rows per
-        choosers. Alternatives must be in the same order for each chooser.
-    coeff : 1D array
-        The model coefficients corresponding to each column in `data`.
-    numalts : int
-        The number of alternatives available to each chooser.
-    GPU : bool, optional
-    returnprobs : bool, optional
-        If True, return the probabilities for each chooser/alternative instead
-        of actual choices.
-
-    Returns
-    -------
-    probs or choices: 2D array
-        If `returnprobs` is True the probabilities are a 2D array with a
-        row for each chooser and columns for each alternative.
-
-    """
-    logger.debug(
-        'start: MNL simulation with len(data)={} and numalts={}'.format(
-            len(data), numalts))
-    atype = 'numpy' if not GPU else 'cuda'
-
-    data = np.transpose(data)
-    coeff = np.reshape(np.array(coeff), (1, len(coeff)))
-
-    data, coeff = PMAT(data, atype), PMAT(coeff, atype)
-
-    probs = mnl_probs(data, coeff, numalts)
-
-    if returnprobs:
-        return np.transpose(probs.get_mat())
-
-    # convert to cpu from here on - gpu doesn't currently support these ops
-    if probs.typ == 'cuda':
-        probs = PMAT(probs.get_mat())
-
-    probs = probs.cumsum(axis=0)
-    r = pmat.random(probs.size() // numalts)
-    choices = probs.subtract(r, inplace=True).firstpositive(axis=0)
-
-    logger.debug('finish: MNL simulation')
-    return choices.get_mat()
 
 
 def mnl_estimate(data, chosen, numalts, GPU=False, coeffrange=(-1000, 1000),

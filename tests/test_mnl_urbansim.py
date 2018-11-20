@@ -130,23 +130,23 @@ def test_mnl_estimate(dm, chosen, num_alts, test_data):
     npt.assert_allclose(result.values, expected.values, rtol=1e-4)
 
 
-def test_mnl_simulate(dm, fit_coeffs, num_alts, test_data, choosers_dm):
-    # check that if all the alternatives have the same numbers
-    # we get an even probability distribution
-    data = np.array(
-        [[10 ** (x + 1) for x in range(len(dm.columns))]] * num_alts)
-
-    probs = mnl.mnl_simulate(
-        data, fit_coeffs, num_alts, returnprobs=True)
-
-    npt.assert_allclose(probs, [[1 / num_alts] * num_alts])
-
-    # now test with real data
-    probs = mnl.mnl_simulate(
-        choosers_dm.values, fit_coeffs, num_alts, returnprobs=True)
-    results = pd.DataFrame(probs, columns=test_data['sim_expected'].columns)
-    results, expected = results.align(test_data['sim_expected'])
-    npt.assert_allclose(results.values, expected.values, rtol=1e-4)
+# def test_mnl_simulate(dm, fit_coeffs, num_alts, test_data, choosers_dm):
+#     # check that if all the alternatives have the same numbers
+#     # we get an even probability distribution
+#     data = np.array(
+#         [[10 ** (x + 1) for x in range(len(dm.columns))]] * num_alts)
+# 
+#     probs = mnl.mnl_simulate(
+#         data, fit_coeffs, num_alts, returnprobs=True)
+# 
+#     npt.assert_allclose(probs, [[1 / num_alts] * num_alts])
+# 
+#     # now test with real data
+#     probs = mnl.mnl_simulate(
+#         choosers_dm.values, fit_coeffs, num_alts, returnprobs=True)
+#     results = pd.DataFrame(probs, columns=test_data['sim_expected'].columns)
+#     results, expected = results.align(test_data['sim_expected'])
+#     npt.assert_allclose(results.values, expected.values, rtol=1e-4)
 
 
 def test_alternative_specific_coeffs(num_alts):
@@ -207,15 +207,15 @@ def test_alternative_specific_coeffs(num_alts):
     result, expected = result.align(expected)
     npt.assert_allclose(result.values, expected.values, rtol=1e-4)
 
-    # test simulation
-    expected = pd.DataFrame([
-        [0.1137676, 0.2884583, 0.4072931, 0.190481],
-        [0.1153440, 0.3408657, 0.3917253, 0.152065]],
-        columns=['beach', 'boat', 'charter', 'pier'])
-
-    fit_coeffs = fit.Coefficient.values
-    probs = mnl.mnl_simulate(
-        choosers_dm.values, fit_coeffs, num_alts, returnprobs=True)
-    results = pd.DataFrame(probs, columns=expected.columns)
-    results, expected = results.align(expected)
-    npt.assert_allclose(results.values, expected.values, rtol=1e-4)
+#     # test simulation
+#     expected = pd.DataFrame([
+#         [0.1137676, 0.2884583, 0.4072931, 0.190481],
+#         [0.1153440, 0.3408657, 0.3917253, 0.152065]],
+#         columns=['beach', 'boat', 'charter', 'pier'])
+# 
+#     fit_coeffs = fit.Coefficient.values
+#     probs = mnl.mnl_simulate(
+#         choosers_dm.values, fit_coeffs, num_alts, returnprobs=True)
+#     results = pd.DataFrame(probs, columns=expected.columns)
+#     results, expected = results.align(expected)
+#     npt.assert_allclose(results.values, expected.values, rtol=1e-4)
