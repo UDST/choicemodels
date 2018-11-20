@@ -78,23 +78,32 @@ def test_data(request):
     }
 
 
-@pytest.fixture
-def df(test_data):
-    filen = os.path.join(os.path.dirname(__file__), 'data', test_data['data'])
+def get_df(request):
+    filen = os.path.join(os.path.dirname(__file__), 'data', request['data'])
     return pd.read_csv(filen)
 
+@pytest.fixture
+def df(test_data):
+    return get_df(test_data)
+
+
+def get_choosers(request):
+    filen = os.path.join(
+        os.path.dirname(__file__), 'data', request['choosers'])
+    return pd.read_csv(filen)
 
 @pytest.fixture
 def choosers(test_data):
-    filen = os.path.join(
-        os.path.dirname(__file__), 'data', test_data['choosers'])
-    return pd.read_csv(filen)
+    return get_choosers(test_data)
 
+
+def get_chosen(df, num_alts, request):
+    return df[request['column']].values.astype('int').reshape(
+        (int(len(df) / num_alts), num_alts))
 
 @pytest.fixture
 def chosen(df, num_alts, test_data):
-    return df[test_data['column']].values.astype('int').reshape(
-        (int(len(df) / num_alts), num_alts))
+    return get_chosen(df, num_alts, test_data)
 
 
 @pytest.fixture
@@ -147,9 +156,9 @@ def test_alternative_specific_coeffs(num_alts):
          [0, 1, 0],
          [0, 0, 1]])
 
-    fish = df({'data': 'fish.csv'})
-    fish_choosers = choosers({'choosers': 'fish_choosers.csv'})
-    fish_chosen = chosen(fish, num_alts, {'column': 'mode'})
+    fish = get_df({'data': 'fish.csv'})
+    fish_choosers = get_choosers({'choosers': 'fish_choosers.csv'})
+    fish_chosen = get_chosen(fish, num_alts, {'column': 'mode'})
 
     # construct design matrix with columns repeated for 3 / 4 of alts
     num_choosers = len(fish['chid'].unique())
