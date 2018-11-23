@@ -179,7 +179,7 @@ def test_insufficient_capacity(obs, alts, mct, probs):
     Confirm that choices are simulated even if there is insufficient overall capacity.
     
     """
-    alts = alts.ix[:30].copy()
+    alts = alts.iloc[:30].copy()
     choices = iterative_lottery_choices(obs, alts, mct, probs)
     assert len(choices) > 0
     
