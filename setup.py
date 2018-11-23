@@ -1,8 +1,4 @@
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
-
+from setuptools import setup
 
 # read README as the long description
 with open('README.md', 'r') as f:
