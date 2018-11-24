@@ -12,7 +12,7 @@
 
 - removes `choicemodels.Logit`, which wrapped a StatsModels estimator as proof of concept for MNL and didn't provide much value on its own
 
-### 0.2.dev5
+### 0.2.dev5 (2018-11-12)
 
 - adds a `chooser_batch_size` parameter to `iterative_lottery_choices()`, to support batch simulation for very large datasets
 
