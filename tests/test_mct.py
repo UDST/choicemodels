@@ -228,5 +228,3 @@ def test_join_key_name_conflict(obs, alts):
     MergedChoiceTable(obs, alts, chosen_alternatives=alts.index.name)
 
 
-
-    
