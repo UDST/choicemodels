@@ -31,12 +31,14 @@ class MergedChoiceTable(object):
     observations : pandas.DataFrame
         Table with one row for each chooser or choice scenario, with unique ID's in the 
         index field. Additional columns can contain fixed attributes of the choosers. 
-        Index name is set to 'obs_id' if none provided.
+        Index name is set to 'obs_id' if none provided. All observation/alternative 
+        column names must be unique except for the join key.
 
     alternatives : pandas.DataFrame
         Table with one row for each alternative, with unique ID's in the index field.
         Additional columns can contain fixed attributes of the alternatives. Index name
-        is set to 'alt_id' if none provided.
+        is set to 'alt_id' if none provided. All observation/alternative column names
+        must be unique except for the join key.
 
     chosen_alternatives : str or pandas.Series, optional
         List of the alternative ID selected in each choice scenario. (This is required for
@@ -121,12 +123,25 @@ class MergedChoiceTable(object):
         # TO DO - check that dfs have unique indexes
         # TO DO - check that chosen_alternatives correspond correctly to other dfs
         # TO DO - same with weights (could join onto other tables and then split off)
-        # TO DO - check for overlapping column names
         
         # Normalize chosen_alternatives to a pd.Series
         if (chosen_alternatives is not None) & isinstance(chosen_alternatives, str):
-            chosen_alternatives = observations[chosen_alternatives]
+            chosen_alternatives = observations[chosen_alternatives].copy()
             observations = observations.drop(chosen_alternatives.name, axis='columns')
+            chosen_alternatives.name = '_' + alternatives.index.name  # avoids conflicts
+        
+        # Check for duplicate column names
+        obs_cols = list(observations.columns) + list(observations.index.names)
+        alt_cols = list(alternatives.columns) + list(alternatives.index.names)
+        dupes = [c for c in obs_cols if c in alt_cols]
+        
+        if len(dupes) == 1:
+            raise ValueError("Column '{}' appears in both input tables. Please ensure "
+                             "column names are unique before merging".format(dupes[0]))
+        elif len(dupes) > 1:
+            raise ValueError("Columns '{}' appear in both input tables. Please ensure "
+                             "column names are unique before merging"\
+                             .format("', '".join(dupes)))
         
         # Normalize weights to a pd.Series
         if (weights is not None) & isinstance(weights, str):

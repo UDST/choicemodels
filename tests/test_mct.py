@@ -8,19 +8,25 @@ import pytest
 import choicemodels
 from choicemodels.tools import MergedChoiceTable
 
-d1 = {'oid': [0,1], 
-      'obsval': [6,8],
-      'choice': [1,2]}
 
-d2 = {'aid': [0,1,2], 
-      'altval': [10,20,30],
-      'w': [1,1,100]}
+@pytest.fixture
+def obs():
+    d1 = {'oid': [0,1], 
+          'obsval': [6,8],
+          'choice': [1,2]}
+    
+    return pd.DataFrame(d1).set_index('oid')
 
-obs = pd.DataFrame(d1).set_index('oid')
-alts = pd.DataFrame(d2).set_index('aid')
+@pytest.fixture
+def alts():
+    d2 = {'aid': [0,1,2], 
+          'altval': [10,20,30],
+          'w': [1,1,100]}
+
+    return pd.DataFrame(d2).set_index('aid')
 
 
-def test_mergedchoicetable():
+def test_mergedchoicetable(obs, alts):
     # NO SAMPLING, TABLE FOR SIMULATION
 
     mct = choicemodels.tools.MergedChoiceTable(obs, alts).to_frame()
@@ -163,7 +169,7 @@ def test_mergedchoicetable():
                                  chosen_alternatives = 'choice').to_frame()
 
 
-def test_no_alternatives():
+def test_no_alternatives(obs, alts):
     """
     Empty alternatives should produce empty choice table.
     
@@ -172,12 +178,55 @@ def test_no_alternatives():
     assert len(mct) == 0
 
 
-def test_no_choosers():
+def test_no_choosers(obs, alts):
     """
     Empty observations should produce empty choice table.
     
     """
     mct = MergedChoiceTable(pd.DataFrame(), alts).to_frame()
     assert len(mct) == 0
+
+
+def test_dupe_column(obs, alts):
+    """
+    Duplicate column names should raise an error.
+    
+    """
+    obs['save_the_whales'] = None
+    alts['save_the_whales'] = None
+    
+    try:
+        MergedChoiceTable(obs, alts)
+    except ValueError as e:
+        print(e)
+
+
+def test_multiple_dupe_columns(obs, alts):
+    """
+    Duplicate column names should raise an error. This covers the case of multiple
+    columns, and the case of an index conflicting with a non-index.
+    
+    """
+    obs['save_the_whales'] = None
+    alts['save_the_whales'] = None
+    alts[obs.index.name] = None
+    
+    try:
+        MergedChoiceTable(obs, alts)
+    except ValueError as e:
+        print(e)
+
+
+def test_join_key_name_conflict(obs, alts):
+    """
+    Duplicate column names are not allowed, except for the join key -- it's fine for the 
+    chosen_alternatives column in the observations to have the same name as the index of
+    the alternatives. This test should run without raising an error.
+    
+    """
+    obs[alts.index.name] = obs.choice
+    MergedChoiceTable(obs, alts, chosen_alternatives=alts.index.name)
+
+
 
     
