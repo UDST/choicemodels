@@ -84,9 +84,9 @@ class MergedChoiceTable(object):
     interaction_terms : pandas.Series, pandas.DataFrame, or list of either, optional
         Additional column(s) of interaction terms whose values depend on the combination 
         of observation and alternative, to be merged onto the final data table. If passed
-        as a Series or DataFrame, it should include a two-level MultiIndex. One level's 
-        name and values should match an index or column from the observations table, and 
-        the other should match an index or column from the alternatives table. 
+        as a Series or DataFrame, it should include a two-level MultiIndex. The outermost
+        level's name and values should match an index or column from the observations table,
+        and the second should match an index or column from the alternatives table.
         
         TO DO - implement support for a callable
             
