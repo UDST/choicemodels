@@ -174,6 +174,8 @@ def iterative_lottery_choices(choosers, alternatives, mct_callable, probs_callab
         if max_iter is not None:
             if (iter > max_iter):
                 break
+        if alts[capacity].max() < choosers[size].min():
+            break
         if chooser_batch_size is None or chooser_batch_size > len(choosers):
             mct = mct_callable(choosers.sample(frac=1), alts)
         else:
