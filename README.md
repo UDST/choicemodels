@@ -17,13 +17,37 @@ Package documentation is available on [readthedocs](https://choicemodels.readthe
 
 ## Installation
 
-Install with pip:
+### Production releases
 
-`pip install choicemodels`
+Production releases of ChoiceModels can be installed with pip or conda:
 
-or with conda-forge.
+```
+pip install choicemodels
+```
 
+```
+conda install --channel conda-forge choicemodels
+```
 
+### Development releases
+
+The latest development release can be installed using the Github URL. You may want to remove prior installations first to avoid version conflicts.
+
+```
+pip list
+pip uninstall choicemodels
+pip install git+git://github.com/udst/choicemodels.git
+```
+
+### Cloning the repository
+
+If you will be editing ChoiceModels code or frequently updating to newer development versions, you can clone the repository and link it to your Python environment:
+
+```
+git clone https://github.com/udst/choicemodels.git
+cd choicemodels
+python setup.py develop
+```
 
 ## Current functionality
 
