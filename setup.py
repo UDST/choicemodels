@@ -10,7 +10,7 @@ install_requires = [item.strip() for item in install_requires]
 
 setup(
     name='choicemodels',
-    version='0.2.dev7',
+    version='0.2.dev8',
     description='Tools for discrete choice estimation',
     long_description=long_description,
     author='UDST',
