@@ -6,7 +6,7 @@
 
 ### 0.2.dev8 (2019-01-21)
 
-- prevents an infinite loop in `interative_lottery_choice()` when none of the remaining alternatives can accommodate any of the remaining choosers
+- prevents an infinite loop in `interative_lottery_choices()` when none of the remaining alternatives can accommodate any of the remaining choosers
 
 ### 0.2.dev7 (2018-12-12)
 
