@@ -1,8 +1,16 @@
 # ChoiceModels change log
 
-### 0.2.dev7
+### 0.2.dev9 (2019-01-22)
 
 - improves documentation and packaging
+
+### 0.2.dev8 (2019-01-21)
+
+- prevents an infinite loop in `interative_lottery_choice()` when none of the remaining alternatives can accommodate any of the remaining choosers
+
+### 0.2.dev7 (2018-12-12)
+
+- adds a check to the `MergedChoiceTable` constructor to make sure there aren't any column names that overlap between the observations and alternatives tables
 
 ### 0.2.dev6 (2018-11-23)
 
