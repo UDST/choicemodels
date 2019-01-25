@@ -5,6 +5,15 @@ python:
   - "3.5"
   - "3.6"
 
+matrix:
+  include:
+    - python: '3.7'  # temp solution until python 3.7 is more cleanly supported
+      dist: xenial
+      sudo: true
+  allow_failures:
+    - python: '3.7'  # dependencies may block installation
+  fast_finish: true
+
 before_install:
   - pip install --upgrade pip
   - pip install --upgrade wheel
