@@ -4,14 +4,23 @@
 
 # ChoiceModels
 
-ChoiceModels is a Python library for discrete choice modeling, with utilities for sampling, simulation, and other ancillary tasks. It's part of the `Urban Data Science Toolkit <https://github.com/udst>`__ (UDST).
-
-The library currently focuses on tools to streamline the integration of discrete choice models into larger workflows, drawing on other packages such as the excellent `PyLogit <https://github.com/timothyb0912/pylogit>`__ for most estimation of models. ChoiceModels can automate the creation of choice tables for estimation or simulation, using uniform or weighted random sampling of alternatives, as well as interaction terms or cartesian merges. It also provides general-purpose tools for Monte Carlo simulation of choices given probability distributions from fitted models, with fast algorithms for independent or capacity-constrained choices. ChoiceModels includes a custom engine for Multinomial Logit estimation that's optimized for fast performance with large numbers of alternatives.
+ChoiceModels is a Python library for discrete choice modeling, with utilities for sampling, simulation, and other ancillary tasks. It's part of the [Urban Data Science Toolkit](https://github.com/udst>) (UDST).
 
 
-### Installation and documentation
+### Features
 
-ChoiceModels can be installed using the Pip or Conda package managers.
+The library currently focuses on tools to streamline the integration of discrete choice models into larger workflows, drawing on other packages such as the excellent [PyLogit](https://github.com/timothyb0912/pylogit) for most estimation of models. 
+
+ChoiceModels can automate the creation of choice tables for estimation or simulation, using uniform or weighted random sampling of alternatives, as well as interaction terms or cartesian merges. 
+
+It also provides general-purpose tools for Monte Carlo simulation of choices given probability distributions from fitted models, with fast algorithms for independent or capacity-constrained choices. 
+
+ChoiceModels includes a custom engine for Multinomial Logit estimation that's optimized for fast performance with large numbers of alternatives.
+
+
+### Installation
+
+ChoiceModels can be installed using the Pip or Conda package managers:
 
 ```
 pip install choicemodels
@@ -20,6 +29,9 @@ pip install choicemodels
 ```
 conda install choicemodels --channel udst
 ```
+
+
+### Documentation
 
 See the online documentation for much more: https://choicemodels.readthedocs.io
 
