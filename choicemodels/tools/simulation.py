@@ -139,9 +139,9 @@ def iterative_lottery_choices(choosers, alternatives, mct_callable, probs_callab
         all choosers are matched or no alternatives remain.
 
     chooser_batch_size : int or None, optional
-        Size of the batches for processing smaller groups of choosers one at a time. Useful
-        when the anticipated size of the merged choice tables (choosers X alternatives
-        X covariates) will be too large for python/pandas to handle. 
+        Size of the batches for processing smaller groups of choosers one at a time. 
+        Useful when the anticipated size of the merged choice tables (choosers X 
+        alternatives X covariates) will be too large for python/pandas to handle. 
 
     Returns
     -------
