@@ -1,5 +1,9 @@
 # ChoiceModels change log
 
+### 0.2.dev10 (2019-01-25)
+
+- moves the `choicemodels.tools.distancematrix` functions directly into `choicemodels.tools`
+
 ### 0.2.dev9 (2019-01-22)
 
 - improves documentation and packaging

@@ -23,6 +23,8 @@ import sys
 # go up two levels from /docs/source to the package root
 sys.path.insert(0, os.path.abspath('../..'))
 
+import sphinx_rtd_theme
+
 
 # -- General configuration ------------------------------------------------
 
@@ -36,7 +38,8 @@ sys.path.insert(0, os.path.abspath('../..'))
 extensions = ['sphinx.ext.autodoc',
              #'sphinx.ext.napoleon',
               'sphinx.ext.viewcode',
-              'sphinx.ext.githubpages']
+              'sphinx.ext.githubpages',
+              'numpydoc']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -52,7 +55,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'ChoiceModels'
-copyright = '2018, Urban Data Science Toolkit'
+copyright = '2019, Urban Data Science Toolkit'
 author = 'Urban Data Science Toolkit'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -90,7 +93,7 @@ todo_include_todos = False
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'alabaster'
+html_theme = 'sphinx_rtd_theme'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -102,21 +105,6 @@ html_theme = 'alabaster'
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
-
-# Custom sidebar templates, must be a dictionary that maps document names
-# to template names.
-#
-# This is required for the alabaster theme
-# refs: http://alabaster.readthedocs.io/en/latest/installation.html#sidebars
-html_sidebars = {
-    '**': [
-        'about.html',
-        'navigation.html',
-        'relations.html',  # needs 'show_related': True theme option to display
-        'searchbox.html',
-        'donate.html',
-    ]
-}
 
 
 # -- Options for HTMLHelp output ------------------------------------------

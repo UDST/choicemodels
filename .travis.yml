@@ -5,29 +5,24 @@ python:
   - "3.5"
   - "3.6"
 
-before_install:
-  - pip install --upgrade pip
-  - pip install --upgrade wheel
-  - wget http://bit.ly/miniconda -O miniconda.sh
-  - bash miniconda.sh -b -p $HOME/miniconda
-  - export PATH="$HOME/miniconda/bin:$PATH"
-  - hash -r
-  - conda config --set always_yes yes --set show_channel_urls true
-  - conda update conda
-  - conda config --add channels conda-forge --force
-  - conda config --add channels udst --force
-  - conda create --quiet --name TESTENV python=$TRAVIS_PYTHON_VERSION --file requirements.txt --file requirements-dev.txt
-  - source activate TESTENV
-  - conda info --all
-  - conda list
+matrix:
+  include:
+    - python: '3.7'  # temp solution until python 3.7 is more cleanly supported
+      dist: xenial
+      sudo: true
+  allow_failures:
+    - python: '3.7'  # dependencies are blocking installation
+  fast_finish: true
 
 install:
   - pip install .
+  - pip install -r requirements-dev.txt
+  - pip list
   - pip show choicemodels
 
 script:
-  - coverage run --source choicemodels -m pytest --verbose
+  - coverage run --source choicemodels --module pytest --verbose
 
 after_success:
-  - coverage report -m
+  - coverage report --show-missing
   - coveralls
