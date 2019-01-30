@@ -76,9 +76,6 @@ class MultinomialLogit(object):
     and the alternatives. Attributes of a particular alternative may vary for different
     choosers (distance, for example), but this must be set up manually in the input data.
 
-    [TO DO: comparison of the estimation engines]
-    [TO DO: testing and input validation]
-
     Note that prediction methods are in a separate class: see MultinomialLogitResults().
 
     Parameters
@@ -250,7 +247,7 @@ class MultinomialLogitResults(object):
         If not provided, these will be extracted from the raw results.
 
     estimation_engine : str, optional
-        'ChoiceModels' (default) or 'PyLogit'.  # TO DO - infer from model_expression?
+        'ChoiceModels' (default) or 'PyLogit'.
 
     """
     def __init__(self, model_expression, results=None, fitted_parameters=None, 
@@ -287,11 +284,6 @@ class MultinomialLogitResults(object):
         Generate predicted probabilities for a table of choice scenarios, using the fitted
         parameters stored in the results object.
         
-        TO DO - make sure this handles pylogit case
-        
-        TO DO - does MergedChoiceTable guarantee that alternatives for a single scenario
-        are consecutive? seems like a requirement here; should document it
-        
         Parameters
         ----------
         data : choicemodels.tools.MergedChoiceTable
@@ -307,6 +299,11 @@ class MultinomialLogitResults(object):
         pandas.Series with indexes matching the input
         
         """
+        # TO DO - make sure this handles pylogit case
+        
+        # TO DO - does MergedChoiceTable guarantee that alternatives for a single scenario
+        # are consecutive? seems like a requirement here; should document it
+        
         df = data.to_frame()
         numalts = data.sample_size  # TO DO - make this an official MCT param
         
