@@ -1,5 +1,9 @@
 # ChoiceModels change log
 
+### 0.2.1 (2019-01-30)
+
+- fixes a distribution error that excluded the LICENSE.txt file
+
 ### 0.2 (2019-01-25)
 
 - production release
