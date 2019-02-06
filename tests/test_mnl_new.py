@@ -9,7 +9,6 @@ import pytest
 
 from pandas.testing import assert_frame_equal
 from patsy import dmatrix
-from urbansim.urbanchoice.mnl import mnl_estimate, mnl_simulate
 
 from choicemodels import MultinomialLogit
 from choicemodels.tools import MergedChoiceTable
@@ -43,9 +42,15 @@ def test_mnl(obs, alts):
 def test_mnl_estimation(obs, alts):
     """
     Confirm that estimated params from the new interface match urbansim.urbanchoice.
+    Only runs if the urbansim package has been installed.
     
     """
-    
+    try:
+        from urbansim.urbanchoice.mnl import mnl_estimate
+    except:
+        print("Comparison of MNL estimation results skipped because urbansim is not installed")
+        return
+
     model_expression = 'obsval + altval - 1'
     mct = MergedChoiceTable(obs, alts, 'choice')
     
@@ -67,8 +72,15 @@ def test_mnl_estimation(obs, alts):
 def test_mnl_prediction(obs, alts):
     """
     Confirm that fitted probabilities in the new codebase match urbansim.urbanchoice.
+    Only runs if the urbansim package has been installed.
     
     """
+    try:
+        from urbansim.urbanchoice.mnl import mnl_simulate
+    except:
+        print("Comparison of MNL simulation results skipped because urbansim is not installed")
+        return
+
     # produce a fitted model
     mct = MergedChoiceTable(obs, alts, 'choice', 5)
     m = MultinomialLogit(mct, model_expression='obsval + altval - 1')
