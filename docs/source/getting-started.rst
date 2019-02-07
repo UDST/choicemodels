@@ -30,9 +30,8 @@ ChoiceModels can be installed using the Pip or Conda package managers.
 
 .. code-block:: python
 
-    conda install choicemodels --channel udst
+    conda install choicemodels --channel conda-forge
 
-Using Conda, ChoiceModels is available on the ``udst`` channel immediately and on the ``conda-forge`` channel a few days after release.
 
 When new production releases of ChoiceModels come out, you can upgrade like this:
 
@@ -42,7 +41,7 @@ When new production releases of ChoiceModels come out, you can upgrade like this
 
 .. code-block:: python
 
-    conda update choicemodels --channel udst
+    conda update choicemodels --channel conda-forge
 
 
 Developer pre-releases
@@ -60,7 +59,7 @@ You can use the same command to upgrade.
 Cloning the repository
 ~~~~~~~~~~~~~~~~~~~~~~
 
-If you'll be modifying the code, you can install ChoiceModels by cloning the Github repository:
+You can also install ChoiceModels by cloning the Github repository, which is the best way to do it if you'll be modifying the code. The main branch contains the latest developer release. 
 
 .. code-block:: python
 

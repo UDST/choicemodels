@@ -27,7 +27,7 @@ pip install choicemodels
 ```
 
 ```
-conda install choicemodels --channel udst
+conda install choicemodels --channel conda-forge
 ```
 
 
