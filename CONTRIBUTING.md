@@ -17,13 +17,15 @@ Thanks for using ChoiceModels! This is an open source project that's part of the
 
 ### Contributing code:
 
-- Create a new branch of UDST/choicemodels, or fork the repository to your own account
+- Create a new branch of `UDST/choicemodels`, or fork the repository to your own account
 
 - Make your changes, following the existing styles for code and inline documentation
 
 - Add [tests](https://github.com/UDST/choicemodels/tree/master/tests) if possible!
 
-- Open a pull request to the UDST/choicemodels master branch, including a writeup of your changes -- take a look at some of the closed PR's for examples
+- Open a pull request to the `UDST/choicemodels` master branch, including a writeup of your changes -- take a look at some of the closed PR's for examples
+
+- Current maintainers will review the code, suggest changes, and hopefully merge it!
 
 
 ### Incrementing the version number:
@@ -32,7 +34,10 @@ Thanks for using ChoiceModels! This is an open source project that's part of the
 
 - It works best to do this just before merging (in case other PR's are merged first, and so you know the date for the changelog and documentation)
 
-- There are three places where the version number needs to be changed: (1) `setup.py`, (2) `choicemodels/__init__.py`, and (3) `docs/source/index.rst`
+- There are three places where the version number needs to be changed: 
+  1. `setup.py`
+  2. `choicemodels/__init__.py`
+  3. `docs/source/index.rst`
 
 - Please also add a section to `CHANGELOG.md` describing the changes!
 
@@ -76,7 +81,7 @@ Thanks for using ChoiceModels! This is an open source project that's part of the
 
 - Check that the run requirements match `requirements.txt`
 
-- Open a pull request to `conda-forge/choicemodels-feedstock`
+- Open a pull request to the `conda-forge/choicemodels-feedstock` master branch
 
 - Automated tests will run, and after they pass one of the current project maintainers will be able to merge the PR -- you can add your Github user name in `meta.yaml` for the next update
 
