@@ -1,4 +1,8 @@
-Thanks for using ChoiceModels! This is an open source project that's part of the Urban Data Science Toolkit. Development and maintenance is a collaboration between UrbanSim Inc and U.C. Berkeley's Urban Analytics Lab. You can contact Sam Maurer, the lead developer, at `maurer@urbansim.com`.
+Thanks for using ChoiceModels! 
+
+This is an open source project that's part of the Urban Data Science Toolkit. Development and maintenance is a collaboration between UrbanSim Inc and U.C. Berkeley's Urban Analytics Lab. 
+
+You can contact Sam Maurer, the lead developer, at `maurer@urbansim.com`.
 
 
 ## If you have a problem:
@@ -28,9 +32,9 @@ Thanks for using ChoiceModels! This is an open source project that's part of the
 - Current maintainers will review the code, suggest changes, and hopefully merge it!
 
 
-## Incrementing the version number:
+## Updating the version number:
 
-- Each pull request that changes substantive code should increment the development version number, e.g. from `0.2.dev7` to `0.2.dev8`
+- Each pull request that changes substantive code should increment the development version number, e.g. from `0.2.dev7` to `0.2.dev8`, so that users know exactly which version they're running
 
 - It works best to do this just before merging (in case other PR's are merged first, and so you know the release date for the changelog and documentation)
 
@@ -51,7 +55,7 @@ Thanks for using ChoiceModels! This is an open source project that's part of the
 
 - Make a new branch for release prep
 
-- Follow instructions above to update the version number and changelog
+- Update the version number and `CHANGELOG.md`
 
 - Make sure all the tests are passing, and check if updates are needed to `README.md` or to the documentation
 
@@ -62,13 +66,13 @@ Thanks for using ChoiceModels! This is an open source project that's part of the
 
 ## Distributing a release on PyPI (for pip installation):
 
-- Register an account at pypi.org, ask one of the current maintainers to add you to the project, and `pip install twine`
+- Register an account at https://pypi.org, ask one of the current maintainers to add you to the project, and `pip install twine`
 
-- `python setup.py sdist bdist_wheel --universal`
+- Run `python setup.py sdist bdist_wheel --universal`
 
 - This should create a `dist` directory containing two package files -- delete any old ones before the next step
 
-- `twine upload dist/*` -- this will prompt you for your pypi.org credentials
+- Run `twine upload dist/*` -- this will prompt you for your pypi.org credentials
 
 - Check https://pypi.org/project/choicemodels/ for the new version
 
@@ -77,12 +81,14 @@ Thanks for using ChoiceModels! This is an open source project that's part of the
 
 - Make a fork of the [conda-forge/choicemodels-feedstock](https://github.com/conda-forge/choicemodels-feedstock) repository -- there may already be a fork in udst
 
-- Edit `recipe/meta.yaml`: (1) update the version number, and (2) paste a new hash matching the tar.gz file that was uploaded to pypi (the hash is available on pypi.org under "Download files")
+- Edit `recipe/meta.yaml`: 
+  - update the version number
+  - paste a new hash matching the tar.gz file that was uploaded to pypi (it's available on the pypi.org project page)
 
-- Check that the run requirements match `requirements.txt`
+- Check that the run requirements still match `requirements.txt`
 
 - Open a pull request to the `conda-forge/choicemodels-feedstock` master branch
 
 - Automated tests will run, and after they pass one of the current project maintainers will be able to merge the PR -- you can add your Github user name in `meta.yaml` for the next update
 
-- Check https://anaconda.org/conda-forge/choicemodels for the new version
+- Check https://anaconda.org/conda-forge/choicemodels for the new version (may take a few minutes for it to appear)
