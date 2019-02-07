@@ -17,7 +17,8 @@ matrix:
 install:
   - pip install .
   - pip install -r requirements-dev.txt
-  - if [ "$TRAVIS_PYTHON_VERSION" -ne "3.7" ]; then pip install urbansim; fi
+  - # extra tests run if urbansim is present, but it can't install with python 3.7
+  - if [ "$TRAVIS_PYTHON_VERSION" -ne 3.7 ]; then pip install urbansim; fi
   - pip list
   - pip show choicemodels
 
