@@ -9,7 +9,7 @@ You can contact Sam Maurer, the lead developer, at `maurer@urbansim.com`.
 
 - Take a look at the [open issues](https://github.com/UDST/choicemodels/issues) and [closed issues](https://github.com/UDST/choicemodels/issues?q=is%3Aissue+is%3Aclosed) to see if there's already a related discussion
 
-- Open a new issue describing the problem -- if possible, include any error messages, the operating system and version of python you're using, and version of any libraries that may be relevant
+- Open a new issue describing the problem -- if possible, include any error messages, the operating system and version of python you're using, and versions of any libraries that may be relevant
 
 
 ## Feature proposals:
@@ -89,6 +89,6 @@ You can contact Sam Maurer, the lead developer, at `maurer@urbansim.com`.
 
 - Open a pull request to the `conda-forge/choicemodels-feedstock` master branch
 
-- Automated tests will run, and after they pass one of the current project maintainers will be able to merge the PR -- you can add your Github user name in `meta.yaml` for the next update
+- Automated tests will run, and after they pass one of the current project maintainers will be able to merge the PR -- you can add your Github user name to the maintainers list in `meta.yaml` for the next update
 
 - Check https://anaconda.org/conda-forge/choicemodels for the new version (may take a few minutes for it to appear)
