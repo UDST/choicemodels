@@ -1,6 +1,5 @@
 """
-Test data and results for this are generated
-by the R script at data/mnl_tests.R.
+These tests were brought over from UrbanSim.
 
 """
 from __future__ import division

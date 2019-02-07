@@ -16,13 +16,13 @@ ChoiceModels was created in 2016, with contributions from Sam Maurer (maurer@urb
 Installation
 ------------
 
-ChoiceModels is tested with Python 2.7, 3.5, and 3.6. It should work with Python 3.7 as well, but you won't be able to intall some related UDST libraries like UrbanSim and Orca. 
+ChoiceModels is tested with Python 2.7, 3.5, 3.6, and 3.7. It should run on any platform. 
 
 
 Production releases
 ~~~~~~~~~~~~~~~~~~~
 
-ChoiceModels can be installed using the Pip or Conda package managers.
+ChoiceModels can be installed using the Pip or Conda package managers. We recommend Conda because it resolves dependency conflicts better.
 
 .. code-block:: python
 
