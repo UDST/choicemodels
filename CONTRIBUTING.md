@@ -15,7 +15,7 @@ Thanks for using ChoiceModels! This is an open source project that's part of the
 - Post your proposal as a new issue, so we can discuss it (some proposals may not be a good fit for the project)
 
 
-### Contributing code:
+## Contributing code:
 
 - Create a new branch of `UDST/choicemodels`, or fork the repository to your own account
 
@@ -28,16 +28,16 @@ Thanks for using ChoiceModels! This is an open source project that's part of the
 - Current maintainers will review the code, suggest changes, and hopefully merge it!
 
 
-### Incrementing the version number:
+## Incrementing the version number:
 
 - Each pull request that changes substantive code should increment the development version number, e.g. from 0.2.dev7 to 0.2.dev8
 
 - It works best to do this just before merging (in case other PR's are merged first, and so you know the date for the changelog and documentation)
 
 - There are three places where the version number needs to be changed: 
-  1. `setup.py`
-  2. `choicemodels/__init__.py`
-  3. `docs/source/index.rst`
+  - `setup.py`
+  - `choicemodels/__init__.py`
+  - `docs/source/index.rst`
 
 - Please also add a section to `CHANGELOG.md` describing the changes!
 
