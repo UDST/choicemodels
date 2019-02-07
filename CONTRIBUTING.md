@@ -1,14 +1,14 @@
 Thanks for using ChoiceModels! This is an open source project that's part of the Urban Data Science Toolkit. Development and maintenance is a collaboration between UrbanSim Inc and U.C. Berkeley's Urban Analytics Lab. You can contact Sam Maurer, the lead developer, at `maurer@urbansim.com`.
 
 
-### If you have a problem:
+## If you have a problem:
 
 - Take a look at the [open issues](https://github.com/UDST/choicemodels/issues) and [closed issues](https://github.com/UDST/choicemodels/issues?q=is%3Aissue+is%3Aclosed) to see if there's already a related discussion
 
 - Open a new issue describing the problem -- if possible, include any error messages, the operating system and version of python you're using, and version of any libraries that may be relevant
 
 
-### Feature proposals:
+## Feature proposals:
 
 - Take a look at the [open issues](https://github.com/UDST/choicemodels/issues) and [closed issues](https://github.com/UDST/choicemodels/issues?q=is%3Aissue+is%3Aclosed) to see if there's already a related discussion
 
@@ -30,9 +30,9 @@ Thanks for using ChoiceModels! This is an open source project that's part of the
 
 ## Incrementing the version number:
 
-- Each pull request that changes substantive code should increment the development version number, e.g. from 0.2.dev7 to 0.2.dev8
+- Each pull request that changes substantive code should increment the development version number, e.g. from `0.2.dev7` to `0.2.dev8`
 
-- It works best to do this just before merging (in case other PR's are merged first, and so you know the date for the changelog and documentation)
+- It works best to do this just before merging (in case other PR's are merged first, and so you know the release date for the changelog and documentation)
 
 - There are three places where the version number needs to be changed: 
   - `setup.py`
@@ -42,12 +42,12 @@ Thanks for using ChoiceModels! This is an open source project that's part of the
 - Please also add a section to `CHANGELOG.md` describing the changes!
 
 
-### Updating the documentation: 
+## Updating the documentation: 
 
 - See instructions in `docs/README.md`
 
 
-### Preparing a production release:
+## Preparing a production release:
 
 - Make a new branch for release prep
 
@@ -60,7 +60,7 @@ Thanks for using ChoiceModels! This is an open source project that's part of the
 - Tag the release on Github
 
 
-### Distributing a release on PyPI (for pip installation):
+## Distributing a release on PyPI (for pip installation):
 
 - Register an account at pypi.org, ask one of the current maintainers to add you to the project, and `pip install twine`
 
@@ -73,7 +73,7 @@ Thanks for using ChoiceModels! This is an open source project that's part of the
 - Check https://pypi.org/project/choicemodels/ for the new version
 
 
-### Distributing a release on Conda Forge (for conda installation):
+## Distributing a release on Conda Forge (for conda installation):
 
 - Make a fork of the [conda-forge/choicemodels-feedstock](https://github.com/conda-forge/choicemodels-feedstock) repository -- there may already be a fork in udst
 
