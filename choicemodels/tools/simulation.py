@@ -4,6 +4,8 @@ Utilities for Monte Carlo simulation of choices.
 """
 import numpy as np
 import pandas as pd
+from multiprocess import Process, Manager, Array
+from tqdm import tqdm
 
 
 def monte_carlo_choices(probabilities):
@@ -182,40 +184,154 @@ def iterative_lottery_choices(choosers, alternatives, mct_callable, probs_callab
         if len(mct.to_frame()) == 0:
             print("No valid alternatives for the remaining choosers")
             break
-        
+
         probs = probs_callable(mct)
         choices = pd.DataFrame(monte_carlo_choices(probs))
-    
+
         # join capacities and sizes
         oid, aid = (mct.observation_id_col, mct.alternative_id_col)
         c = choices.join(alts[capacity], on=aid).join(choosers[size], on=oid)
         c.loc[:,'_cumsize'] = c.groupby(aid)[size].cumsum()
-    
+
         # save valid choices
         c_valid = (c._cumsize <= c[capacity])
         valid_choices = pd.concat([valid_choices, c[aid].loc[c_valid]])
-        
+
         print("Iteration {}: {} of {} valid choices".format(iter, len(valid_choices), 
                 len_choosers))
-        
+
         # update choosers and alternatives
         choosers = choosers.drop(c.loc[c_valid].index.values)
         # print("{} remaining choosers".format(len(choosers)))
-        
+
         placed_capacity = c.loc[c_valid].groupby(aid)._cumsize.max()
         alts.loc[:,capacity] = alts[capacity].subtract(placed_capacity, fill_value=0)
 
         full = alts.loc[alts[capacity] == 0]
         alts = alts.drop(full.index)
         # print("{} remaining alternatives".format(len(alts)))
-        
+
     # retain original index names
     valid_choices.index.name = choosers.index.name
     valid_choices.name = alts.index.name
-    
+
     return valid_choices
-    
-    
-    
-    
-    
+
+
+def parallel_lottery_choices_worker(
+        choosers, alternatives, choices_dict, chosen_alts,
+        mct_callable, probs_callable, alt_capacity=None,
+        chooser_size=None, proc_num=0, batch_size=0):
+
+    st_choice_idx = proc_num * batch_size
+    if alt_capacity is None:
+        alt_capacity = '_capacity'
+    if chooser_size is None:
+        chooser_size = '_size'
+        choosers.loc[:, chooser_size] = 1
+
+    capacity, size = (alt_capacity, chooser_size)
+
+    len_choosers = len(choosers)
+    valid_choices = pd.Series()
+
+    iter = 0
+    while (len(valid_choices) < len_choosers):
+        chosen_alts_list = list(chosen_alts.get_obj())
+        alternatives = alternatives[~alternatives.index.isin(chosen_alts_list)]
+        iter += 1
+
+        if alternatives['_capacity'].max() < choosers[size].min():
+            print("{} choosers cannot be allocated.".format(len(choosers)))
+            print("\nRemaining capacity on alternatives but "
+                  "not enough to accodomodate choosers' sizes")
+            break
+
+        mct = mct_callable(choosers.sample(frac=1), alternatives)
+        if len(mct.to_frame()) == 0:
+            print("No valid alternatives for the remaining choosers")
+            break
+
+        probs = probs_callable(mct)
+        choices = pd.DataFrame(monte_carlo_choices(probs))
+
+        # join capacities and sizes
+        oid, aid = (mct.observation_id_col, mct.alternative_id_col)
+        c = choices.join(
+            alternatives[capacity], on=aid).join(
+            choosers[size], on=oid)
+
+        # when size==1, _cumsize counts the cumulative number of times
+        # each alternative appears
+        c.loc[:, '_cumsize'] = c.groupby(aid)[size].cumsum()
+
+        # thus c_valid creates a mask that retains just the choice
+        # of the chooser to chose their alternative first,
+        # ***PROVIDED*** that choice hasn't been made elsewhere as
+        # documented by the shared chosen_alts list
+        chosen_alts_list = list(chosen_alts.get_obj())
+        c_valid = (c._cumsize <= c[capacity]) & (
+            ~c.job_id.isin(chosen_alts_list))
+        iter_valid_choices = c[aid].loc[c_valid]
+        if len(iter_valid_choices) == 0:
+            continue
+
+        num_valid_choices = len(iter_valid_choices.values)
+        chosen_alts[
+            st_choice_idx:st_choice_idx + num_valid_choices
+        ] = iter_valid_choices.values
+        st_choice_idx += num_valid_choices
+        alternatives.drop(iter_valid_choices.values, inplace=True)
+
+        iter_valid_choices.index.name = choosers.index.name
+        iter_valid_choices.name = alternatives.index.name
+        choices_dict.update(iter_valid_choices.to_dict())
+        valid_choices = pd.concat([valid_choices, iter_valid_choices])
+
+        choosers = choosers.drop(c.loc[c_valid].index.values)
+    return
+
+
+def parallel_lottery_choices(
+        choosers, alternatives, mct_callable, probs_callable,
+        alt_capacity=None, chooser_size=None, chooser_batch_size=200000):
+    choosers = choosers.copy()
+    alternatives = alternatives.copy()
+
+    if alt_capacity is None:
+        alt_capacity = '_capacity'
+        alternatives.loc[:, alt_capacity] = 1
+
+    if chooser_size is None:
+        chooser_size = '_size'
+        choosers.loc[:, chooser_size] = 1
+
+    obs_batches = [
+        choosers.index.values[x:x + chooser_batch_size] for
+        x in range(0, len(choosers), chooser_batch_size)]
+    manager = Manager()
+    shared_choices_dict = manager.dict()
+    alternatives[alt_capacity] = 1
+    shared_chosen_alts = Array('i', len(choosers))
+    jobs = []
+    for b, batch in enumerate(obs_batches):
+        obs = choosers.loc[batch]
+        proc = Process(
+            target=parallel_lottery_choices_worker,
+            kwargs={
+                'choosers': obs, 'alternatives': alternatives,
+                'choices_dict': shared_choices_dict,
+                'chosen_alts': shared_chosen_alts,
+                'mct_callable': mct_callable,
+                'probs_callable': probs_callable,
+                'alt_capacity': alt_capacity, 'chooser_size': chooser_size,
+                'proc_num': b, 'batch_size': chooser_batch_size
+            })
+        proc.start()
+        jobs.append(proc)
+
+    for j, job in tqdm(enumerate(jobs), total=len(jobs)):
+        job.join()
+
+    choices_dict = shared_choices_dict._getvalue()
+    return choices_dict
