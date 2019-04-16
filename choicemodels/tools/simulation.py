@@ -249,7 +249,7 @@ def parallel_lottery_choices_worker(
 
         mct = mct_callable(choosers.sample(frac=1), alternatives)
         if len(mct.to_frame()) == 0:
-            print("No valid alternatives for the remaining choosers")
+            # print("No valid alternatives for the remaining choosers")
             break
 
         probs = probs_callable(mct)
@@ -318,15 +318,11 @@ def parallel_lottery_choices(
         obs = choosers.loc[batch]
         proc = Process(
             target=parallel_lottery_choices_worker,
-            kwargs={
-                'choosers': obs, 'alternatives': alternatives,
-                'choices_dict': shared_choices_dict,
-                'chosen_alts': shared_chosen_alts,
-                'mct_callable': mct_callable,
-                'probs_callable': probs_callable,
-                'alt_capacity': alt_capacity, 'chooser_size': chooser_size,
-                'proc_num': b, 'batch_size': chooser_batch_size
-            })
+            args=(
+                obs, alternatives, shared_choices_dict, shared_chosen_alts,
+                mct_callable, probs_callable, alt_capacity, chooser_size,
+                b, chooser_batch_size)
+        )
         proc.start()
         jobs.append(proc)
 
