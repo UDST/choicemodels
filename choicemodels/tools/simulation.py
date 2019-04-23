@@ -142,9 +142,9 @@ def iterative_lottery_choices(choosers, alternatives, mct_callable, probs_callab
         all choosers are matched or no alternatives remain.
 
     chooser_batch_size : int or None, optional
-        Size of the batches for processing smaller groups of choosers one at a time. Useful
-        when the anticipated size of the merged choice tables (choosers X alternatives
-        X covariates) will be too large for python/pandas to handle. 
+        Size of the batches for processing smaller groups of choosers one at a time. 
+        Useful when the anticipated size of the merged choice tables (choosers X 
+        alternatives X covariates) will be too large for python/pandas to handle. 
 
     Returns
     -------
@@ -177,6 +177,10 @@ def iterative_lottery_choices(choosers, alternatives, mct_callable, probs_callab
         if max_iter is not None:
             if (iter > max_iter):
                 break
+        if alts[capacity].max() < choosers[size].min():
+            print("{} choosers cannot be allocated.".format(len(choosers)))
+            print("\nRemaining capacity on alternatives but not enough to accodomodate choosers' sizes")
+            break
         if chooser_batch_size is None or chooser_batch_size > len(choosers):
             mct = mct_callable(choosers.sample(frac=1), alts)
         else:

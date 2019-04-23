@@ -202,6 +202,17 @@ def test_max_iter(obs, alts, mct, probs):
     obs['size'] = 2  # (alts have capacity of 1)
     choices = iterative_lottery_choices(obs, alts, mct, probs,
                                         chooser_size='size', max_iter=5)
+
+
+def test_capacity_break(obs, alts, mct, probs):
+    """
+    Confirm that if alts[capacity].max() < choosers[size].min() will prevent infinite loop.
+
+    """
+    obs['size'] = 2
+    alts['capacity'] = np.random.choice([3,5], size=len(alts)) # alt capacity left but not enough to host one obs
+    choices = iterative_lottery_choices(obs, alts, mct, probs,
+                                        chooser_size='size', alt_capacity='capacity')
     
 
 def test_parallel_lottery_choices(obs, alts, mct, probs):

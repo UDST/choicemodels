@@ -1,44 +1,40 @@
 [![Build Status](https://travis-ci.org/UDST/choicemodels.svg?branch=master)](https://travis-ci.org/UDST/choicemodels)
 [![Coverage Status](https://coveralls.io/repos/github/UDST/choicemodels/badge.svg?branch=master)](https://coveralls.io/github/UDST/choicemodels?branch=master)
+[![Docs Status](https://readthedocs.org/projects/choicemodels/badge/?version=latest)](https://choicemodels.readthedocs.io)
 
 # ChoiceModels
 
-This is a package for discrete choice model estimation and simulation, with an emphasis on large choice sets and behavioral refinements to multinomial models. Most of these models are not available in Statsmodels or Scikit-learn.
-
-The underlying estimation routines come from two main places: (1) the `urbanchoice` codebase, which has been moved into ChoiceModels, and (2) Timothy Brathwaite's PyLogit package, which handles more flexible model specifications.
+ChoiceModels is a Python library for discrete choice modeling, with utilities for sampling, simulation, and other ancillary tasks. It's part of the [Urban Data Science Toolkit](https://docs.udst.org) (UDST).
 
 
+### Features
 
-## Documentation
+The library currently focuses on tools to help integrate discrete choice models into larger workflows, drawing on other packages such as the excellent [PyLogit](https://github.com/timothyb0912/pylogit) for most estimation of models. 
 
-Package documentation is available on [readthedocs](https://choicemodels.readthedocs.io/).
+ChoiceModels can automate the creation of choice tables for estimation or simulation, using uniform or weighted random sampling of alternatives, as well as interaction terms or cartesian merges. 
 
+It also provides general-purpose tools for Monte Carlo simulation of choices given probability distributions from fitted models, with fast algorithms for independent or capacity-constrained choices. 
 
-
-## Installation
-
-Install with pip:
-
-`pip install choicemodels`
-
-or with conda-forge.
+ChoiceModels includes a custom engine for Multinomial Logit estimation that's optimized for fast performance with large numbers of alternatives.
 
 
+### Installation
 
-## Current functionality
+ChoiceModels can be installed using the Pip or Conda package managers:
 
-`choicemodels.tools.MergedChoiceTable()`
+```
+pip install choicemodels
+```
 
-- Generates a merged long-format table of choosers and alternatives.
+```
+conda install choicemodels --channel conda-forge
+```
 
-`choicemodels.MultinomialLogit()`
 
-- Fits MNL models, using either the ChoiceModels or PyLogit estimation engines.
+### Documentation
 
-`chociemodels.MultinomialLogitResults()`
+See the online documentation for much more: https://choicemodels.readthedocs.io
 
-- Stores and reports fitted MNL models.
+Some additional documentation is available within the repo in `CHANGELOG.md`, `CONTRIBUTING.md`, `/docs/README.md`, and `/tests/README.md`.
 
-There's documentation in these classes' docstrings, and a usage demo in a Jupyter notebook.
-
-https://github.com/udst/choicemodels/blob/master/notebooks/Destination-choice-models-02.ipynb
+There's discussion of current and planned features in the [Pull requests](https://github.com/udst/choicemodels/pulls?utf8=✓&q=is%3Apr) and [Issues](https://github.com/udst/choicemodels/issues?utf8=✓&q=is%3Aissue), both open and closed.

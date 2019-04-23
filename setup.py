@@ -1,8 +1,4 @@
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
-
+from setuptools import setup
 
 # read README as the long description
 with open('README.md', 'r') as f:
@@ -14,8 +10,8 @@ install_requires = [item.strip() for item in install_requires]
 
 setup(
     name='choicemodels',
-    version='0.2.dev7',
-    description='Tools for discrete choice estimation',
+    version='0.2.1',
+    description='Tools for discrete choice modeling',
     long_description=long_description,
     author='UDST',
     url='https://github.com/udst/choicemodels',
