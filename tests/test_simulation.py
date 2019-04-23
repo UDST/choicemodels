@@ -211,7 +211,7 @@ def test_parallel_lottery_choices(obs, alts, mct, probs):
     
     """
     num_cpus = multiprocessing.cpu_count()
-    batch_size = np.ceil(len(obs) / num_cpus)
+    batch_size = int(np.ceil(len(obs) / num_cpus))
     choices = parallel_lottery_choices(
         obs, alts, mct, probs, chooser_batch_size=batch_size)
     assert len(np.unique(list(choices.values))) == min(len(alts) - 1, len(obs))
