@@ -4,9 +4,9 @@ Utilities for Monte Carlo simulation of choices.
 """
 import numpy as np
 import pandas as pd
-from multiprocessing import Process, Manager, Array
+from multiprocessing import Process, Manager, Array, cpu_count
 from tqdm import tqdm
-import time
+import warnings
 
 
 def monte_carlo_choices(probabilities):
@@ -424,12 +424,23 @@ def parallel_lottery_choices(
     if chooser_size is None:
         chooser_size = '_size'
         choosers.loc[:, chooser_size] = 1
+
     if chooser_batch_size is None or chooser_batch_size > len(choosers):
         obs_batches = [choosers.index.values]
     else:
         obs_batches = [
             choosers.index.values[x:x + chooser_batch_size] for
             x in range(0, len(choosers), chooser_batch_size)]
+        num_cpus = cpu_count()
+        num_batches = len(obs_batches)
+        if num_batches > num_cpus:
+            warnings.warn(
+                "The specified batch size yields more batches than there "
+                "are vCPU's for parallel processing on this computer "
+                "({0} vs. {1}). To optimize this code, choose a larger "
+                "batch size or consider using the iterative_lottery_choices() "
+                "method instead.".format(num_batches, num_cpus))
+
     manager = Manager()
     shared_choices_dict = manager.dict()
     alternatives[alt_capacity] = 1
