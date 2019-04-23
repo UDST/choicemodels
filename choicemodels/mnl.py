@@ -498,28 +498,27 @@ logger = logging.getLogger(__name__)
 # beta is a row vector of dimensions 1 X NUMVARS
 
 
-def mnl_probs(data, beta, numalts):
+def mnl_probs(data, beta, numalts, sampling_correction=None):
     logging.debug('start: calculate MNL probabilities')
     clamp = data.typ == 'numpy'
     utilities = beta.multiply(data)
+    if sampling_correction:
+        utilities = utilities + np.log(sampling_correction)
     if numalts == 0:
         raise Exception("Number of alternatives is zero")
     utilities.reshape(numalts, utilities.size() // numalts)
 
     # https://stats.stackexchange.com/questions/304758/softmax-overflow
     utilities = utilities.subtract(utilities.max(0))
-    
     exponentiated_utility = utilities.exp(inplace=True)
     if clamp:
         exponentiated_utility.inftoval(1e20)
-    if clamp:
         exponentiated_utility.clamptomin(1e-300)
     sum_exponentiated_utility = exponentiated_utility.sum(axis=0)
     probs = exponentiated_utility.divide_by_row(
         sum_exponentiated_utility, inplace=True)
     if clamp:
         probs.nantoval(1e-300)
-    if clamp:
         probs.clamptomin(1e-300)
 
     logging.debug('finish: calculate MNL probabilities')

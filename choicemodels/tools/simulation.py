@@ -4,7 +4,7 @@ Utilities for Monte Carlo simulation of choices.
 """
 import numpy as np
 import pandas as pd
-from multiprocess import Process, Manager, Array
+from multiprocessing import Process, Manager, Array
 from tqdm import tqdm
 
 
@@ -218,10 +218,61 @@ def iterative_lottery_choices(choosers, alternatives, mct_callable, probs_callab
     return valid_choices
 
 
-def parallel_lottery_choices_worker(
+def _parallel_lottery_choices_worker(
         choosers, alternatives, choices_dict, chosen_alts,
         mct_callable, probs_callable, alt_capacity=None,
         chooser_size=None, proc_num=0, batch_size=0):
+
+    """
+    Worker process called only by the parallel_lottery_choices() method.
+
+    Parameters
+    ----------
+    choosers : pd.DataFrame
+        Table with one row for each chooser or choice scenario, with unique ID's in the
+        index field. Additional columns can contain fixed attributes of the choosers.
+        (Reserved column names: '_size'.)
+    
+    alternatives : pd.DataFrame
+        Table with one row for each alternative, with unique ID's in the index field.
+        Additional columns can contain fixed attributes of the alternatives. (Reserved 
+        column names: '_capacity'.)
+
+    choices_dict : multiprocessing.managers.SyncManager.dict
+        A dictionary array allocated from shared memory
+
+    chosen_alts : multiprocessing.Array
+        A ctypes array allocated from shared memory
+    
+    mct_callable : callable
+        Callable that samples alternatives to generate a table of choice scenarios. It 
+        should accept subsets of the choosers and alternatives tables and return a 
+        choicemodels.tools.MergedChoiceTable.
+    
+    probs_callable : callable
+        Callable that generates predicted probabilities for a table of choice scenarios.
+        It should accept a choicemodels.tools.MergedChoiceTable and return a pd.Series
+        with indexes matching the input.
+    
+    alt_capacity : str, optional
+        Name of a column in the alternatives table that expresses the capacity of 
+        alternatives. If not provided, each alternative is interpreted as accommodating a
+        single chooser.
+    
+    chooser_size : str, optional
+        Name of a column in the choosers table that expresses the size of choosers. 
+        Choosers might have varying sizes if the alternative capacities are amounts 
+        rather than counts -- e.g. square footage or employment capacity. Chooser sizes 
+        must be in the same units as alternative capacities. If not provided, each chooser
+        has a size of 1. 
+    
+    proc_num : int
+        Integer representing the sequential order in which the worker was spawned
+
+    batch_size : int
+        Integer representing the chooser batch size
+
+    """
 
     st_choice_idx = proc_num * batch_size
     if alt_capacity is None:
@@ -234,6 +285,7 @@ def parallel_lottery_choices_worker(
 
     len_choosers = len(choosers)
     valid_choices = pd.Series()
+    max_mct_size = 0
 
     iter = 0
     while (len(valid_choices) < len_choosers):
@@ -248,7 +300,9 @@ def parallel_lottery_choices_worker(
             break
 
         mct = mct_callable(choosers.sample(frac=1), alternatives)
-        if len(mct.to_frame()) == 0:
+        mct_size = len(mct.to_frame())
+        max_mct_size = max(max_mct_size, mct_size)
+        if mct_size == 0:
             # print("No valid alternatives for the remaining choosers")
             break
 
@@ -295,6 +349,64 @@ def parallel_lottery_choices_worker(
 def parallel_lottery_choices(
         choosers, alternatives, mct_callable, probs_callable,
         alt_capacity=None, chooser_size=None, chooser_batch_size=200000):
+    """
+    A parallelized version of the iterative_lottery_choices method. Chooser
+    batches are processed in parallel rather than sequentially.
+
+    NOTE: In it's current form, this method is only supported for simulating
+    choices where every alternative has a capacity of 1. 
+
+    Parameters
+    ----------
+    choosers : pd.DataFrame
+        Table with one row for each chooser or choice scenario, with unique ID's in the
+        index field. Additional columns can contain fixed attributes of the choosers.
+        (Reserved column names: '_size'.)
+    
+    alternatives : pd.DataFrame
+        Table with one row for each alternative, with unique ID's in the index field.
+        Additional columns can contain fixed attributes of the alternatives. (Reserved 
+        column names: '_capacity'.)
+    
+    mct_callable : callable
+        Callable that samples alternatives to generate a table of choice scenarios. It 
+        should accept subsets of the choosers and alternatives tables and return a 
+        choicemodels.tools.MergedChoiceTable.
+    
+    probs_callable : callable
+        Callable that generates predicted probabilities for a table of choice scenarios.
+        It should accept a choicemodels.tools.MergedChoiceTable and return a pd.Series
+        with indexes matching the input.
+    
+    alt_capacity : str, optional
+        Name of a column in the alternatives table that expresses the capacity of 
+        alternatives. If not provided, each alternative is interpreted as accommodating a
+        single chooser.
+    
+    chooser_size : str, optional
+        Name of a column in the choosers table that expresses the size of choosers. 
+        Choosers might have varying sizes if the alternative capacities are amounts 
+        rather than counts -- e.g. square footage or employment capacity. Chooser sizes 
+        must be in the same units as alternative capacities. If not provided, each chooser
+        has a size of 1. 
+    
+    max_iter : int or None, optional
+        Maximum number of iterations. If None (default), the algorithm will iterate until 
+        all choosers are matched or no alternatives remain.
+
+    chooser_batch_size : int or None, optional
+        Size of the batches for processing smaller groups of choosers one at a time. Useful
+        when the anticipated size of the merged choice tables (choosers X alternatives
+        X covariates) will be too large for python/pandas to handle.
+
+
+    Returns
+    -------
+    pd.Series
+        List of chosen alternative id's, indexed with the chooser (observation) id. 
+
+    """
+    
     choosers = choosers.copy()
     alternatives = alternatives.copy()
 
@@ -317,7 +429,7 @@ def parallel_lottery_choices(
     for b, batch in enumerate(obs_batches):
         obs = choosers.loc[batch]
         proc = Process(
-            target=parallel_lottery_choices_worker,
+            target=_parallel_lottery_choices_worker,
             args=(
                 obs, alternatives, shared_choices_dict, shared_chosen_alts,
                 mct_callable, probs_callable, alt_capacity, chooser_size,
@@ -330,4 +442,10 @@ def parallel_lottery_choices(
         job.join()
 
     choices_dict = shared_choices_dict._getvalue()
-    return choices_dict
+
+    # convert choices dict to series with original index names
+    out_choices = pd.Series(choices_dict)
+    out_choices.index.name = choosers.index.name
+    out_choices.name = alternatives.index.name
+
+    return out_choices
