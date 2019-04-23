@@ -9,7 +9,6 @@ ChoiceModels provides general-purpose tools for Monte Carlo simulation of choice
 
 ``parallel_lottery_choices()`` works functionally the same as the above but the batches run in parallel rather than sequentially.
 
-
 Independent choices
 -------------------
 
@@ -18,6 +17,7 @@ Independent choices
 
 Capacity-constrained choices
 ----------------------------
+
 
 .. autofunction:: choicemodels.tools.iterative_lottery_choices
 

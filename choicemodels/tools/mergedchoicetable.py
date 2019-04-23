@@ -133,15 +133,11 @@ class MergedChoiceTable(object):
         # Check for duplicate column names
         obs_cols = list(observations.columns) + list(observations.index.names)
         alt_cols = list(alternatives.columns) + list(alternatives.index.names)
-        dupes = [c for c in obs_cols if c in alt_cols]
+        dupes = set(obs_cols) & set(alt_cols)
         
-        if len(dupes) == 1:
-            raise ValueError("Column '{}' appears in both input tables. Please ensure "
-                             "column names are unique before merging".format(dupes[0]))
-        elif len(dupes) > 1:
-            raise ValueError("Columns '{}' appear in both input tables. Please ensure "
-                             "column names are unique before merging"\
-                             .format("', '".join(dupes)))
+        if len(dupes) > 0:
+            raise ValueError("Both input tables contain column {}. Please ensure "
+                             "column names are unique before merging".format(dupes))
         
         # Normalize weights to a pd.Series
         if (weights is not None) & isinstance(weights, str):
