@@ -498,12 +498,10 @@ logger = logging.getLogger(__name__)
 # beta is a row vector of dimensions 1 X NUMVARS
 
 
-def mnl_probs(data, beta, numalts, sampling_correction=None):
+def mnl_probs(data, beta, numalts):
     logging.debug('start: calculate MNL probabilities')
     clamp = data.typ == 'numpy'
     utilities = beta.multiply(data)
-    if sampling_correction:
-        utilities = utilities + np.log(sampling_correction)
     if numalts == 0:
         raise Exception("Number of alternatives is zero")
     utilities.reshape(numalts, utilities.size() // numalts)
