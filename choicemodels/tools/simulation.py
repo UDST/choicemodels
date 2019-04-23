@@ -348,7 +348,7 @@ def _parallel_lottery_choices_worker(
 
 def parallel_lottery_choices(
         choosers, alternatives, mct_callable, probs_callable,
-        alt_capacity=None, chooser_size=None, chooser_batch_size=200000):
+        alt_capacity=None, chooser_size=None, chooser_batch_size=None):
     """
     A parallelized version of the iterative_lottery_choices method. Chooser
     batches are processed in parallel rather than sequentially.
@@ -417,10 +417,12 @@ def parallel_lottery_choices(
     if chooser_size is None:
         chooser_size = '_size'
         choosers.loc[:, chooser_size] = 1
-
-    obs_batches = [
-        choosers.index.values[x:x + chooser_batch_size] for
-        x in range(0, len(choosers), chooser_batch_size)]
+    if chooser_batch_size is None or chooser_batch_size > len(choosers):
+        obs_batches = [choosers.index.values]
+    else:
+        obs_batches = [
+            choosers.index.values[x:x + chooser_batch_size] for
+            x in range(0, len(choosers), chooser_batch_size)]
     manager = Manager()
     shared_choices_dict = manager.dict()
     alternatives[alt_capacity] = 1
