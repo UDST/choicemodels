@@ -226,7 +226,7 @@ def iterative_lottery_choices(choosers, alternatives, mct_callable, probs_callab
 def _parallel_lottery_choices_worker(
         choosers, alternatives, choices_dict, chosen_alts,
         mct_callable, probs_callable, alt_capacity=None,
-        chooser_size=None, proc_num=0, batch_size=0):
+        chooser_size=None, proc_num=0, batch_size=0):  # pragma: no cover
 
     """
     Worker process called only by the parallel_lottery_choices() method.
