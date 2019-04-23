@@ -318,25 +318,29 @@ def _parallel_lottery_choices_worker(
             choosers[size], on=oid)
 
         # when size==1, _cumsize counts the cumulative number of times
-        # each alternative appears
+        # each alternative appears. thus, below, c_valid creates a
+        # mask that retains just the choice of the chooser who chose
+        # their alternative first, provided that choice hasn't been
+        # made elsewhere as documented by the shared chosen_alts list
         c.loc[:, '_cumsize'] = c.groupby(aid)[size].cumsum()
 
-        # thus c_valid creates a mask that retains just the choice
-        # of the chooser to chose their alternative first,
-        # ***PROVIDED*** that choice hasn't been made elsewhere as
-        # documented by the shared chosen_alts list
+        # the shared array of chosen alts must stay locked by the
+        # current worker between the time the worker converts it
+        # to a list to make sure the workers choices haven't been
+        # chosen already and the time the worker updates the array
+        with chosen_alts.get_lock():
 
-        chosen_alts_list = list(chosen_alts.get_obj())
-        c_valid = (c._cumsize <= c[capacity]) & (
-            ~c[alts_name].isin(chosen_alts_list))
-        iter_valid_choices = c[aid].loc[c_valid]
-        if len(iter_valid_choices) == 0:
-            continue
+            chosen_alts_list = list(chosen_alts.get_obj())
+            c_valid = (c._cumsize <= c[capacity]) & (
+                ~c[alts_name].isin(chosen_alts_list))
+            iter_valid_choices = c[aid].loc[c_valid]
+            if len(iter_valid_choices) == 0:
+                continue
 
-        num_valid_choices = len(iter_valid_choices.values)
-        chosen_alts[
-            st_choice_idx:st_choice_idx + num_valid_choices
-        ] = iter_valid_choices.values
+            num_valid_choices = len(iter_valid_choices.values)
+            chosen_alts[st_choice_idx:st_choice_idx + num_valid_choices] = \
+                iter_valid_choices.values
+
         st_choice_idx += num_valid_choices
         alternatives.drop(iter_valid_choices.values, inplace=True)
 
