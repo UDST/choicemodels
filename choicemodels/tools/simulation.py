@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 from multiprocessing import Process, Manager, Array
 from tqdm import tqdm
+import time
 
 
 def monte_carlo_choices(probabilities):
@@ -284,6 +285,7 @@ def _parallel_lottery_choices_worker(
     capacity, size = (alt_capacity, chooser_size)
 
     len_choosers = len(choosers)
+    alts_name = alternatives.index.name
     valid_choices = pd.Series()
     max_mct_size = 0
 
@@ -323,9 +325,10 @@ def _parallel_lottery_choices_worker(
         # of the chooser to chose their alternative first,
         # ***PROVIDED*** that choice hasn't been made elsewhere as
         # documented by the shared chosen_alts list
+
         chosen_alts_list = list(chosen_alts.get_obj())
         c_valid = (c._cumsize <= c[capacity]) & (
-            ~c.job_id.isin(chosen_alts_list))
+            ~c[alts_name].isin(chosen_alts_list))
         iter_valid_choices = c[aid].loc[c_valid]
         if len(iter_valid_choices) == 0:
             continue
