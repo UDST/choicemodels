@@ -3,19 +3,22 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to ChoiceModels's documentation!
-========================================
+ChoiceModels
+============
+
+ChoiceModels is a Python library for discrete choice modeling, with utilities for sampling, simulation, and other ancillary tasks. It's part of the `Urban Data Science Toolkit <https://docs.udst.org>`__ (UDST).
+
+v0.2.dev8, released January 30, 2019
+
+
+Contents
+--------
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
-
-
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+   
+   getting-started
+   choice-table-utilities
+   multinomial-logit
+   simulation-utilities
+   distance-utilities
