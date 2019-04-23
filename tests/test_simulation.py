@@ -7,10 +7,11 @@ from __future__ import division
 import numpy as np
 import pandas as pd
 import pytest
+import multiprocessing
 
 from choicemodels import MultinomialLogit
 from choicemodels.tools import (iterative_lottery_choices, monte_carlo_choices,
-        MergedChoiceTable)
+        MergedChoiceTable, parallel_lottery_choices)
 
 
 # TO DO - could we set a random seed and then verify that monte_carlo_choices() provides
@@ -213,4 +214,15 @@ def test_capacity_break(obs, alts, mct, probs):
     choices = iterative_lottery_choices(obs, alts, mct, probs,
                                         chooser_size='size', alt_capacity='capacity')
     
+
+def test_parallel_lottery_choices(obs, alts, mct, probs):
+    """
+    Test that parallel lottery choices can run and that there
+    aren't any duplicate choices
     
+    """
+    num_cpus = multiprocessing.cpu_count()
+    batch_size = int(np.ceil(len(obs) / num_cpus))
+    choices = parallel_lottery_choices(
+        obs, alts, mct, probs, chooser_batch_size=batch_size)
+    assert len(np.unique(list(choices.values))) == min(len(alts) - 1, len(obs))

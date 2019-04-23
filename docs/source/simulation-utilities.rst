@@ -7,6 +7,7 @@ ChoiceModels provides general-purpose tools for Monte Carlo simulation of choice
 
 ``iterative_lottery_choices()`` is for cases where the alternatives have limited capacitiesxs, requiring multiple passes to match choosers and alternatives. Effectively, choices are simulated sequentially, each time removing the chosen alternative or reducing its available capacity. (It's actually done in batches for better performance.)
 
+``parallel_lottery_choices()`` works functionally the same as the above but the batches run in parallel rather than sequentially.
 
 Independent choices
 -------------------
@@ -17,4 +18,11 @@ Independent choices
 Capacity-constrained choices
 ----------------------------
 
+
 .. autofunction:: choicemodels.tools.iterative_lottery_choices
+
+
+Parallelized capacity-constrained choices
+----------------------------
+
+.. autofunction:: choicemodels.tools.parallel_lottery_choices

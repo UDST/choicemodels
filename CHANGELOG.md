@@ -1,4 +1,7 @@
 # ChoiceModels change log
+### 0.2.2dev0 (2019-04-23)
+
+- adds a function `choicemodels.tools.parallel_lottery_choices()` to run iterative lottery choice batches in parallel rather than seqeuentially.
 
 ### 0.2.1 (2019-01-30)
 
