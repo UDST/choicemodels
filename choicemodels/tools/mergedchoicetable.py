@@ -5,6 +5,8 @@ sampling functionality.
 """
 import numpy as np
 import pandas as pd
+import warnings
+from tqdm import tqdm
 
 
 class MergedChoiceTable(object):
@@ -93,10 +95,32 @@ class MergedChoiceTable(object):
     random_state : NOT YET IMPLEMENTED
         Representation of random state, for replicability of the sampling.
 
+    sampling_regime : str, [None, 'single', 'repeated', 'stratified'], optional
+        Specify the sampling regime for construction of the MergedChoiceTable. The default
+        None implies no sampling and will use the `_build_table_without_sampling()` method
+        to construct the choice table. Single sampling covers cases where we can draw a
+        single, large sample of alternatives and distribute them among the choosers, e.g.
+        sampling without replacement, with optional alternative-specific weights
+        but NOT weights that apply to combinations of observation x alternative. If single
+        sampling is specified but the `replace` parameter is set to False, an error will
+        be generated. Repeated sampling covers cases where we have to draw separate
+        samples for each observation, e.g. sampling without replacement, or weights
+        that apply to combinations of observation x alternative. Stratified sampling as
+        defined here involves creating a sample by sampling equally from subsamples of
+        the population as identified by membership in a specified group or stratum.
+
+    strata: str, optional
+        If stratified sampling is specified as the sampling regime, then a column name
+        from the alternatives table must be provided upon which stratification will be
+        based. Because equal numbers of samples will be drawn from within each strata,
+        the strata should be distributed roughly evenly across the population, e.g. if
+        there are 10 strata then each strata should contain roughly 10% of the population.
+
     """
     def __init__(self, observations, alternatives, chosen_alternatives=None,
                  sample_size=None, replace=True, weights=None, availability=None,
-                 interaction_terms=None, random_state=None):
+                 interaction_terms=None, random_state=None, sampling_regime=None,
+                 strata=None, progress_bar=False):
         
         # Standardize and validate the inputs...
         
@@ -164,6 +188,8 @@ class MergedChoiceTable(object):
         self.chosen_alternatives = chosen_alternatives
         self.sample_size = sample_size
         self.replace = replace
+        self.sampling_regime = sampling_regime
+        self.strata = strata
         self.weights = weights
         self.interaction_terms = interaction_terms
         self.random_state = random_state
@@ -348,13 +374,50 @@ class MergedChoiceTable(object):
             samp_size = self.sample_size - 1
         
         obs_ids = np.repeat(self.observations.index.values, samp_size)
-        
+
+        # STRATIFIED SAMPLING OF ALTS: for now we are only supporting stratified sampling
+        # with replacement and no sampling weights
+        if self.sampling_regime == 'stratified':
+            if (self.replace == False) or (self.weights is not None):
+                raise ValueError(
+                    "Stratified sampling is currently only supported for sampling with "
+                    "replacement with uniform sampling weights.")
+            elif self.strata is None:
+                raise ValueError(
+                    "Must specify the name of the column to use for stratified sampling.")
+            else:
+                alt_ids = []
+                strata_vals = self.alternatives[self.strata].unique()
+                num_strata = float(len(strata_vals))
+                samp_size_per_strata = int(np.ceil(samp_size / num_strata))
+                new_samp_size = int(num_strata * samp_size_per_strata)
+                if new_samp_size != samp_size:
+                    warnings.warn(
+                        "Total sample size will be {0} instead of {1} "
+                        "after stratification".format(str(new_samp_size), str(samp_size)))
+                    samp_size = new_samp_size
+                    obs_ids = np.repeat(self.observations.index.values, samp_size)
+
+            for obs_id in tqdm(self.observations.index.values):
+                sampled_alts = []
+                a = self._get_availability(obs_id)                
+                available_alts = self.alternatives.loc[a]
+                for stratum in strata_vals:
+                    stratum_alts = available_alts.loc[available_alts[self.strata] == stratum]
+                    stratum_sampled_alts = np.random.choice(stratum_alts.index.values, 
+                                       replace = True,
+                                       size = samp_size_per_strata).tolist()
+                    sampled_alts += stratum_sampled_alts
+
+                alt_ids += sampled_alts
+
+
         # SINGLE SAMPLE: this covers cases where we can draw a single, large sample of 
         # alternatives and distribute them among the choosers, e.g. sampling without 
         # replacement, with optional alternative-specific weights but NOT weights that 
         # apply to combinations of observation x alternative
         
-        if (self.replace == True) & (self.weights is None):
+        elif (self.replace == True) & (self.weights is None):
             
             alt_ids = np.random.choice(self.alternatives.index.values, 
                                        replace = True,
@@ -387,7 +450,6 @@ class MergedChoiceTable(object):
                                                 p=w, size=samp_size).tolist()
                 alt_ids += sampled_alts
 
-        
         # Append chosen ids if applicable
         if (self.chosen_alternatives is not None):
             obs_ids = np.append(obs_ids, self.observations.index.values)
