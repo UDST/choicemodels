@@ -95,19 +95,11 @@ class MergedChoiceTable(object):
     random_state : NOT YET IMPLEMENTED
         Representation of random state, for replicability of the sampling.
 
-    sampling_regime : str, [None, 'single', 'repeated', 'stratified'], optional
-        Specify the sampling regime for construction of the MergedChoiceTable. The default
-        None implies no sampling and will use the `_build_table_without_sampling()` method
-        to construct the choice table. Single sampling covers cases where we can draw a
-        single, large sample of alternatives and distribute them among the choosers, e.g.
-        sampling without replacement, with optional alternative-specific weights
-        but NOT weights that apply to combinations of observation x alternative. If single
-        sampling is specified but the `replace` parameter is set to False, an error will
-        be generated. Repeated sampling covers cases where we have to draw separate
-        samples for each observation, e.g. sampling without replacement, or weights
-        that apply to combinations of observation x alternative. Stratified sampling as
-        defined here involves creating a sample by sampling equally from subsamples of
-        the population as identified by membership in a specified group or stratum.
+    sampling_regime : str, [None, 'stratified'], optional
+        Specify the sampling regime for construction of the MergedChoiceTable. Stratified
+        sampling as defined here involves creating a sample by sampling equally from
+        subsamples of the population as identified by membership in a specified group
+        or stratum.
 
     strata: str, optional
         If stratified sampling is specified as the sampling regime, then a column name
