@@ -370,6 +370,11 @@ class MergedChoiceTable(object):
         # STRATIFIED SAMPLING OF ALTS: for now we are only supporting stratified sampling
         # with replacement and no sampling weights
         if self.sampling_regime == 'stratified':
+
+            # shuffle the observations and store obs_ids again
+            self.observations = self.observations.sample(frac=1)
+            obs_ids = list(self.observations.index.values) * samp_size
+
             if (self.replace == False) or (self.weights is not None):
                 raise ValueError(
                     "Stratified sampling is currently only supported for sampling with "
@@ -383,24 +388,20 @@ class MergedChoiceTable(object):
                 num_strata = float(len(strata_vals))
                 samp_size_per_strata = int(np.ceil(samp_size / num_strata))
                 new_samp_size = int(num_strata * samp_size_per_strata)
+
+                # if we've augmented the sample size, must updated the obs_ids object
                 if new_samp_size != samp_size:
                     warnings.warn(
                         "Total sample size will be {0} instead of {1} "
                         "after stratification".format(str(new_samp_size), str(samp_size)))
                     samp_size = new_samp_size
-                    obs_ids = np.repeat(self.observations.index.values, samp_size)
+                    obs_ids = list(self.observations.index.values) * samp_size
 
-            for obs_id in tqdm(self.observations.index.values):
-                sampled_alts = []
-                a = self._get_availability(obs_id)                
-                available_alts = self.alternatives.loc[a]
-                for stratum in strata_vals:
-                    stratum_alts = available_alts.loc[available_alts[self.strata] == stratum]
-                    stratum_sampled_alts = np.random.choice(stratum_alts.index.values, 
-                                       replace = True,
-                                       size = samp_size_per_strata).tolist()
-                    sampled_alts += stratum_sampled_alts
-
+            for stratum in strata_vals:
+                stratum_alts = self.alternatives.loc[self.alternatives[self.strata] == stratum]
+                sampled_alts = np.random.choice(stratum_alts.index.values, 
+                                   replace = True,
+                                   size = n_obs * samp_size_per_strata).tolist()
                 alt_ids += sampled_alts
 
 
