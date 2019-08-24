@@ -6,7 +6,6 @@ sampling functionality.
 import numpy as np
 import pandas as pd
 import warnings
-from tqdm import tqdm
 
 
 class MergedChoiceTable(object):
@@ -112,7 +111,7 @@ class MergedChoiceTable(object):
     def __init__(self, observations, alternatives, chosen_alternatives=None,
                  sample_size=None, replace=True, weights=None, availability=None,
                  interaction_terms=None, random_state=None, sampling_regime=None,
-                 strata=None, progress_bar=False):
+                 strata=None):
         
         # Standardize and validate the inputs...
         
@@ -371,7 +370,8 @@ class MergedChoiceTable(object):
         # with replacement and no sampling weights
         if self.sampling_regime == 'stratified':
 
-            # redefine obs_ids from [1,1,1,2,2,2,3,3,3] to [1,2,3,1,2,3,1,2,3]
+            # stratified sampling requires obs_ids to appear in a different order for
+            # efficient sample generation: [1,1,1,2,2,2,3,3,3] --> [1,2,3,1,2,3,1,2,3]
             obs_ids = list(self.observations.index.values) * samp_size
 
             if (self.replace == False) or (self.weights is not None):
