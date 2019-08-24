@@ -371,8 +371,7 @@ class MergedChoiceTable(object):
         # with replacement and no sampling weights
         if self.sampling_regime == 'stratified':
 
-            # shuffle the observations and store obs_ids again
-            self.observations = self.observations.sample(frac=1)
+            # redefine obs_ids from [1,1,1,2,2,2,3,3,3] to [1,2,3,1,2,3,1,2,3]
             obs_ids = list(self.observations.index.values) * samp_size
 
             if (self.replace == False) or (self.weights is not None):
