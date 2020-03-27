@@ -182,7 +182,7 @@ def iterative_lottery_choices(choosers, alternatives, mct_callable, probs_callab
             print("\nRemaining capacity on alternatives but not enough to accodomodate choosers' sizes")
             break
         if chooser_batch_size is None or chooser_batch_size > len(choosers):
-            mct = mct_callable(choosers.sample(frac=1), alts)
+            mct = mct_callable(choosers.sample(frac=1), alts[alts[capacity]>0])
         else:
             mct = mct_callable(choosers.sample(chooser_batch_size), alts)
 
