@@ -183,6 +183,30 @@ class MergedChoiceTable(object):
             self._merged_table = self._build_table()
         
         
+    @classmethod
+    def from_df(cls, df):
+        """
+        Create an object instance from a dataframe
+
+        Parameters
+        ----------
+        df : a Pandas DataFrame object with 1) a MultiIndex in which the
+        first level corresponds to the index of the observations and the
+        second to the index of the alternatives; and 2) a binary column
+        named 'chosen' that indicated whether the corresponding 
+        alternative was chosen in the observation data.
+        
+        Returns
+        -------
+        MergedChoiceTable
+
+        """
+        obj = cls(pd.DataFrame(), pd.DataFrame())
+        obj._merged_table = df
+
+        return obj
+
+
     def _merge_interaction_terms(self, df):
         """
         Merges interaction terms (if they exist) onto the input DataFrame. 
