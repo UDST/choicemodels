@@ -228,3 +228,55 @@ def test_join_key_name_conflict(obs, alts):
     MergedChoiceTable(obs, alts, chosen_alternatives=alts.index.name)
 
 
+def test_obs_id_property(obs, alts):
+    """
+    Observation id should be available for a merged table.
+    
+    """
+    mct = choicemodels.tools.MergedChoiceTable(obs, alts, 
+                                 sample_size = 2,
+                                 chosen_alternatives = 'choice')
+    
+    assert(mct.observation_id_col == 'oid')
+
+
+def test_alt_id_property(obs, alts):
+    """
+    Alternative id should be available for a merged table.
+    
+    """
+    mct = choicemodels.tools.MergedChoiceTable(obs, alts, 
+                                 sample_size = 2,
+                                 chosen_alternatives = 'choice')
+    
+    assert(mct.alternative_id_col == 'aid')
+
+
+def test_choice_col_property(obs, alts):
+    """
+    Choice column property should be present if applicable, or None.
+    
+    """
+    mct = choicemodels.tools.MergedChoiceTable(obs, alts, 
+                                 sample_size = 2,
+                                 chosen_alternatives = 'choice')
+    assert(mct.choice_col == 'chosen')
+
+    mct = choicemodels.tools.MergedChoiceTable(obs, alts, 
+                                 sample_size = 2)
+    assert(mct.choice_col == None)
+
+
+def test_from_df(obs, alts):
+    """
+    MCT creation from a dataframe should work smoothly.
+    
+    """
+    df = choicemodels.tools.MergedChoiceTable(obs, alts, 
+                                 sample_size = 2,
+                                 chosen_alternatives = 'choice').to_frame()
+    
+    mct = choicemodels.tools.MergedChoiceTable.from_df(df)
+    
+    assert(df.equals(mct.to_frame()))
+

@@ -177,15 +177,17 @@ class MergedChoiceTable(object):
         self.weights_2d = weights_2d
         
         # Build choice table...
+        # Allow missing obs and alts, to support .from_df() constructor     
+        if (observations is not None):
 
-        if (len(observations) == 0) or (len(alternatives) == 0):
-            self._merged_table = pd.DataFrame()
+            if (len(observations) == 0) or (len(alternatives) == 0):
+                self._merged_table = pd.DataFrame()
         
-        elif (sample_size is None):
-            self._merged_table = self._build_table_without_sampling()
+            elif (sample_size is None):
+                self._merged_table = self._build_table_without_sampling()
         
-        else:
-            self._merged_table = self._build_table()
+            else:
+                self._merged_table = self._build_table()
         
         
     @classmethod
