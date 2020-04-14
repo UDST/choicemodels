@@ -114,12 +114,6 @@ class MergedChoiceTable(object):
                 raise ValueError("Cannot sample without replacement with sample_size {} "
                         "and n_alts {}".format(sample_size, alternatives.shape[0]))
         
-        if (observations.index.name == None):
-            observations.index.name = 'obs_id'
-        
-        if (alternatives.index.name == None):
-            alternatives.index.name = 'alt_id'
-        
         # TO DO - check that dfs have unique indexes
         # TO DO - check that chosen_alternatives correspond correctly to other dfs
         # TO DO - same with weights (could join onto other tables and then split off)
@@ -130,14 +124,25 @@ class MergedChoiceTable(object):
             observations = observations.drop(chosen_alternatives.name, axis='columns')
             chosen_alternatives.name = '_' + alternatives.index.name  # avoids conflicts
         
-        # Check for duplicate column names
-        obs_cols = list(observations.columns) + list(observations.index.names)
-        alt_cols = list(alternatives.columns) + list(alternatives.index.names)
-        dupes = set(obs_cols) & set(alt_cols)
+        # Allow missing obs and alts, to support .from_df() constructor     
+        if (observations is not None):
         
-        if len(dupes) > 0:
-            raise ValueError("Both input tables contain column {}. Please ensure "
-                             "column names are unique before merging".format(dupes))
+            # Provide default names for observation and alternatives id's
+        
+            if (observations.index.name == None):
+                observations.index.name = 'obs_id'
+        
+            if (alternatives.index.name == None):
+                alternatives.index.name = 'alt_id'
+        
+            # Check for duplicate column names
+            obs_cols = list(observations.columns) + list(observations.index.names)
+            alt_cols = list(alternatives.columns) + list(alternatives.index.names)
+            dupes = set(obs_cols) & set(alt_cols)
+        
+            if len(dupes) > 0:
+                raise ValueError("Both input tables contain column {}. Please ensure "
+                                 "column names are unique before merging".format(dupes))
         
         # Normalize weights to a pd.Series
         if (weights is not None) & isinstance(weights, str):
@@ -210,10 +215,7 @@ class MergedChoiceTable(object):
         MergedChoiceTable
 
         """
-        obj = cls(
-            observations=pd.DataFrame(),
-            alternatives=pd.DataFrame(),
-            chosen_alternatives=-999)
+        obj = cls(observations = None, alternatives = None)
         obj._merged_table = df
 
         return obj
@@ -472,7 +474,7 @@ class MergedChoiceTable(object):
         str
 
         """
-        return self.observations.index.name
+        return self._merged_table.index.names[0]
 
     
     @property
@@ -486,7 +488,7 @@ class MergedChoiceTable(object):
         str
 
         """
-        return self.alternatives.index.name
+        return self._merged_table.index.names[1]
 
     
     @property
@@ -500,7 +502,7 @@ class MergedChoiceTable(object):
         str or None
 
         """
-        if (self.chosen_alternatives is not None):
+        if ('chosen' in self._merged_table.columns):
             return 'chosen'
         
         else:
