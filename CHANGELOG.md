@@ -1,7 +1,12 @@
 # ChoiceModels change log
-### 0.2.2dev0 (2019-04-23)
 
-- adds a function `choicemodels.tools.parallel_lottery_choices()` to run iterative lottery choice batches in parallel rather than seqeuentially.
+### 0.2.2.dev1 (2020-04-14)
+
+- adds a `MergedChoiceTable.from_df()` as an alternative constructor
+
+### 0.2.2.dev0 (2019-04-23)
+
+- adds a function `choicemodels.tools.parallel_lottery_choices()` to run iterative lottery choice batches in parallel rather than sequentially
 
 ### 0.2.1 (2019-01-30)
 

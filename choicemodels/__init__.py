@@ -3,4 +3,4 @@
 
 from .mnl import MultinomialLogit, MultinomialLogitResults
 
-version = __version__ = '0.2.2dev0'
+version = __version__ = '0.2.2.dev1'
