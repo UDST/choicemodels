@@ -5,17 +5,10 @@ python:
   - "3.5"
   - "3.6"
 
-matrix:
-  include:
-    - python: "3.7"  # temp solution until travis supports python 3.7 more cleanly
-      dist: xenial
-      sudo: true
-
 install:
   - pip install .
   - pip install -r requirements-dev.txt
-  - # extra tests run if urbansim is present, but it can't install with python 3.7
-  - if [ "$TRAVIS_PYTHON_VERSION" != "3.7" ]; then pip install urbansim; fi
+  - pip install urbansim  # extra tests run if urbansim is present
   - pip list
   - pip show choicemodels
 

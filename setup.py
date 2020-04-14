@@ -26,5 +26,13 @@ setup(
         'License :: OSI Approved :: BSD License'
     ],
     packages=['choicemodels', 'choicemodels.tools'],
-    install_requires=install_requires
+    install_requires=[
+        'numpy >= 1.14',
+        'pandas >= 0.23',
+        'patsy >= 0.5',
+        'pylogit >= 0.2.2',
+        'scipy >= 1.0',
+        'statsmodels >= 0.8, <0.11; python_version <"3.6"',
+        'statsmodels >= 0.8; python_version >="3.6"'
+    ]
 )
