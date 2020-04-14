@@ -4,10 +4,6 @@ from setuptools import setup
 with open('README.md', 'r') as f:
     long_description = f.read()
 
-with open('requirements.txt') as f:
-    install_requires = f.readlines()
-install_requires = [item.strip() for item in install_requires]
-
 setup(
     name='choicemodels',
     version='0.2.2dev0',
