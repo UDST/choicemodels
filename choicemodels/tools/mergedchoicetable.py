@@ -191,24 +191,18 @@ class MergedChoiceTable(object):
     @classmethod
     def from_df(cls, df):
         """
-        Create an object instance from a dataframe.
+        Create a MergedChoiceTable instance from a pre-generated DataFrame.
 
-        The MergedChoiceTable class requires two dataframes to initialize
-        representing observations and alternatives for the choice scenario,
-        so this classmethod simply passes in two empty dataframes. Similarly,
-        it also passes a dummy for the `chosen_alternatives` arg in order
-        to trigger the creation of the `MergedChoiceTable.choice_col` property.
+        Each chooser's rows should be contiguous. If applicable, the chosen alternative
+        should be listed first. This ordering is used by MergedChoiceTable.to_frame(),
+        and appears to be an undocumented requirement of the legacy MNL code.
 
         Parameters
         ----------
-        df : a Pandas DataFrame object with 1) a MultiIndex in which the
-        first level corresponds to the index of the observations and the
-        second to the index of the alternatives; and 2) a binary column
-        named 'chosen' that indicated whether the corresponding
-        alternative was chosen in the observation data.
-
-        choice_col : Name of the column containing a binary representation
-        of whether each alternative was chosen in the given choice scenario.
+        df : pandas.DataFrame
+            Table with a two-level MultiIndex where the first level corresponds to the
+            index of the observations and the second to the index of the alternatives.
+            May include a binary column named 'chosen' indicating observed choices.
         
         Returns
         -------
@@ -217,7 +211,9 @@ class MergedChoiceTable(object):
         """
         obj = cls(observations = None, alternatives = None)
         obj._merged_table = df
-
+        
+        # TO DO: sort the dataframe so that rows are automatically in a consistent order
+        
         return obj
 
 
