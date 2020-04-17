@@ -6,7 +6,7 @@ with open('README.md', 'r') as f:
 
 setup(
     name='choicemodels',
-    version='0.2.2.dev1',
+    version='0.2.2',
     description='Tools for discrete choice estimation',
     long_description=long_description,
     author='UDST',

@@ -1,5 +1,9 @@
 # ChoiceModels change log
 
+### 0.2.2 (2020-04-17)
+
+- production release
+
 ### 0.2.2.dev1 (2020-04-14)
 
 - adds a `MergedChoiceTable.from_df()` as an alternative constructor
