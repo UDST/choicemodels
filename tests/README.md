@@ -1,1 +1,0 @@
-Run tests from this folder using `pytest *.py -s`.
