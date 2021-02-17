@@ -13,7 +13,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        # add back macos-latest and windows-latest when issue #70 is resolved
+        os: [ubuntu-latest]
         python-version: [3.6, 3.7, 3.8]  # no pip pytables for py39-mac or py39-win
     steps:
     - uses: actions/checkout@v2
