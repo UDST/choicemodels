@@ -16,7 +16,7 @@ ChoiceModels was created in 2016, with contributions from Sam Maurer (maurer@urb
 Installation
 ------------
 
-ChoiceModels is tested with Python 2.7, 3.5, 3.6, and 3.7. It should run on any platform. 
+ChoiceModels is tested with Python 2.7, 3.5, 3.6, 3.7, and 3.8. It should run on any platform. 
 
 
 Production releases

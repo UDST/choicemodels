@@ -23,6 +23,6 @@ Capacity-constrained choices
 
 
 Parallelized capacity-constrained choices
-----------------------------
+-----------------------------------------
 
 .. autofunction:: choicemodels.tools.parallel_lottery_choices
