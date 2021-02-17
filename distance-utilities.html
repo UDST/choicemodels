@@ -1,0 +1,336 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Distance utilities API &mdash; ChoiceModels 0.2.2 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Simulation utilities API" href="simulation-utilities.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> ChoiceModels
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="choice-table-utilities.html">Choice table utilities API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multinomial-logit.html">Multinomial Logit API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="simulation-utilities.html">Simulation utilities API</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Distance utilities API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#distance-matrices">Distance matrices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#distance-bands">Distance bands</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">ChoiceModels</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Distance utilities API</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/distance-utilities.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="distance-utilities-api">
+<h1>Distance utilities API<a class="headerlink" href="#distance-utilities-api" title="Permalink to this headline">¶</a></h1>
+<p>ChoiceModels also includes tools for constructing pairwise distance matrices and calculating which geographies are within various distance bands of some reference geography.</p>
+<div class="section" id="distance-matrices">
+<h2>Distance matrices<a class="headerlink" href="#distance-matrices" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="choicemodels.tools.great_circle_distance_matrix">
+<code class="sig-prename descclassname"><span class="pre">choicemodels.tools.</span></code><code class="sig-name descname"><span class="pre">great_circle_distance_matrix</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">earth_radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6371009</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_int</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/choicemodels/tools/distancematrix.html#great_circle_distance_matrix"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#choicemodels.tools.great_circle_distance_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate a pairwise great-circle distance matrix from a DataFrame of
+points. Distances returned are in units of earth_radius (default is meters).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>pandas DataFrame</em>) – a DataFrame of points, uniquely indexed by place identifier (e.g., tract
+ID or parcel ID), represented by x and y coordinate columns</p></li>
+<li><p><strong>x</strong> (<em>str</em>) – label of the x coordinate column in the DataFrame</p></li>
+<li><p><strong>y</strong> (<em>str</em>) – label of the y coordinate column in the DataFrame</p></li>
+<li><p><strong>earth_radius</strong> (<em>numeric</em>) – radius of earth in units in which distance will be returned (default is
+meters)</p></li>
+<li><p><strong>return_int</strong> (<em>bool</em>) – if True, convert all distances to integers</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Multi-indexed distance vector in units of df’s values, with top-level
+index representing “from” and second-level index representing “to”.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>pandas Series</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="choicemodels.tools.euclidean_distance_matrix">
+<code class="sig-prename descclassname"><span class="pre">choicemodels.tools.</span></code><code class="sig-name descname"><span class="pre">euclidean_distance_matrix</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/choicemodels/tools/distancematrix.html#euclidean_distance_matrix"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#choicemodels.tools.euclidean_distance_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate a pairwise euclidean distance matrix from a DataFrame of points.
+Distances returned are in units of x and y columns.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>df</strong> (<em>pandas DataFrame</em>) – a DataFrame of points, uniquely indexed by place identifier (e.g., tract
+ID or parcel ID), represented by x and y coordinate columns</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Multi-indexed distance vector in units of df’s values, with top-level
+index representing “from” and second-level index representing “to”.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>pandas Series</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="choicemodels.tools.distance_matrix">
+<code class="sig-prename descclassname"><span class="pre">choicemodels.tools.</span></code><code class="sig-name descname"><span class="pre">distance_matrix</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'euclidean'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'lng'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'lat'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">earth_radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6371009</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_int</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/choicemodels/tools/distancematrix.html#distance_matrix"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#choicemodels.tools.distance_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate a pairwise distance matrix from a DataFrame of two-dimensional
+points.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>pandas DataFrame</em>) – a DataFrame of points, uniquely indexed by place identifier (e.g., tract
+ID or parcel ID), represented by x and y coordinate columns</p></li>
+<li><p><strong>method</strong> (<em>str</em>) – {‘euclidean’, ‘greatcircle’, ‘network’}
+which algorithm to use for calculating pairwise distances</p></li>
+<li><p><strong>x</strong> (<em>str</em>) – if method=’greatcircle’ or ‘network’, label of the x coordinate column
+in the DataFrame</p></li>
+<li><p><strong>y</strong> (<em>str</em>) – if method=’greatcircle’ or ‘network’, label of the y coordinate column
+in the DataFrame</p></li>
+<li><p><strong>earth_radius</strong> (<em>numeric</em>) – if method=’greatcircle’, radius of earth in units in which distance will
+be returned (default is meters)</p></li>
+<li><p><strong>return_int</strong> (<em>bool</em>) – if method=’greatcircle’, if True, convert all distances to integers</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Multi-indexed distance vector in units of df’s values, with top-level
+index representing “from” and second-level index representing “to”.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>pandas Series</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="distance-bands">
+<h2>Distance bands<a class="headerlink" href="#distance-bands" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="choicemodels.tools.distance_bands">
+<code class="sig-prename descclassname"><span class="pre">choicemodels.tools.</span></code><code class="sig-name descname"><span class="pre">distance_bands</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dist_vector</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distances</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/choicemodels/tools/distancematrix.html#distance_bands"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#choicemodels.tools.distance_bands" title="Permalink to this definition">¶</a></dt>
+<dd><p>Identify all geographies located within each distance band of each
+geography.</p>
+<p>The list of distances is treated pairwise to create distance bands, with
+the first element of each pair forming the band’s inclusive lower limit and
+the second element of each pair forming the band’s exclusive upper limit.
+For example, if distances=[0, 10, 30], band 0 will contain all geographies
+with a distance &gt;= 0 and &lt; 10 units (e.g., meters) from the reference
+geography, and band 1 will contain all geographies with a distance &gt;= 10
+and &lt; 30 units from the reference geography.</p>
+<p>To make the final distance band include all geographies beyond a certain
+distance, make the final value in the distances list np.inf.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dist_vector</strong> (<em>pandas Series</em>) – Multi-indexed distance vector in units of df’s values, with top-level
+index representing “from” and second-level index representing “to”.</p></li>
+<li><p><strong>distances</strong> (<em>list</em>) – a list of distance band increments</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a series multi-indexed by geography ID and distance band number, with
+values of arrays of geography IDs with the corresponding distances from
+that ID</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>pandas Series</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="simulation-utilities.html" class="btn btn-neutral float-left" title="Simulation utilities API" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Urban Data Science Toolkit.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

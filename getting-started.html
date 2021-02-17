@@ -1,0 +1,291 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Getting started &mdash; ChoiceModels 0.2.2 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Choice table utilities API" href="choice-table-utilities.html" />
+    <link rel="prev" title="ChoiceModels" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> ChoiceModels
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Getting started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#intro">Intro</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#production-releases">Production releases</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#developer-pre-releases">Developer pre-releases</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#cloning-the-repository">Cloning the repository</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#basic-usage">Basic usage</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="choice-table-utilities.html">Choice table utilities API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multinomial-logit.html">Multinomial Logit API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="simulation-utilities.html">Simulation utilities API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="distance-utilities.html">Distance utilities API</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">ChoiceModels</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Getting started</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/getting-started.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="getting-started">
+<h1>Getting started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="intro">
+<h2>Intro<a class="headerlink" href="#intro" title="Permalink to this headline">¶</a></h2>
+<p>ChoiceModels is a Python library for discrete choice modeling, with utilities for sampling, simulation, and other ancillary tasks. It’s part of the <a class="reference external" href="https://docs.udst.org">Urban Data Science Toolkit</a> (UDST).</p>
+<p>The library currently focuses on tools to help integrate discrete choice models into larger workflows, drawing on other packages such as the excellent <a class="reference external" href="https://github.com/timothyb0912/pylogit">PyLogit</a> for most estimation of models. ChoiceModels can automate the creation of choice tables for estimation or simulation, using uniform or weighted random sampling of alternatives, as well as interaction terms or cartesian merges. It also provides general-purpose tools for Monte Carlo simulation of choices given probability distributions from fitted models, with fast algorithms for independent or capacity-constrained choices. ChoiceModels includes a custom engine for Multinomial Logit estimation that’s optimized for fast performance with large numbers of alternatives.</p>
+<p>ChoiceModels is <a class="reference external" href="https://github.com/udst/choicemodels">hosted on Github</a> with a BSD 3-Clause open source license. The code repository includes some material not found in this documentation: a <a class="reference external" href="https://github.com/UDST/choicemodels/blob/master/CHANGELOG.md">change log</a>, a <a class="reference external" href="https://github.com/UDST/choicemodels/blob/master/CONTRIBUTING.md">contributor’s guide</a>, and instructions for <a class="reference external" href="https://">running the tests</a>, <a class="reference external" href="http://">updating the documentation</a>, and <a class="reference external" href="https://">creating a new release</a>. Another useful resource is the <a class="reference external" href="https://github.com/UDST/choicemodels/issues?utf8=✓&amp;q=is%3Aissue">issues</a> and <a class="reference external" href="https://github.com/UDST/choicemodels/pulls?q=is%3Apr">pull requests</a> on Github, which include detailed feature proposals and other discussions.</p>
+<p>ChoiceModels was created in 2016, with contributions from Sam Maurer (<a class="reference external" href="mailto:maurer&#37;&#52;&#48;urbansim&#46;com">maurer<span>&#64;</span>urbansim<span>&#46;</span>com</a>), Timothy Brathwaite, Geoff Boeing, Paul Waddell, Max Gardner, Eddie Janowicz, Arezoo Besharati Zadeh, Jacob Finkelman, Catalina Vanoli, and others. It includes earlier code written by Matt Davis, Fletcher Foti, and Paul Sohn.</p>
+</div>
+<div class="section" id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<p>ChoiceModels is tested with Python 2.7, 3.5, 3.6, 3.7, and 3.8. It should run on any platform.</p>
+<div class="section" id="production-releases">
+<h3>Production releases<a class="headerlink" href="#production-releases" title="Permalink to this headline">¶</a></h3>
+<p>ChoiceModels can be installed using the Pip or Conda package managers. We recommend Conda because it resolves dependency conflicts better.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">choicemodels</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">install</span> <span class="n">choicemodels</span> <span class="o">--</span><span class="n">channel</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span>
+</pre></div>
+</div>
+<p>When new production releases of ChoiceModels come out, you can upgrade like this:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">choicemodels</span> <span class="o">--</span><span class="n">upgrade</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">update</span> <span class="n">choicemodels</span> <span class="o">--</span><span class="n">channel</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="developer-pre-releases">
+<h3>Developer pre-releases<a class="headerlink" href="#developer-pre-releases" title="Permalink to this headline">¶</a></h3>
+<p>Developer pre-releases of ChoiceModels can be installed using the Github URL. Additional information about the developer releases can be found in Github <a class="reference external" href="https://github.com/UDST/choicemodels/pulls?q=is%3Apr">pull requests</a>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">git</span><span class="o">+</span><span class="n">git</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">udst</span><span class="o">/</span><span class="n">choicemodels</span><span class="o">.</span><span class="n">git</span>
+</pre></div>
+</div>
+<p>You can use the same command to upgrade.</p>
+</div>
+<div class="section" id="cloning-the-repository">
+<h3>Cloning the repository<a class="headerlink" href="#cloning-the-repository" title="Permalink to this headline">¶</a></h3>
+<p>You can also install ChoiceModels by cloning the Github repository, which is the best way to do it if you’ll be modifying the code. The main branch contains the latest developer release.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">udst</span><span class="o">/</span><span class="n">choicemodels</span><span class="o">.</span><span class="n">git</span>
+<span class="n">cd</span> <span class="n">choicemodels</span>
+<span class="n">python</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">develop</span>
+</pre></div>
+</div>
+<p>Update it with <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">pull</span></code>.</p>
+</div>
+</div>
+<div class="section" id="basic-usage">
+<h2>Basic usage<a class="headerlink" href="#basic-usage" title="Permalink to this headline">¶</a></h2>
+<p>You can use components of ChoiceModels individually, or combine them together to streamline model estimation and simulation workflows. Other UDST libraries like UrbanSim Templates use ChoiceModels objects as inputs and outputs.</p>
+<p>If you have choosers and alternatives as Pandas DataFrames, you can prepare them for model estimation like this:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">mct</span> <span class="o">=</span> <span class="n">choicemodels</span><span class="o">.</span><span class="n">tools</span><span class="o">.</span><span class="n">MergedChoiceTable</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">alts</span><span class="p">,</span> <span class="n">chosen_alternatives</span><span class="o">=</span><span class="s1">&#39;chosen&#39;</span><span class="p">,</span>
+                                           <span class="n">sample_size</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="o">..</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Then, you can estimate a Multinomial Logit model like this:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">results</span> <span class="o">=</span> <span class="n">choicemodels</span><span class="o">.</span><span class="n">MultinomialLogit</span><span class="p">(</span><span class="n">mct</span><span class="p">,</span> <span class="n">model_expression</span><span class="o">=</span><span class="s1">&#39;x1 + x2 + x3&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This provides a <code class="docutils literal notranslate"><span class="pre">choicemodels.MultinomialLogitResults</span></code> object, from which you can obtain probability distributions for out-of-sample choice scenarios in order to generate simulated choices.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">mct2</span> <span class="o">=</span> <span class="n">choicemodels</span><span class="o">.</span><span class="n">tools</span><span class="o">.</span><span class="n">MergedChoiceTable</span><span class="p">(</span><span class="n">obs2</span><span class="p">,</span> <span class="n">alts</span><span class="p">,</span> <span class="n">sample_size</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="o">..</span><span class="p">)</span>
+<span class="n">probs</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">probabilities</span><span class="p">(</span><span class="n">mct2</span><span class="p">)</span>
+<span class="n">choices</span> <span class="o">=</span> <span class="n">choicemodels</span><span class="o">.</span><span class="n">tools</span><span class="o">.</span><span class="n">monte_carlo_choices</span><span class="p">(</span><span class="n">probs</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="choice-table-utilities.html" class="btn btn-neutral float-right" title="Choice table utilities API" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="index.html" class="btn btn-neutral float-left" title="ChoiceModels" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Urban Data Science Toolkit.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

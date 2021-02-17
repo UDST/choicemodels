@@ -1,0 +1,681 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>choicemodels.tools.simulation &mdash; ChoiceModels 0.2.2 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> ChoiceModels
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../choice-table-utilities.html">Choice table utilities API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../multinomial-logit.html">Multinomial Logit API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../simulation-utilities.html">Simulation utilities API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../distance-utilities.html">Distance utilities API</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">ChoiceModels</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>choicemodels.tools.simulation</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for choicemodels.tools.simulation</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Utilities for Monte Carlo simulation of choices.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="kn">import</span> <span class="n">Process</span><span class="p">,</span> <span class="n">Manager</span><span class="p">,</span> <span class="n">Array</span><span class="p">,</span> <span class="n">cpu_count</span>
+<span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+
+
+<div class="viewcode-block" id="monte_carlo_choices"><a class="viewcode-back" href="../../../simulation-utilities.html#choicemodels.tools.monte_carlo_choices">[docs]</a><span class="k">def</span> <span class="nf">monte_carlo_choices</span><span class="p">(</span><span class="n">probabilities</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Monte Carlo simulation of choices for a set of K scenarios, each having different</span>
+<span class="sd">    probability distributions (and potentially different alternatives). </span>
+<span class="sd">    </span>
+<span class="sd">    Choices are independent and unconstrained, meaning that the same alternative can be </span>
+<span class="sd">    chosen in multiple scenarios.</span>
+<span class="sd">    </span>
+<span class="sd">    This function is equivalent to applying np.random.choice() to each of the K scenarios,</span>
+<span class="sd">    but it&#39;s implemented as a single-pass matrix calculation. When the number of scenarios </span>
+<span class="sd">    is large, this is about 50x faster than using df.apply() or a loop.</span>
+<span class="sd">    </span>
+<span class="sd">    If all the choice scenarios have the same probability distribution among alternatives,</span>
+<span class="sd">    you don&#39;t need this function. You can use np.random.choice() with size=K, which will </span>
+<span class="sd">    be more efficient. (For example, that would work for a choice model whose expression </span>
+<span class="sd">    includes only attributes of the alternatives.)</span>
+
+<span class="sd">    NOTE ABOUT THE INPUT FORMATS: It&#39;s important for the probabilities to be structured</span>
+<span class="sd">    correctly. This is computationally expensive to verify, so you will not get a warning</span>
+<span class="sd">    if it&#39;s wrong! (TO DO: we should provide an option to perform these checks, though)</span>
+<span class="sd">    </span>
+<span class="sd">    1. Probabilities (pd.Series) must include a two-level MultiIndex, the first level </span>
+<span class="sd">       representing the scenario (observation) id and the second the alternative id.</span>
+
+<span class="sd">    2. Probabilities must be sorted so that each scenario&#39;s alternatives are consecutive.</span>
+<span class="sd">    </span>
+<span class="sd">    3. Each scenario must have the same number of alternatives. You can pad a scenario </span>
+<span class="sd">       with zero-probability alternatives if needed.</span>
+<span class="sd">       </span>
+<span class="sd">    4. Each scenario&#39;s alternative probabilities must sum to 1. </span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    probabilities: pd.Series</span>
+<span class="sd">        List of probabilities for each observation (choice scenario) and alternative. </span>
+<span class="sd">        Please verify that the formatting matches the four requirements described above.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    pd.Series</span>
+<span class="sd">        List of chosen alternative id&#39;s, indexed with the observation id.</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># TO DO - if input is a single-column dataframe, silently convert it to series</span>
+
+    <span class="n">obs_name</span><span class="p">,</span> <span class="n">alts_name</span> <span class="o">=</span> <span class="n">probabilities</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">names</span>
+
+    <span class="n">obs</span> <span class="o">=</span> <span class="n">probabilities</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">alts</span> <span class="o">=</span> <span class="n">probabilities</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    
+    <span class="n">num_obs</span> <span class="o">=</span> <span class="n">obs</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span><span class="o">.</span><span class="n">size</span>
+    <span class="n">num_alts</span> <span class="o">=</span> <span class="n">probabilities</span><span class="o">.</span><span class="n">size</span> <span class="o">//</span> <span class="n">num_obs</span>
+    
+    <span class="c1"># This Monte Carlo approach is adapted from urbansim.urbanchoice.mnl_simulate()</span>
+    <span class="n">probs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">probabilities</span><span class="p">)</span>
+    <span class="n">cumprobs</span> <span class="o">=</span> <span class="n">probs</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">num_obs</span><span class="p">,</span> <span class="n">num_alts</span><span class="p">))</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    
+    <span class="c1"># Simulate choice by subtracting a random float</span>
+    <span class="n">scaledprobs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="n">cumprobs</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">num_obs</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+
+    <span class="c1"># Replace negative values with 0 and positive values with 1, then use argmax to</span>
+    <span class="c1"># return the position of the first postive value</span>
+    <span class="n">choice_ix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">((</span><span class="n">scaledprobs</span> <span class="o">+</span> <span class="mf">1.0</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;i4&#39;</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">choice_ix_1d</span> <span class="o">=</span> <span class="n">choice_ix</span> <span class="o">+</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">num_obs</span><span class="p">)</span> <span class="o">*</span> <span class="n">num_alts</span><span class="p">)</span>
+    
+    <span class="n">choices</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="n">obs_name</span><span class="p">:</span> <span class="n">obs</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">choice_ix_1d</span><span class="p">),</span>
+                            <span class="n">alts_name</span><span class="p">:</span> <span class="n">alts</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">choice_ix_1d</span><span class="p">)})</span>
+    
+    <span class="k">return</span> <span class="n">choices</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="n">obs_name</span><span class="p">)[</span><span class="n">alts_name</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="iterative_lottery_choices"><a class="viewcode-back" href="../../../simulation-utilities.html#choicemodels.tools.iterative_lottery_choices">[docs]</a><span class="k">def</span> <span class="nf">iterative_lottery_choices</span><span class="p">(</span><span class="n">choosers</span><span class="p">,</span> <span class="n">alternatives</span><span class="p">,</span> <span class="n">mct_callable</span><span class="p">,</span> <span class="n">probs_callable</span><span class="p">,</span> 
+        <span class="n">alt_capacity</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">chooser_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">chooser_batch_size</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Monte Carlo simulation of choices for a set of choice scenarios where (a) the </span>
+<span class="sd">    alternatives have limited capacity and (b) the choosers have varying probability </span>
+<span class="sd">    distributions over the alternatives. </span>
+<span class="sd">    </span>
+<span class="sd">    Effectively, we simulate the choices sequentially, each time removing the chosen</span>
+<span class="sd">    alternative or reducing its available capacity. (It&#39;s actually done in batches for</span>
+<span class="sd">    better performance, but the outcome is equivalent.) This requires sampling </span>
+<span class="sd">    alternatives and calculating choice probabilities multiple times, which is why</span>
+<span class="sd">    callables for those actions are required inputs.</span>
+<span class="sd">    </span>
+<span class="sd">    Chooser priority is randomized. Capacities can be specified as counts (number of </span>
+<span class="sd">    choosers that can be accommodated) or as amounts (e.g. square footage) with </span>
+<span class="sd">    corresponding chooser sizes. If total capacity is insufficient to accommodate all the </span>
+<span class="sd">    choosers, as many choices will be simulated as possible.</span>
+<span class="sd">    </span>
+<span class="sd">    Note that if all the choosers are the same size and have the same probability </span>
+<span class="sd">    distribution over alternatives, you don&#39;t need this function. You can use</span>
+<span class="sd">    np.random.choice() with size=K to draw chosen alternatives, which will be more </span>
+<span class="sd">    efficient. (This function also works, though.)</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    choosers : pd.DataFrame</span>
+<span class="sd">        Table with one row for each chooser or choice scenario, with unique ID&#39;s in the</span>
+<span class="sd">        index field. Additional columns can contain fixed attributes of the choosers.</span>
+<span class="sd">        (Reserved column names: &#39;_size&#39;.)</span>
+<span class="sd">    </span>
+<span class="sd">    alternatives : pd.DataFrame</span>
+<span class="sd">        Table with one row for each alternative, with unique ID&#39;s in the index field.</span>
+<span class="sd">        Additional columns can contain fixed attributes of the alternatives. (Reserved </span>
+<span class="sd">        column names: &#39;_capacity&#39;.)</span>
+<span class="sd">    </span>
+<span class="sd">    mct_callable : callable</span>
+<span class="sd">        Callable that samples alternatives to generate a table of choice scenarios. It </span>
+<span class="sd">        should accept subsets of the choosers and alternatives tables and return a </span>
+<span class="sd">        choicemodels.tools.MergedChoiceTable.</span>
+<span class="sd">    </span>
+<span class="sd">    probs_callable : callable</span>
+<span class="sd">        Callable that generates predicted probabilities for a table of choice scenarios.</span>
+<span class="sd">        It should accept a choicemodels.tools.MergedChoiceTable and return a pd.Series</span>
+<span class="sd">        with indexes matching the input.</span>
+<span class="sd">    </span>
+<span class="sd">    alt_capacity : str, optional</span>
+<span class="sd">        Name of a column in the alternatives table that expresses the capacity of </span>
+<span class="sd">        alternatives. If not provided, each alternative is interpreted as accommodating a</span>
+<span class="sd">        single chooser.</span>
+<span class="sd">    </span>
+<span class="sd">    chooser_size : str, optional</span>
+<span class="sd">        Name of a column in the choosers table that expresses the size of choosers. </span>
+<span class="sd">        Choosers might have varying sizes if the alternative capacities are amounts </span>
+<span class="sd">        rather than counts -- e.g. square footage or employment capacity. Chooser sizes </span>
+<span class="sd">        must be in the same units as alternative capacities. If not provided, each chooser</span>
+<span class="sd">        has a size of 1. </span>
+<span class="sd">    </span>
+<span class="sd">    max_iter : int or None, optional</span>
+<span class="sd">        Maximum number of iterations. If None (default), the algorithm will iterate until </span>
+<span class="sd">        all choosers are matched or no alternatives remain.</span>
+
+<span class="sd">    chooser_batch_size : int or None, optional</span>
+<span class="sd">        Size of the batches for processing smaller groups of choosers one at a time. </span>
+<span class="sd">        Useful when the anticipated size of the merged choice tables (choosers X </span>
+<span class="sd">        alternatives X covariates) will be too large for python/pandas to handle. </span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    pd.Series</span>
+<span class="sd">        List of chosen alternative id&#39;s, indexed with the chooser (observation) id. </span>
+<span class="sd">            </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># TO DO - how does MCT handle sample size greater than the number of available alts?</span>
+    
+    <span class="c1"># Copy the input dataframes to avoid editing the originals</span>
+    <span class="n">choosers</span> <span class="o">=</span> <span class="n">choosers</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">alts</span> <span class="o">=</span> <span class="n">alternatives</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    
+    <span class="k">if</span> <span class="n">alt_capacity</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">alt_capacity</span> <span class="o">=</span> <span class="s1">&#39;_capacity&#39;</span>
+        <span class="n">alts</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span><span class="n">alt_capacity</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    
+    <span class="k">if</span> <span class="n">chooser_size</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">chooser_size</span> <span class="o">=</span> <span class="s1">&#39;_size&#39;</span>
+        <span class="n">choosers</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span><span class="n">chooser_size</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    
+    <span class="n">capacity</span><span class="p">,</span> <span class="n">size</span> <span class="o">=</span> <span class="p">(</span><span class="n">alt_capacity</span><span class="p">,</span> <span class="n">chooser_size</span><span class="p">)</span>
+    
+    <span class="n">len_choosers</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">choosers</span><span class="p">)</span>
+    <span class="n">valid_choices</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">()</span>
+    <span class="nb">iter</span> <span class="o">=</span> <span class="mi">0</span>
+    
+    <span class="k">while</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">valid_choices</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">len_choosers</span><span class="p">):</span>
+        <span class="nb">iter</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">max_iter</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nb">iter</span> <span class="o">&gt;</span> <span class="n">max_iter</span><span class="p">):</span>
+                <span class="k">break</span>
+        <span class="k">if</span> <span class="n">alts</span><span class="p">[</span><span class="n">capacity</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">choosers</span><span class="p">[</span><span class="n">size</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">():</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> choosers cannot be allocated.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">choosers</span><span class="p">)))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Remaining capacity on alternatives but not enough to accodomodate choosers&#39; sizes&quot;</span><span class="p">)</span>
+            <span class="k">break</span>
+        <span class="k">if</span> <span class="n">chooser_batch_size</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">chooser_batch_size</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">choosers</span><span class="p">):</span>
+            <span class="n">mct</span> <span class="o">=</span> <span class="n">mct_callable</span><span class="p">(</span><span class="n">choosers</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">frac</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="n">alts</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">mct</span> <span class="o">=</span> <span class="n">mct_callable</span><span class="p">(</span><span class="n">choosers</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">chooser_batch_size</span><span class="p">),</span> <span class="n">alts</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">mct</span><span class="o">.</span><span class="n">to_frame</span><span class="p">())</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No valid alternatives for the remaining choosers&quot;</span><span class="p">)</span>
+            <span class="k">break</span>
+
+        <span class="n">probs</span> <span class="o">=</span> <span class="n">probs_callable</span><span class="p">(</span><span class="n">mct</span><span class="p">)</span>
+        <span class="n">choices</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">monte_carlo_choices</span><span class="p">(</span><span class="n">probs</span><span class="p">))</span>
+
+        <span class="c1"># join capacities and sizes</span>
+        <span class="n">oid</span><span class="p">,</span> <span class="n">aid</span> <span class="o">=</span> <span class="p">(</span><span class="n">mct</span><span class="o">.</span><span class="n">observation_id_col</span><span class="p">,</span> <span class="n">mct</span><span class="o">.</span><span class="n">alternative_id_col</span><span class="p">)</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="n">choices</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">alts</span><span class="p">[</span><span class="n">capacity</span><span class="p">],</span> <span class="n">on</span><span class="o">=</span><span class="n">aid</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">choosers</span><span class="p">[</span><span class="n">size</span><span class="p">],</span> <span class="n">on</span><span class="o">=</span><span class="n">oid</span><span class="p">)</span>
+        <span class="n">c</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span><span class="s1">&#39;_cumsize&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">aid</span><span class="p">)[</span><span class="n">size</span><span class="p">]</span><span class="o">.</span><span class="n">cumsum</span><span class="p">()</span>
+
+        <span class="c1"># save valid choices</span>
+        <span class="n">c_valid</span> <span class="o">=</span> <span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">_cumsize</span> <span class="o">&lt;=</span> <span class="n">c</span><span class="p">[</span><span class="n">capacity</span><span class="p">])</span>
+        <span class="n">valid_choices</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">valid_choices</span><span class="p">,</span> <span class="n">c</span><span class="p">[</span><span class="n">aid</span><span class="p">]</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">c_valid</span><span class="p">]])</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Iteration </span><span class="si">{}</span><span class="s2">: </span><span class="si">{}</span><span class="s2"> of </span><span class="si">{}</span><span class="s2"> valid choices&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">iter</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">valid_choices</span><span class="p">),</span> 
+                <span class="n">len_choosers</span><span class="p">))</span>
+
+        <span class="c1"># update choosers and alternatives</span>
+        <span class="n">choosers</span> <span class="o">=</span> <span class="n">choosers</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">c_valid</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+        <span class="c1"># print(&quot;{} remaining choosers&quot;.format(len(choosers)))</span>
+
+        <span class="n">placed_capacity</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">c_valid</span><span class="p">]</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span><span class="o">.</span><span class="n">_cumsize</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+        <span class="n">alts</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span><span class="n">capacity</span><span class="p">]</span> <span class="o">=</span> <span class="n">alts</span><span class="p">[</span><span class="n">capacity</span><span class="p">]</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="n">placed_capacity</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="n">full</span> <span class="o">=</span> <span class="n">alts</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">alts</span><span class="p">[</span><span class="n">capacity</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">alts</span> <span class="o">=</span> <span class="n">alts</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">full</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+        <span class="c1"># print(&quot;{} remaining alternatives&quot;.format(len(alts)))</span>
+
+    <span class="c1"># retain original index names</span>
+    <span class="n">valid_choices</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">choosers</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span>
+    <span class="n">valid_choices</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">alts</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span>
+
+    <span class="k">return</span> <span class="n">valid_choices</span></div>
+
+
+<span class="k">def</span> <span class="nf">_parallel_lottery_choices_worker</span><span class="p">(</span>
+        <span class="n">choosers</span><span class="p">,</span> <span class="n">alternatives</span><span class="p">,</span> <span class="n">choices_dict</span><span class="p">,</span> <span class="n">chosen_alts</span><span class="p">,</span>
+        <span class="n">mct_callable</span><span class="p">,</span> <span class="n">probs_callable</span><span class="p">,</span> <span class="n">alt_capacity</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">chooser_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">proc_num</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Worker process called only by the parallel_lottery_choices() method.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    choosers : pd.DataFrame</span>
+<span class="sd">        Table with one row for each chooser or choice scenario, with unique ID&#39;s in the</span>
+<span class="sd">        index field. Additional columns can contain fixed attributes of the choosers.</span>
+<span class="sd">        (Reserved column names: &#39;_size&#39;.)</span>
+<span class="sd">    </span>
+<span class="sd">    alternatives : pd.DataFrame</span>
+<span class="sd">        Table with one row for each alternative, with unique ID&#39;s in the index field.</span>
+<span class="sd">        Additional columns can contain fixed attributes of the alternatives. (Reserved </span>
+<span class="sd">        column names: &#39;_capacity&#39;.)</span>
+
+<span class="sd">    choices_dict : multiprocessing.managers.SyncManager.dict</span>
+<span class="sd">        A dictionary array allocated from shared memory</span>
+
+<span class="sd">    chosen_alts : multiprocessing.Array</span>
+<span class="sd">        A ctypes array allocated from shared memory</span>
+<span class="sd">    </span>
+<span class="sd">    mct_callable : callable</span>
+<span class="sd">        Callable that samples alternatives to generate a table of choice scenarios. It </span>
+<span class="sd">        should accept subsets of the choosers and alternatives tables and return a </span>
+<span class="sd">        choicemodels.tools.MergedChoiceTable.</span>
+<span class="sd">    </span>
+<span class="sd">    probs_callable : callable</span>
+<span class="sd">        Callable that generates predicted probabilities for a table of choice scenarios.</span>
+<span class="sd">        It should accept a choicemodels.tools.MergedChoiceTable and return a pd.Series</span>
+<span class="sd">        with indexes matching the input.</span>
+<span class="sd">    </span>
+<span class="sd">    alt_capacity : str, optional</span>
+<span class="sd">        Name of a column in the alternatives table that expresses the capacity of </span>
+<span class="sd">        alternatives. If not provided, each alternative is interpreted as accommodating a</span>
+<span class="sd">        single chooser.</span>
+<span class="sd">    </span>
+<span class="sd">    chooser_size : str, optional</span>
+<span class="sd">        Name of a column in the choosers table that expresses the size of choosers. </span>
+<span class="sd">        Choosers might have varying sizes if the alternative capacities are amounts </span>
+<span class="sd">        rather than counts -- e.g. square footage or employment capacity. Chooser sizes </span>
+<span class="sd">        must be in the same units as alternative capacities. If not provided, each chooser</span>
+<span class="sd">        has a size of 1. </span>
+<span class="sd">    </span>
+<span class="sd">    proc_num : int</span>
+<span class="sd">        Integer representing the sequential order in which the worker was spawned</span>
+
+<span class="sd">    batch_size : int</span>
+<span class="sd">        Integer representing the chooser batch size</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">st_choice_idx</span> <span class="o">=</span> <span class="n">proc_num</span> <span class="o">*</span> <span class="n">batch_size</span>
+    <span class="k">if</span> <span class="n">alt_capacity</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">alt_capacity</span> <span class="o">=</span> <span class="s1">&#39;_capacity&#39;</span>
+    <span class="k">if</span> <span class="n">chooser_size</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">chooser_size</span> <span class="o">=</span> <span class="s1">&#39;_size&#39;</span>
+        <span class="n">choosers</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="n">chooser_size</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="n">capacity</span><span class="p">,</span> <span class="n">size</span> <span class="o">=</span> <span class="p">(</span><span class="n">alt_capacity</span><span class="p">,</span> <span class="n">chooser_size</span><span class="p">)</span>
+
+    <span class="n">len_choosers</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">choosers</span><span class="p">)</span>
+    <span class="n">alts_name</span> <span class="o">=</span> <span class="n">alternatives</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span>
+    <span class="n">valid_choices</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">()</span>
+    <span class="n">max_mct_size</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="nb">iter</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">while</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">valid_choices</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">len_choosers</span><span class="p">):</span>
+        <span class="n">chosen_alts_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">chosen_alts</span><span class="o">.</span><span class="n">get_obj</span><span class="p">())</span>
+        <span class="n">alternatives</span> <span class="o">=</span> <span class="n">alternatives</span><span class="p">[</span><span class="o">~</span><span class="n">alternatives</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">chosen_alts_list</span><span class="p">)]</span>
+        <span class="nb">iter</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">if</span> <span class="n">alternatives</span><span class="p">[</span><span class="s1">&#39;_capacity&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">choosers</span><span class="p">[</span><span class="n">size</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">():</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> choosers cannot be allocated.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">choosers</span><span class="p">)))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Remaining capacity on alternatives but &quot;</span>
+                  <span class="s2">&quot;not enough to accodomodate choosers&#39; sizes&quot;</span><span class="p">)</span>
+            <span class="k">break</span>
+
+        <span class="n">mct</span> <span class="o">=</span> <span class="n">mct_callable</span><span class="p">(</span><span class="n">choosers</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">frac</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="n">alternatives</span><span class="p">)</span>
+        <span class="n">mct_size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">mct</span><span class="o">.</span><span class="n">to_frame</span><span class="p">())</span>
+        <span class="n">max_mct_size</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">max_mct_size</span><span class="p">,</span> <span class="n">mct_size</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">mct_size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># print(&quot;No valid alternatives for the remaining choosers&quot;)</span>
+            <span class="k">break</span>
+
+        <span class="n">probs</span> <span class="o">=</span> <span class="n">probs_callable</span><span class="p">(</span><span class="n">mct</span><span class="p">)</span>
+        <span class="n">choices</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">monte_carlo_choices</span><span class="p">(</span><span class="n">probs</span><span class="p">))</span>
+
+        <span class="c1"># join capacities and sizes</span>
+        <span class="n">oid</span><span class="p">,</span> <span class="n">aid</span> <span class="o">=</span> <span class="p">(</span><span class="n">mct</span><span class="o">.</span><span class="n">observation_id_col</span><span class="p">,</span> <span class="n">mct</span><span class="o">.</span><span class="n">alternative_id_col</span><span class="p">)</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="n">choices</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="n">alternatives</span><span class="p">[</span><span class="n">capacity</span><span class="p">],</span> <span class="n">on</span><span class="o">=</span><span class="n">aid</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="n">choosers</span><span class="p">[</span><span class="n">size</span><span class="p">],</span> <span class="n">on</span><span class="o">=</span><span class="n">oid</span><span class="p">)</span>
+
+        <span class="c1"># when size==1, _cumsize counts the cumulative number of times</span>
+        <span class="c1"># each alternative appears. thus, below, c_valid creates a</span>
+        <span class="c1"># mask that retains just the choice of the chooser who chose</span>
+        <span class="c1"># their alternative first, provided that choice hasn&#39;t been</span>
+        <span class="c1"># made elsewhere as documented by the shared chosen_alts list</span>
+        <span class="n">c</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s1">&#39;_cumsize&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">aid</span><span class="p">)[</span><span class="n">size</span><span class="p">]</span><span class="o">.</span><span class="n">cumsum</span><span class="p">()</span>
+
+        <span class="c1"># the shared array of chosen alts must stay locked by the</span>
+        <span class="c1"># current worker between the time the worker converts it</span>
+        <span class="c1"># to a list to make sure the workers choices haven&#39;t been</span>
+        <span class="c1"># chosen already and the time the worker updates the array</span>
+        <span class="k">with</span> <span class="n">chosen_alts</span><span class="o">.</span><span class="n">get_lock</span><span class="p">():</span>
+
+            <span class="n">chosen_alts_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">chosen_alts</span><span class="o">.</span><span class="n">get_obj</span><span class="p">())</span>
+            <span class="n">c_valid</span> <span class="o">=</span> <span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">_cumsize</span> <span class="o">&lt;=</span> <span class="n">c</span><span class="p">[</span><span class="n">capacity</span><span class="p">])</span> <span class="o">&amp;</span> <span class="p">(</span>
+                <span class="o">~</span><span class="n">c</span><span class="p">[</span><span class="n">alts_name</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">chosen_alts_list</span><span class="p">))</span>
+            <span class="n">iter_valid_choices</span> <span class="o">=</span> <span class="n">c</span><span class="p">[</span><span class="n">aid</span><span class="p">]</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">c_valid</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">iter_valid_choices</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="n">num_valid_choices</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">iter_valid_choices</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+            <span class="n">chosen_alts</span><span class="p">[</span><span class="n">st_choice_idx</span><span class="p">:</span><span class="n">st_choice_idx</span> <span class="o">+</span> <span class="n">num_valid_choices</span><span class="p">]</span> <span class="o">=</span> \
+                <span class="n">iter_valid_choices</span><span class="o">.</span><span class="n">values</span>
+
+        <span class="n">st_choice_idx</span> <span class="o">+=</span> <span class="n">num_valid_choices</span>
+        <span class="n">alternatives</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">iter_valid_choices</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">iter_valid_choices</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">choosers</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">iter_valid_choices</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">alternatives</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">choices_dict</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">iter_valid_choices</span><span class="o">.</span><span class="n">to_dict</span><span class="p">())</span>
+        <span class="n">valid_choices</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">valid_choices</span><span class="p">,</span> <span class="n">iter_valid_choices</span><span class="p">])</span>
+
+        <span class="n">choosers</span> <span class="o">=</span> <span class="n">choosers</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">c_valid</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+    <span class="k">return</span>
+
+
+<div class="viewcode-block" id="parallel_lottery_choices"><a class="viewcode-back" href="../../../simulation-utilities.html#choicemodels.tools.parallel_lottery_choices">[docs]</a><span class="k">def</span> <span class="nf">parallel_lottery_choices</span><span class="p">(</span>
+        <span class="n">choosers</span><span class="p">,</span> <span class="n">alternatives</span><span class="p">,</span> <span class="n">mct_callable</span><span class="p">,</span> <span class="n">probs_callable</span><span class="p">,</span>
+        <span class="n">alt_capacity</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">chooser_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">chooser_batch_size</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A parallelized version of the iterative_lottery_choices method. Chooser</span>
+<span class="sd">    batches are processed in parallel rather than sequentially.</span>
+
+<span class="sd">    NOTE: In it&#39;s current form, this method is only supported for simulating</span>
+<span class="sd">    choices where every alternative has a capacity of 1. </span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    choosers : pd.DataFrame</span>
+<span class="sd">        Table with one row for each chooser or choice scenario, with unique ID&#39;s in the</span>
+<span class="sd">        index field. Additional columns can contain fixed attributes of the choosers.</span>
+<span class="sd">        (Reserved column names: &#39;_size&#39;.)</span>
+<span class="sd">    </span>
+<span class="sd">    alternatives : pd.DataFrame</span>
+<span class="sd">        Table with one row for each alternative, with unique ID&#39;s in the index field.</span>
+<span class="sd">        Additional columns can contain fixed attributes of the alternatives. (Reserved </span>
+<span class="sd">        column names: &#39;_capacity&#39;.)</span>
+<span class="sd">    </span>
+<span class="sd">    mct_callable : callable</span>
+<span class="sd">        Callable that samples alternatives to generate a table of choice scenarios. It </span>
+<span class="sd">        should accept subsets of the choosers and alternatives tables and return a </span>
+<span class="sd">        choicemodels.tools.MergedChoiceTable.</span>
+<span class="sd">    </span>
+<span class="sd">    probs_callable : callable</span>
+<span class="sd">        Callable that generates predicted probabilities for a table of choice scenarios.</span>
+<span class="sd">        It should accept a choicemodels.tools.MergedChoiceTable and return a pd.Series</span>
+<span class="sd">        with indexes matching the input.</span>
+<span class="sd">    </span>
+<span class="sd">    alt_capacity : str, optional</span>
+<span class="sd">        Name of a column in the alternatives table that expresses the capacity of </span>
+<span class="sd">        alternatives. If not provided, each alternative is interpreted as accommodating a</span>
+<span class="sd">        single chooser.</span>
+<span class="sd">    </span>
+<span class="sd">    chooser_size : str, optional</span>
+<span class="sd">        Name of a column in the choosers table that expresses the size of choosers. </span>
+<span class="sd">        Choosers might have varying sizes if the alternative capacities are amounts </span>
+<span class="sd">        rather than counts -- e.g. square footage or employment capacity. Chooser sizes </span>
+<span class="sd">        must be in the same units as alternative capacities. If not provided, each chooser</span>
+<span class="sd">        has a size of 1. </span>
+<span class="sd">    </span>
+<span class="sd">    max_iter : int or None, optional</span>
+<span class="sd">        Maximum number of iterations. If None (default), the algorithm will iterate until </span>
+<span class="sd">        all choosers are matched or no alternatives remain.</span>
+
+<span class="sd">    chooser_batch_size : int or None, optional</span>
+<span class="sd">        Size of the batches for processing smaller groups of choosers one at a time. Useful</span>
+<span class="sd">        when the anticipated size of the merged choice tables (choosers X alternatives</span>
+<span class="sd">        X covariates) will be too large for python/pandas to handle.</span>
+
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    pd.Series</span>
+<span class="sd">        List of chosen alternative id&#39;s, indexed with the chooser (observation) id. </span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">choosers</span> <span class="o">=</span> <span class="n">choosers</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">alternatives</span> <span class="o">=</span> <span class="n">alternatives</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">alt_capacity</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">alt_capacity</span> <span class="o">=</span> <span class="s1">&#39;_capacity&#39;</span>
+        <span class="n">alternatives</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="n">alt_capacity</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="k">if</span> <span class="n">chooser_size</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">chooser_size</span> <span class="o">=</span> <span class="s1">&#39;_size&#39;</span>
+        <span class="n">choosers</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="n">chooser_size</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="k">if</span> <span class="n">chooser_batch_size</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">chooser_batch_size</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">choosers</span><span class="p">):</span>
+        <span class="n">obs_batches</span> <span class="o">=</span> <span class="p">[</span><span class="n">choosers</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">obs_batches</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">choosers</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">x</span><span class="p">:</span><span class="n">x</span> <span class="o">+</span> <span class="n">chooser_batch_size</span><span class="p">]</span> <span class="k">for</span>
+            <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">choosers</span><span class="p">),</span> <span class="n">chooser_batch_size</span><span class="p">)]</span>
+        <span class="n">num_cpus</span> <span class="o">=</span> <span class="n">cpu_count</span><span class="p">()</span>
+        <span class="n">num_batches</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">obs_batches</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">num_batches</span> <span class="o">&gt;</span> <span class="n">num_cpus</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="s2">&quot;The specified batch size yields more batches than there &quot;</span>
+                <span class="s2">&quot;are vCPU&#39;s for parallel processing on this computer &quot;</span>
+                <span class="s2">&quot;(</span><span class="si">{0}</span><span class="s2"> vs. </span><span class="si">{1}</span><span class="s2">). To optimize this code, choose a larger &quot;</span>
+                <span class="s2">&quot;batch size or consider using the iterative_lottery_choices() &quot;</span>
+                <span class="s2">&quot;method instead.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">num_batches</span><span class="p">,</span> <span class="n">num_cpus</span><span class="p">))</span>
+
+    <span class="n">manager</span> <span class="o">=</span> <span class="n">Manager</span><span class="p">()</span>
+    <span class="n">shared_choices_dict</span> <span class="o">=</span> <span class="n">manager</span><span class="o">.</span><span class="n">dict</span><span class="p">()</span>
+    <span class="n">alternatives</span><span class="p">[</span><span class="n">alt_capacity</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">shared_chosen_alts</span> <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="s1">&#39;i&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">choosers</span><span class="p">))</span>
+    <span class="n">jobs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">b</span><span class="p">,</span> <span class="n">batch</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">obs_batches</span><span class="p">):</span>
+        <span class="n">obs</span> <span class="o">=</span> <span class="n">choosers</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">batch</span><span class="p">]</span>
+        <span class="n">proc</span> <span class="o">=</span> <span class="n">Process</span><span class="p">(</span>
+            <span class="n">target</span><span class="o">=</span><span class="n">_parallel_lottery_choices_worker</span><span class="p">,</span>
+            <span class="n">args</span><span class="o">=</span><span class="p">(</span>
+                <span class="n">obs</span><span class="p">,</span> <span class="n">alternatives</span><span class="p">,</span> <span class="n">shared_choices_dict</span><span class="p">,</span> <span class="n">shared_chosen_alts</span><span class="p">,</span>
+                <span class="n">mct_callable</span><span class="p">,</span> <span class="n">probs_callable</span><span class="p">,</span> <span class="n">alt_capacity</span><span class="p">,</span> <span class="n">chooser_size</span><span class="p">,</span>
+                <span class="n">b</span><span class="p">,</span> <span class="n">chooser_batch_size</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">proc</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        <span class="n">jobs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">proc</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">job</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="nb">enumerate</span><span class="p">(</span><span class="n">jobs</span><span class="p">),</span> <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">jobs</span><span class="p">)):</span>
+        <span class="n">job</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+
+    <span class="n">choices_dict</span> <span class="o">=</span> <span class="n">shared_choices_dict</span><span class="o">.</span><span class="n">_getvalue</span><span class="p">()</span>
+
+    <span class="c1"># convert choices dict to series with original index names</span>
+    <span class="n">out_choices</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">choices_dict</span><span class="p">)</span>
+    <span class="n">out_choices</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">choosers</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span>
+    <span class="n">out_choices</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">alternatives</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span>
+
+    <span class="k">return</span> <span class="n">out_choices</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Urban Data Science Toolkit.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

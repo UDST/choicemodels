@@ -1,0 +1,714 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>choicemodels.tools.mergedchoicetable &mdash; ChoiceModels 0.2.2 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> ChoiceModels
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../choice-table-utilities.html">Choice table utilities API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../multinomial-logit.html">Multinomial Logit API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../simulation-utilities.html">Simulation utilities API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../distance-utilities.html">Distance utilities API</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">ChoiceModels</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>choicemodels.tools.mergedchoicetable</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for choicemodels.tools.mergedchoicetable</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Utilities for generating merged tables of choosers and alternatives, including extensive</span>
+<span class="sd">sampling functionality.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+
+<div class="viewcode-block" id="MergedChoiceTable"><a class="viewcode-back" href="../../../choice-table-utilities.html#choicemodels.tools.MergedChoiceTable">[docs]</a><span class="k">class</span> <span class="nc">MergedChoiceTable</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generates a merged long-format table of observations (choosers) and alternatives, for </span>
+<span class="sd">    discrete choice model estimation or simulation. </span>
+<span class="sd">    </span>
+<span class="sd">    Supports random sampling of alternatives (uniform or weighted). Supports sampling with</span>
+<span class="sd">    or without replacement. Supports merging observations and alternatives without </span>
+<span class="sd">    sampling them. Supports alternative-specific weights, as well as interaction weights</span>
+<span class="sd">    that depend on both the observation and alternative. Supports automatic merging of </span>
+<span class="sd">    interaction terms onto the final data table.</span>
+<span class="sd">    </span>
+<span class="sd">    Support is PLANNED for specifying availability of alternatives, specifying random </span>
+<span class="sd">    state, and passing interaction-type parameters as callable generator functions.</span>
+<span class="sd">    </span>
+<span class="sd">    Does NOT support cases where the number of alternatives in the final table varies </span>
+<span class="sd">    across observations.</span>
+
+<span class="sd">    Reserved column names: &#39;chosen&#39;.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    observations : pandas.DataFrame</span>
+<span class="sd">        Table with one row for each chooser or choice scenario, with unique ID&#39;s in the </span>
+<span class="sd">        index field. Additional columns can contain fixed attributes of the choosers. </span>
+<span class="sd">        Index name is set to &#39;obs_id&#39; if none provided. All observation/alternative </span>
+<span class="sd">        column names must be unique except for the join key.</span>
+
+<span class="sd">    alternatives : pandas.DataFrame</span>
+<span class="sd">        Table with one row for each alternative, with unique ID&#39;s in the index field.</span>
+<span class="sd">        Additional columns can contain fixed attributes of the alternatives. Index name</span>
+<span class="sd">        is set to &#39;alt_id&#39; if none provided. All observation/alternative column names</span>
+<span class="sd">        must be unique except for the join key.</span>
+
+<span class="sd">    chosen_alternatives : str or pandas.Series, optional</span>
+<span class="sd">        List of the alternative ID selected in each choice scenario. (This is required for</span>
+<span class="sd">        preparing estimation data, but not for simulation data.) If str, interpreted as a</span>
+<span class="sd">        column name from the observations table. If Series, it will be joined onto the</span>
+<span class="sd">        obserations table before processing. The column will be dropped from the merged </span>
+<span class="sd">        table and replaced with a binary column named &#39;chosen&#39;.</span>
+
+<span class="sd">    sample_size : int, optional</span>
+<span class="sd">        Number of alternatives to sample for each choice scenario. If &#39;None&#39;, all of the </span>
+<span class="sd">        alternatives will be available for each chooser in the merged table. The sample </span>
+<span class="sd">        size includes the chosen alternative, if applicable. If replace=False, the sample</span>
+<span class="sd">        size must be less than or equal to the total number of alternatives. </span>
+
+<span class="sd">    replace : boolean, optional</span>
+<span class="sd">        Whether to sample alternatives with or without replacement, at the level of a </span>
+<span class="sd">        single chooser or choice scenario. If replace=True (default), alternatives may</span>
+<span class="sd">        appear multiple times in a single choice set. If replace=False, an alternative</span>
+<span class="sd">        will appear at most once per choice set. Sampling with replacement is much more</span>
+<span class="sd">        efficient, so setting replace=False may have performance implications if there are</span>
+<span class="sd">        very large numbers of observations or alternatives.        </span>
+<span class="sd">    </span>
+<span class="sd">    weights : str, pandas.Series, optional</span>
+<span class="sd">        Numerical weights to apply when sampling alternatives. If str, interpreted as a </span>
+<span class="sd">        column from the alternatives table. If Series, it can contain either (a) one </span>
+<span class="sd">        weight for each alternative or (b) one weight for each combination of observation </span>
+<span class="sd">        and alternative. The former should include a single index with ID&#39;s from the </span>
+<span class="sd">        alternatives table. The latter should include a MultiIndex with the first level </span>
+<span class="sd">        corresponding to the observations table and the second level corresponding to the </span>
+<span class="sd">        alternatives table. If callable, it should accept two arguments (obs_id, alt_id) </span>
+<span class="sd">        and return the corresponding weight.</span>
+<span class="sd">        </span>
+<span class="sd">        TO DO - accept weights specified with respect to derivative characteristics, like</span>
+<span class="sd">        how the interaction terms work (for example weights could be based on home census</span>
+<span class="sd">        tract rather than observation id if there are multiple observations per tract)</span>
+<span class="sd">        </span>
+<span class="sd">        TO DO - implement support for a callable</span>
+<span class="sd">    </span>
+<span class="sd">    availability : pandas.Series or callable, optional (NOT YET IMPLEMENTED)</span>
+<span class="sd">        Binary representation of the availability of alternatives. Specified and applied </span>
+<span class="sd">        similarly to the weights.</span>
+<span class="sd">    </span>
+<span class="sd">    interaction_terms : pandas.Series, pandas.DataFrame, or list of either, optional</span>
+<span class="sd">        Additional column(s) of interaction terms whose values depend on the combination </span>
+<span class="sd">        of observation and alternative, to be merged onto the final data table. If passed</span>
+<span class="sd">        as a Series or DataFrame, it should include a two-level MultiIndex. One level&#39;s </span>
+<span class="sd">        name and values should match an index or column from the observations table, and </span>
+<span class="sd">        the other should match an index or column from the alternatives table. </span>
+<span class="sd">        </span>
+<span class="sd">        TO DO - implement support for a callable</span>
+<span class="sd">            </span>
+<span class="sd">    random_state : NOT YET IMPLEMENTED</span>
+<span class="sd">        Representation of random state, for replicability of the sampling.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">observations</span><span class="p">,</span> <span class="n">alternatives</span><span class="p">,</span> <span class="n">chosen_alternatives</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">sample_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">availability</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">interaction_terms</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        
+        <span class="c1"># Standardize and validate the inputs...</span>
+        
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sample_size</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+            <span class="n">sample_size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">sample_size</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="p">(</span><span class="n">sample_size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">sample_size</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot sample </span><span class="si">{}</span><span class="s2"> alternatives; to run without sampling &quot;</span>
+                        <span class="s2">&quot;leave sample_size=None&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">sample_size</span><span class="p">))</span>
+
+            <span class="c1"># TO DO - should probably just return as many alternatives as we can (and wait </span>
+            <span class="c1"># to evaluate this until after evaluating the sampling filters)</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">replace</span> <span class="o">==</span> <span class="kc">False</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">sample_size</span> <span class="o">&gt;</span> <span class="n">alternatives</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot sample without replacement with sample_size </span><span class="si">{}</span><span class="s2"> &quot;</span>
+                        <span class="s2">&quot;and n_alts </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">sample_size</span><span class="p">,</span> <span class="n">alternatives</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+        
+        <span class="c1"># TO DO - check that dfs have unique indexes</span>
+        <span class="c1"># TO DO - check that chosen_alternatives correspond correctly to other dfs</span>
+        <span class="c1"># TO DO - same with weights (could join onto other tables and then split off)</span>
+        
+        <span class="c1"># Normalize chosen_alternatives to a pd.Series</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">chosen_alternatives</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="o">&amp;</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">chosen_alternatives</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">chosen_alternatives</span> <span class="o">=</span> <span class="n">observations</span><span class="p">[</span><span class="n">chosen_alternatives</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">observations</span> <span class="o">=</span> <span class="n">observations</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">chosen_alternatives</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s1">&#39;columns&#39;</span><span class="p">)</span>
+            <span class="n">chosen_alternatives</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">alternatives</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span>  <span class="c1"># avoids conflicts</span>
+        
+        <span class="c1"># Allow missing obs and alts, to support .from_df() constructor     </span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">observations</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+        
+            <span class="c1"># Provide default names for observation and alternatives id&#39;s</span>
+        
+            <span class="k">if</span> <span class="p">(</span><span class="n">observations</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="kc">None</span><span class="p">):</span>
+                <span class="n">observations</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;obs_id&#39;</span>
+        
+            <span class="k">if</span> <span class="p">(</span><span class="n">alternatives</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="kc">None</span><span class="p">):</span>
+                <span class="n">alternatives</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;alt_id&#39;</span>
+        
+            <span class="c1"># Check for duplicate column names</span>
+            <span class="n">obs_cols</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">observations</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">observations</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">names</span><span class="p">)</span>
+            <span class="n">alt_cols</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">alternatives</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">alternatives</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">names</span><span class="p">)</span>
+            <span class="n">dupes</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">obs_cols</span><span class="p">)</span> <span class="o">&amp;</span> <span class="nb">set</span><span class="p">(</span><span class="n">alt_cols</span><span class="p">)</span>
+        
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dupes</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Both input tables contain column </span><span class="si">{}</span><span class="s2">. Please ensure &quot;</span>
+                                 <span class="s2">&quot;column names are unique before merging&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dupes</span><span class="p">))</span>
+        
+        <span class="c1"># Normalize weights to a pd.Series</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">weights</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="o">&amp;</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">weights</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">weights</span> <span class="o">=</span> <span class="n">alternatives</span><span class="p">[</span><span class="n">weights</span><span class="p">]</span>
+        
+        <span class="n">weights_1d</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">weights_2d</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">weights</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="c1"># TO DO - would be nicer to test using the dimensionality of the index and </span>
+            <span class="c1">#   then automatically filter for applicable weights if there are too many</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">alternatives</span><span class="p">)):</span>
+                <span class="n">weights_1d</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">elif</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">observations</span><span class="p">)</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">alternatives</span><span class="p">)):</span>
+                <span class="n">weights_2d</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Length of weights is not aligned with length of &quot;</span>
+                                 <span class="s2">&quot;alternatives and/or observations&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># TO DO - if user passes a single-column df of weights instead of a series, we</span>
+        <span class="c1">#   should just silently convert it</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">observations</span> <span class="o">=</span> <span class="n">observations</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">alternatives</span> <span class="o">=</span> <span class="n">alternatives</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">chosen_alternatives</span> <span class="o">=</span> <span class="n">chosen_alternatives</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sample_size</span> <span class="o">=</span> <span class="n">sample_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">replace</span> <span class="o">=</span> <span class="n">replace</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">weights</span> <span class="o">=</span> <span class="n">weights</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">interaction_terms</span> <span class="o">=</span> <span class="n">interaction_terms</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">random_state</span> <span class="o">=</span> <span class="n">random_state</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">weights_1d</span> <span class="o">=</span> <span class="n">weights_1d</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">weights_2d</span> <span class="o">=</span> <span class="n">weights_2d</span>
+        
+        <span class="c1"># Build choice table...</span>
+        <span class="c1"># Allow missing obs and alts, to support .from_df() constructor     </span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">observations</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+
+            <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">observations</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">alternatives</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_merged_table</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+        
+            <span class="k">elif</span> <span class="p">(</span><span class="n">sample_size</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_merged_table</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build_table_without_sampling</span><span class="p">()</span>
+        
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_merged_table</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build_table</span><span class="p">()</span>
+        
+        
+<div class="viewcode-block" id="MergedChoiceTable.from_df"><a class="viewcode-back" href="../../../choice-table-utilities.html#choicemodels.tools.MergedChoiceTable.from_df">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_df</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">df</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a MergedChoiceTable instance from a pre-generated DataFrame.</span>
+
+<span class="sd">        Each chooser&#39;s rows should be contiguous. If applicable, the chosen alternative</span>
+<span class="sd">        should be listed first. This ordering is used by MergedChoiceTable.to_frame(),</span>
+<span class="sd">        and appears to be an undocumented requirement of the legacy MNL code.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        df : pandas.DataFrame</span>
+<span class="sd">            Table with a two-level MultiIndex where the first level corresponds to the</span>
+<span class="sd">            index of the observations and the second to the index of the alternatives.</span>
+<span class="sd">            May include a binary column named &#39;chosen&#39; indicating observed choices.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        MergedChoiceTable</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">obj</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">observations</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">alternatives</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">_merged_table</span> <span class="o">=</span> <span class="n">df</span>
+        
+        <span class="c1"># TO DO: sort the dataframe so that rows are automatically in a consistent order</span>
+        
+        <span class="k">return</span> <span class="n">obj</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_merge_interaction_terms</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Merges interaction terms (if they exist) onto the input DataFrame. </span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        df : pd.DataFrame</span>
+<span class="sd">            Should contain two columns whose names match the index levels of the </span>
+<span class="sd">            interaction data.</span>
+<span class="sd">        </span>
+<span class="sd">        Expected class parameters</span>
+<span class="sd">        -------------------------</span>
+<span class="sd">        self.interaction_terms : pd.Series or pd.DataFrame, optional</span>
+<span class="sd">            Should have a two-level, named MultiIndex. If self.interaction_terms is None, </span>
+<span class="sd">            function returns the input DataFrame.</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pd.DataFrame</span>
+<span class="sd">            Same format as input, with interaction term column(s) added.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">interaction_terms</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">df</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">interaction_terms</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">interaction_terms</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">interaction_terms</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">intx_table</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">interaction_terms</span><span class="p">:</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">intx_table</span><span class="p">),</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> 
+                         <span class="n">on</span><span class="o">=</span><span class="n">intx_table</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">names</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">df</span>
+    
+    
+    <span class="k">def</span> <span class="nf">_build_table_without_sampling</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This handles the cases where each alternative is available for each chooser.</span>
+<span class="sd">        </span>
+<span class="sd">        Expected class parameters</span>
+<span class="sd">        -------------------------</span>
+<span class="sd">        self.observations : pd.DataFrame</span>
+<span class="sd">        self.alternatives : pd.DataFrame</span>
+<span class="sd">        self.chosen_alternatives : pd.Series or None</span>
+<span class="sd">        self.sample_size : None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">oid_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">observations</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">aid_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">alternatives</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span>
+        
+        <span class="n">obs_ids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">observations</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alternatives</span><span class="p">))</span>
+        <span class="n">alt_ids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alternatives</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">reps</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">observations</span><span class="p">))</span>
+        
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="n">oid_name</span><span class="p">:</span> <span class="n">obs_ids</span><span class="p">,</span> <span class="n">aid_name</span><span class="p">:</span> <span class="n">alt_ids</span><span class="p">})</span>
+   
+        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">observations</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="n">oid_name</span><span class="p">)</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alternatives</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="n">aid_name</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">chosen_alternatives</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="n">df</span><span class="p">[</span><span class="s1">&#39;chosen&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">chosen_alternatives</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="n">oid_name</span><span class="p">)</span>
+            <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="n">aid_name</span><span class="p">]</span> <span class="o">==</span> <span class="n">df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">chosen_alternatives</span><span class="o">.</span><span class="n">name</span><span class="p">],</span> <span class="s1">&#39;chosen&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="n">df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">chosen_alternatives</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s1">&#39;columns&#39;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        
+        <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_merge_interaction_terms</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+        <span class="n">df</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="n">oid_name</span><span class="p">,</span> <span class="n">aid_name</span><span class="p">],</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">df</span>
+
+    
+    <span class="k">def</span> <span class="nf">_get_availability</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs_id</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get alternative availability for a single observation id. For now, this just </span>
+<span class="sd">        checks whether the chosen alternative is known and if so makes it unavailable.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        observation_id : value from index of self.observations</span>
+<span class="sd">        </span>
+<span class="sd">        Expected class parameters</span>
+<span class="sd">        -------------------------</span>
+<span class="sd">        self.alternatives : pd.DataFrame</span>
+<span class="sd">        self.chosen_alternatives : pd.Series or None</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list of booleans</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># TO DO - seems inefficient?</span>
+
+        <span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">alternatives</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">chosen_alternatives</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="n">a</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alternatives</span><span class="o">.</span><span class="n">index</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">chosen_alternatives</span><span class="p">[</span><span class="n">obs_id</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">a</span>        
+    
+    
+    <span class="k">def</span> <span class="nf">_get_weights</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs_id</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get sampling weights corresponding to a single observation id.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        observation_id : value from index of self.observations</span>
+<span class="sd">        </span>
+<span class="sd">        Expected class parameters</span>
+<span class="sd">        -------------------------</span>
+<span class="sd">        self.weights : pd.Series, callable, or None</span>
+<span class="sd">        self.chosen_alternatives : pd.Series or None</span>
+<span class="sd">        self.weights_1d : boolean</span>
+<span class="sd">        self.weights_2d : boolean</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pd.Series of weights</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weights</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="k">return</span>
+            
+        <span class="k">elif</span> <span class="p">(</span><span class="n">callable</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">)):</span>
+            <span class="c1"># TO DO - implement</span>
+            <span class="k">pass</span>
+        
+        <span class="k">elif</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weights_1d</span> <span class="o">==</span> <span class="kc">True</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights</span>
+        
+        <span class="k">elif</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weights_2d</span> <span class="o">==</span> <span class="kc">True</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">obs_id</span><span class="p">]</span>
+        
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span>  <span class="c1"># unexpected inputs</span>
+                    
+
+    <span class="k">def</span> <span class="nf">_build_table</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Build and return the merged choice table. This handles all cases where sampling</span>
+<span class="sd">        is performed.</span>
+<span class="sd">        </span>
+<span class="sd">        Expected class parameters</span>
+<span class="sd">        -------------------------</span>
+<span class="sd">        self.observations : pd.DataFrame</span>
+<span class="sd">        self.alternatives : pd.DataFrame</span>
+<span class="sd">        self.chosen_alternatives : pd.Series or None</span>
+<span class="sd">        self.sample_size : int</span>
+<span class="sd">        self.replace : boolean</span>
+<span class="sd">        self.weights : pd.Series, callable, or None</span>
+<span class="sd">        self.random_state : NOT YET IMPLEMENTED</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pd.DataFrame</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">n_obs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">observations</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        
+        <span class="n">oid_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">observations</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">aid_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">alternatives</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span>
+        
+        <span class="n">samp_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_size</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">chosen_alternatives</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="n">samp_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_size</span> <span class="o">-</span> <span class="mi">1</span>
+        
+        <span class="n">obs_ids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">observations</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">samp_size</span><span class="p">)</span>
+        
+        <span class="c1"># SINGLE SAMPLE: this covers cases where we can draw a single, large sample of </span>
+        <span class="c1"># alternatives and distribute them among the choosers, e.g. sampling without </span>
+        <span class="c1"># replacement, with optional alternative-specific weights but NOT weights that </span>
+        <span class="c1"># apply to combinations of observation x alternative</span>
+        
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">replace</span> <span class="o">==</span> <span class="kc">True</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weights</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+            
+            <span class="n">alt_ids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alternatives</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> 
+                                       <span class="n">replace</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+                                       <span class="n">size</span> <span class="o">=</span> <span class="n">n_obs</span> <span class="o">*</span> <span class="n">samp_size</span><span class="p">)</span>
+        
+        <span class="k">elif</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">replace</span> <span class="o">==</span> <span class="kc">True</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weights_1d</span> <span class="o">==</span> <span class="kc">True</span><span class="p">):</span>
+            
+            <span class="n">alt_ids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alternatives</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> 
+                                       <span class="n">replace</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+                                       <span class="n">p</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span>
+                                       <span class="n">size</span> <span class="o">=</span> <span class="n">n_obs</span> <span class="o">*</span> <span class="n">samp_size</span><span class="p">)</span>
+        
+        <span class="c1"># REPEATED SAMPLES: this covers cases where we have to draw separate samples for</span>
+        <span class="c1"># each observation, e.g. sampling without replacement, or weights that apply to</span>
+        <span class="c1"># combinations of observation x alternative</span>
+        
+        <span class="k">elif</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">replace</span> <span class="o">==</span> <span class="kc">False</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weights_2d</span> <span class="o">==</span> <span class="kc">True</span><span class="p">):</span>
+            
+            <span class="n">alt_ids</span> <span class="o">=</span> <span class="p">[]</span>
+
+            <span class="k">for</span> <span class="n">obs_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">observations</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="p">:</span>
+                <span class="n">a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_availability</span><span class="p">(</span><span class="n">obs_id</span><span class="p">)</span>                
+                <span class="n">available_alts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">alternatives</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">a</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span>
+                
+                <span class="n">w</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_weights</span><span class="p">(</span><span class="n">obs_id</span><span class="p">)</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">w</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+                    <span class="n">w</span> <span class="o">=</span> <span class="n">w</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">a</span><span class="p">]</span><span class="o">/</span><span class="n">w</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">a</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>                
+                
+                <span class="n">sampled_alts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">available_alts</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">replace</span><span class="p">,</span> 
+                                                <span class="n">p</span><span class="o">=</span><span class="n">w</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">samp_size</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+                <span class="n">alt_ids</span> <span class="o">+=</span> <span class="n">sampled_alts</span>
+
+        
+        <span class="c1"># Append chosen ids if applicable</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">chosen_alternatives</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="n">obs_ids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">obs_ids</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">observations</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+            <span class="n">alt_ids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">alt_ids</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">chosen_alternatives</span><span class="p">)</span>
+            <span class="n">chosen</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">samp_size</span> <span class="o">*</span> <span class="n">n_obs</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_obs</span><span class="p">))</span>
+        
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="n">oid_name</span><span class="p">:</span> <span class="n">obs_ids</span><span class="p">,</span> <span class="n">aid_name</span><span class="p">:</span> <span class="n">alt_ids</span><span class="p">})</span>
+   
+        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">observations</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="n">oid_name</span><span class="p">)</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alternatives</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="n">aid_name</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">chosen_alternatives</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="n">df</span><span class="p">[</span><span class="s1">&#39;chosen&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">chosen</span>
+            <span class="n">df</span><span class="o">.</span><span class="n">sort_values</span><span class="p">([</span><span class="n">oid_name</span><span class="p">,</span> <span class="s1">&#39;chosen&#39;</span><span class="p">],</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        
+        <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_merge_interaction_terms</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+        <span class="n">df</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="n">oid_name</span><span class="p">,</span> <span class="n">aid_name</span><span class="p">],</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">df</span>
+        
+    
+<div class="viewcode-block" id="MergedChoiceTable.to_frame"><a class="viewcode-back" href="../../../choice-table-utilities.html#choicemodels.tools.MergedChoiceTable.to_frame">[docs]</a>    <span class="k">def</span> <span class="nf">to_frame</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Long-format DataFrame of the merged table. The rows representing alternatives for</span>
+<span class="sd">        a particular chooser are contiguous, with the chosen alternative listed first if</span>
+<span class="sd">        applicable. (Unless no sampling is performed, in which case the alternatives are</span>
+<span class="sd">        listed in order.) The DataFrame includes a two-level MultiIndex. The first level</span>
+<span class="sd">        corresponds to the index of the observations table and the second to the index of </span>
+<span class="sd">        the alternatives table. </span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pandas.DataFrame</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_merged_table</span></div>
+
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">observation_id_col</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Name of column in the merged table containing the observation id. Name and values </span>
+<span class="sd">        will match the index of the observations table.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_merged_table</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">names</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">alternative_id_col</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Name of column in the merged table containing the alternative id. Name and values</span>
+<span class="sd">        will match the index of the alternatives table.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_merged_table</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">names</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">choice_col</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Name of the generated column containing a binary representation of whether each</span>
+<span class="sd">        alternative was chosen in the given choice scenario, if applicable.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str or None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="s1">&#39;chosen&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_merged_table</span><span class="o">.</span><span class="n">columns</span><span class="p">):</span>
+            <span class="k">return</span> <span class="s1">&#39;chosen&#39;</span>
+        
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span></div>
+
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Urban Data Science Toolkit.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

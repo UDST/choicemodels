@@ -1,0 +1,392 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Choice table utilities API &mdash; ChoiceModels 0.2.2 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Multinomial Logit API" href="multinomial-logit.html" />
+    <link rel="prev" title="Getting started" href="getting-started.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> ChoiceModels
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Choice table utilities API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#mergedchoicetable">MergedChoiceTable</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="multinomial-logit.html">Multinomial Logit API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="simulation-utilities.html">Simulation utilities API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="distance-utilities.html">Distance utilities API</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">ChoiceModels</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Choice table utilities API</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/choice-table-utilities.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="choice-table-utilities-api">
+<h1>Choice table utilities API<a class="headerlink" href="#choice-table-utilities-api" title="Permalink to this headline">¶</a></h1>
+<p>Working with discrete choice models can require a lot of data preparation. Each chooser has to be matched with hypothetical alternatives, either to simulate choice probabilities or to compare them with the chosen alternative for model estimation.</p>
+<p>ChoiceModels includes a class called <code class="docutils literal notranslate"><span class="pre">MergedChoiceTable</span></code> that automates this. To build a merged table, create an instance of the class and pass it one <code class="docutils literal notranslate"><span class="pre">pd.DataFrame</span></code> of choosers and another of alternatives, with whatever other arguments are needed (see below for full API).</p>
+<p>The merged data table can be output to a DataFrame, or passed directly to other ChoiceModels tools as a <code class="docutils literal notranslate"><span class="pre">MergedChoiceTable</span></code> object. (This retains metadata about indexes and other special columns.)</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">mct</span> <span class="o">=</span> <span class="n">choicemodels</span><span class="o">.</span><span class="n">tools</span><span class="o">.</span><span class="n">MergedChoiceTable</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">alts</span><span class="p">,</span> <span class="o">..</span><span class="p">)</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">mct</span><span class="o">.</span><span class="n">to_frame</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>This tool is designed especially for models that need to sample from large numbers of alternatives. It supports:</p>
+<ul class="simple">
+<li><p>uniform random sampling of alternatives, with or without replacement</p></li>
+<li><p>weighted random sampling based either on characteristics of the alternatives or on combinations of chooser and alternative</p></li>
+<li><p>interaction terms to be merged onto the final data table</p></li>
+<li><p>cartesian merging of all the choosers with all the alternatives, without sampling</p></li>
+</ul>
+<p>All of the sampling procedures work for both estimation (where the chosen alternative is known) and simulation (where it is not).</p>
+<div class="section" id="mergedchoicetable">
+<h2>MergedChoiceTable<a class="headerlink" href="#mergedchoicetable" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="choicemodels.tools.MergedChoiceTable">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">choicemodels.tools.</span></code><code class="sig-name descname"><span class="pre">MergedChoiceTable</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">observations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alternatives</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chosen_alternatives</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">replace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">availability</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interaction_terms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/choicemodels/tools/mergedchoicetable.html#MergedChoiceTable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#choicemodels.tools.MergedChoiceTable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates a merged long-format table of observations (choosers) and alternatives, for
+discrete choice model estimation or simulation.</p>
+<p>Supports random sampling of alternatives (uniform or weighted). Supports sampling with
+or without replacement. Supports merging observations and alternatives without
+sampling them. Supports alternative-specific weights, as well as interaction weights
+that depend on both the observation and alternative. Supports automatic merging of
+interaction terms onto the final data table.</p>
+<p>Support is PLANNED for specifying availability of alternatives, specifying random
+state, and passing interaction-type parameters as callable generator functions.</p>
+<p>Does NOT support cases where the number of alternatives in the final table varies
+across observations.</p>
+<p>Reserved column names: ‘chosen’.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>observations</strong> (<em>pandas.DataFrame</em>) – Table with one row for each chooser or choice scenario, with unique ID’s in the
+index field. Additional columns can contain fixed attributes of the choosers.
+Index name is set to ‘obs_id’ if none provided. All observation/alternative
+column names must be unique except for the join key.</p></li>
+<li><p><strong>alternatives</strong> (<em>pandas.DataFrame</em>) – Table with one row for each alternative, with unique ID’s in the index field.
+Additional columns can contain fixed attributes of the alternatives. Index name
+is set to ‘alt_id’ if none provided. All observation/alternative column names
+must be unique except for the join key.</p></li>
+<li><p><strong>chosen_alternatives</strong> (<em>str</em><em> or </em><em>pandas.Series</em><em>, </em><em>optional</em>) – List of the alternative ID selected in each choice scenario. (This is required for
+preparing estimation data, but not for simulation data.) If str, interpreted as a
+column name from the observations table. If Series, it will be joined onto the
+obserations table before processing. The column will be dropped from the merged
+table and replaced with a binary column named ‘chosen’.</p></li>
+<li><p><strong>sample_size</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of alternatives to sample for each choice scenario. If ‘None’, all of the
+alternatives will be available for each chooser in the merged table. The sample
+size includes the chosen alternative, if applicable. If replace=False, the sample
+size must be less than or equal to the total number of alternatives.</p></li>
+<li><p><strong>replace</strong> (<em>boolean</em><em>, </em><em>optional</em>) – Whether to sample alternatives with or without replacement, at the level of a
+single chooser or choice scenario. If replace=True (default), alternatives may
+appear multiple times in a single choice set. If replace=False, an alternative
+will appear at most once per choice set. Sampling with replacement is much more
+efficient, so setting replace=False may have performance implications if there are
+very large numbers of observations or alternatives.</p></li>
+<li><p><strong>weights</strong> (<em>str</em><em>, </em><em>pandas.Series</em><em>, </em><em>optional</em>) – <p>Numerical weights to apply when sampling alternatives. If str, interpreted as a
+column from the alternatives table. If Series, it can contain either (a) one
+weight for each alternative or (b) one weight for each combination of observation
+and alternative. The former should include a single index with ID’s from the
+alternatives table. The latter should include a MultiIndex with the first level
+corresponding to the observations table and the second level corresponding to the
+alternatives table. If callable, it should accept two arguments (obs_id, alt_id)
+and return the corresponding weight.</p>
+<p>TO DO - accept weights specified with respect to derivative characteristics, like
+how the interaction terms work (for example weights could be based on home census
+tract rather than observation id if there are multiple observations per tract)</p>
+<p>TO DO - implement support for a callable</p>
+</p></li>
+<li><p><strong>availability</strong> (<em>pandas.Series</em><em> or </em><em>callable</em><em>, </em><em>optional</em><em> (</em><em>NOT YET IMPLEMENTED</em><em>)</em>) – Binary representation of the availability of alternatives. Specified and applied
+similarly to the weights.</p></li>
+<li><p><strong>interaction_terms</strong> (<em>pandas.Series</em><em>, </em><em>pandas.DataFrame</em><em>, or </em><em>list of either</em><em>, </em><em>optional</em>) – <p>Additional column(s) of interaction terms whose values depend on the combination
+of observation and alternative, to be merged onto the final data table. If passed
+as a Series or DataFrame, it should include a two-level MultiIndex. One level’s
+name and values should match an index or column from the observations table, and
+the other should match an index or column from the alternatives table.</p>
+<p>TO DO - implement support for a callable</p>
+</p></li>
+<li><p><strong>random_state</strong> (<em>NOT YET IMPLEMENTED</em>) – Representation of random state, for replicability of the sampling.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="choicemodels.tools.MergedChoiceTable.alternative_id_col">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">alternative_id_col</span></code><a class="headerlink" href="#choicemodels.tools.MergedChoiceTable.alternative_id_col" title="Permalink to this definition">¶</a></dt>
+<dd><p>Name of column in the merged table containing the alternative id. Name and values
+will match the index of the alternatives table.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="choicemodels.tools.MergedChoiceTable.choice_col">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">choice_col</span></code><a class="headerlink" href="#choicemodels.tools.MergedChoiceTable.choice_col" title="Permalink to this definition">¶</a></dt>
+<dd><p>Name of the generated column containing a binary representation of whether each
+alternative was chosen in the given choice scenario, if applicable.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="choicemodels.tools.MergedChoiceTable.from_df">
+<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">from_df</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/choicemodels/tools/mergedchoicetable.html#MergedChoiceTable.from_df"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#choicemodels.tools.MergedChoiceTable.from_df" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a MergedChoiceTable instance from a pre-generated DataFrame.</p>
+<p>Each chooser’s rows should be contiguous. If applicable, the chosen alternative
+should be listed first. This ordering is used by MergedChoiceTable.to_frame(),
+and appears to be an undocumented requirement of the legacy MNL code.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>df</strong> (<em>pandas.DataFrame</em>) – Table with a two-level MultiIndex where the first level corresponds to the
+index of the observations and the second to the index of the alternatives.
+May include a binary column named ‘chosen’ indicating observed choices.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#choicemodels.tools.MergedChoiceTable" title="choicemodels.tools.MergedChoiceTable">MergedChoiceTable</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="choicemodels.tools.MergedChoiceTable.observation_id_col">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">observation_id_col</span></code><a class="headerlink" href="#choicemodels.tools.MergedChoiceTable.observation_id_col" title="Permalink to this definition">¶</a></dt>
+<dd><p>Name of column in the merged table containing the observation id. Name and values
+will match the index of the observations table.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="choicemodels.tools.MergedChoiceTable.to_frame">
+<code class="sig-name descname"><span class="pre">to_frame</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/choicemodels/tools/mergedchoicetable.html#MergedChoiceTable.to_frame"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#choicemodels.tools.MergedChoiceTable.to_frame" title="Permalink to this definition">¶</a></dt>
+<dd><p>Long-format DataFrame of the merged table. The rows representing alternatives for
+a particular chooser are contiguous, with the chosen alternative listed first if
+applicable. (Unless no sampling is performed, in which case the alternatives are
+listed in order.) The DataFrame includes a two-level MultiIndex. The first level
+corresponds to the index of the observations table and the second to the index of
+the alternatives table.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>pandas.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="multinomial-logit.html" class="btn btn-neutral float-right" title="Multinomial Logit API" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="getting-started.html" class="btn btn-neutral float-left" title="Getting started" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Urban Data Science Toolkit.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,489 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>choicemodels.tools.distancematrix &mdash; ChoiceModels 0.2.2 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> ChoiceModels
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../choice-table-utilities.html">Choice table utilities API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../multinomial-logit.html">Multinomial Logit API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../simulation-utilities.html">Simulation utilities API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../distance-utilities.html">Distance utilities API</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">ChoiceModels</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>choicemodels.tools.distancematrix</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for choicemodels.tools.distancematrix</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Utilities for constructing pairwise distance matrices and calculating which</span>
+<span class="sd">geographies are within various distance bands of some reference geography</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">tee</span>
+<span class="kn">from</span> <span class="nn">scipy.spatial.distance</span> <span class="kn">import</span> <span class="n">squareform</span><span class="p">,</span> <span class="n">pdist</span>
+
+
+
+
+<span class="k">def</span> <span class="nf">great_circle_vec</span><span class="p">(</span><span class="n">lat1</span><span class="p">,</span> <span class="n">lng1</span><span class="p">,</span> <span class="n">lat2</span><span class="p">,</span> <span class="n">lng2</span><span class="p">,</span> <span class="n">earth_radius</span><span class="o">=</span><span class="mi">6371009</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Vectorized function to calculate the great-circle distance between two</span>
+<span class="sd">    points or between vectors of points. This function is borrowed from OSMnx:</span>
+<span class="sd">    https://github.com/gboeing/osmnx</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    lat1 : float or vector of floats</span>
+<span class="sd">    lng1 : float or vector of floats</span>
+<span class="sd">    lat2 : float or vector of floats</span>
+<span class="sd">    lng2 : float or vector of floats</span>
+<span class="sd">    earth_radius : numeric</span>
+<span class="sd">        radius of earth in units in which distance will be returned (default is</span>
+<span class="sd">        meters)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    distance : float or vector of floats</span>
+<span class="sd">        distance or vector of distances from (lat1, lng1) to (lat2, lng2) in</span>
+<span class="sd">        units of earth_radius</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">phi1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="mi">90</span> <span class="o">-</span> <span class="n">lat1</span><span class="p">)</span>
+    <span class="n">phi2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="mi">90</span> <span class="o">-</span> <span class="n">lat2</span><span class="p">)</span>
+
+    <span class="n">theta1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">lng1</span><span class="p">)</span>
+    <span class="n">theta2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">lng2</span><span class="p">)</span>
+
+    <span class="n">cos</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">phi1</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">phi2</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta1</span> <span class="o">-</span> <span class="n">theta2</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">phi1</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">phi2</span><span class="p">))</span>
+    <span class="n">arc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arccos</span><span class="p">(</span><span class="n">cos</span><span class="p">)</span>
+
+    <span class="c1"># return distance in units of earth_radius</span>
+    <span class="n">distance</span> <span class="o">=</span> <span class="n">arc</span> <span class="o">*</span> <span class="n">earth_radius</span>
+    <span class="k">return</span> <span class="n">distance</span>
+
+
+
+
+<div class="viewcode-block" id="great_circle_distance_matrix"><a class="viewcode-back" href="../../../distance-utilities.html#choicemodels.tools.great_circle_distance_matrix">[docs]</a><span class="k">def</span> <span class="nf">great_circle_distance_matrix</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">earth_radius</span><span class="o">=</span><span class="mi">6371009</span><span class="p">,</span>
+                                 <span class="n">return_int</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate a pairwise great-circle distance matrix from a DataFrame of</span>
+<span class="sd">    points. Distances returned are in units of earth_radius (default is meters).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    df : pandas DataFrame</span>
+<span class="sd">        a DataFrame of points, uniquely indexed by place identifier (e.g., tract</span>
+<span class="sd">        ID or parcel ID), represented by x and y coordinate columns</span>
+<span class="sd">    x : str</span>
+<span class="sd">        label of the x coordinate column in the DataFrame</span>
+<span class="sd">    y : str</span>
+<span class="sd">        label of the y coordinate column in the DataFrame</span>
+<span class="sd">    earth_radius : numeric</span>
+<span class="sd">        radius of earth in units in which distance will be returned (default is</span>
+<span class="sd">        meters)</span>
+<span class="sd">    return_int : bool</span>
+<span class="sd">        if True, convert all distances to integers</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    pandas Series</span>
+<span class="sd">        Multi-indexed distance vector in units of df&#39;s values, with top-level</span>
+<span class="sd">        index representing &quot;from&quot; and second-level index representing &quot;to&quot;.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># calculate pairwise great-circle distances between each row and every</span>
+    <span class="c1"># other row</span>
+    <span class="n">df_dist_matrix</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">row</span><span class="p">:</span> <span class="n">great_circle_vec</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="n">y</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="n">x</span><span class="p">],</span> <span class="n">df</span><span class="p">[</span><span class="n">y</span><span class="p">],</span> <span class="n">df</span><span class="p">[</span><span class="n">x</span><span class="p">],</span> <span class="n">earth_radius</span><span class="o">=</span><span class="n">earth_radius</span><span class="p">),</span>
+                              <span class="n">axis</span><span class="o">=</span><span class="s1">&#39;columns&#39;</span><span class="p">)</span>
+
+    <span class="c1"># convert all distances to integers, if so configured</span>
+    <span class="k">if</span> <span class="n">return_int</span><span class="p">:</span>
+        <span class="n">df_dist_matrix</span> <span class="o">=</span> <span class="n">df_dist_matrix</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+
+    <span class="c1"># convert the distance matrix to a multi-indexed vector and return it</span>
+    <span class="n">labels</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">df_dist_matrix</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="n">labels</span>
+    <span class="n">df_dist_matrix</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">labels</span>
+    <span class="k">return</span> <span class="n">df_dist_matrix</span><span class="o">.</span><span class="n">stack</span><span class="p">()</span></div>
+
+
+
+
+<div class="viewcode-block" id="euclidean_distance_matrix"><a class="viewcode-back" href="../../../distance-utilities.html#choicemodels.tools.euclidean_distance_matrix">[docs]</a><span class="k">def</span> <span class="nf">euclidean_distance_matrix</span><span class="p">(</span><span class="n">df</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate a pairwise euclidean distance matrix from a DataFrame of points.</span>
+<span class="sd">    Distances returned are in units of x and y columns.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    df : pandas DataFrame</span>
+<span class="sd">        a DataFrame of points, uniquely indexed by place identifier (e.g., tract</span>
+<span class="sd">        ID or parcel ID), represented by x and y coordinate columns</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    pandas Series</span>
+<span class="sd">        Multi-indexed distance vector in units of df&#39;s values, with top-level</span>
+<span class="sd">        index representing &quot;from&quot; and second-level index representing &quot;to&quot;.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># calculate pairwise euclidean distances between all rows</span>
+    <span class="n">distance_vector</span> <span class="o">=</span> <span class="n">pdist</span><span class="p">(</span><span class="n">X</span><span class="o">=</span><span class="n">df</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="s1">&#39;euclidean&#39;</span><span class="p">)</span>
+
+    <span class="c1"># convert the distance vector to a square distance matrix</span>
+    <span class="n">dist_matrix</span> <span class="o">=</span> <span class="n">squareform</span><span class="p">(</span><span class="n">distance_vector</span><span class="p">)</span>
+
+    <span class="c1"># convert the distance matrix to a multi-indexed vector and return it</span>
+    <span class="n">labels</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">df_dist_matrix</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">dist_matrix</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">labels</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">labels</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">df_dist_matrix</span><span class="o">.</span><span class="n">stack</span><span class="p">()</span></div>
+
+
+
+
+<span class="k">def</span> <span class="nf">network_distance_matrix</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate a pairwise network distance matrix from a DataFrame of points.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    df : pandas DataFrame</span>
+<span class="sd">        a DataFrame of points, uniquely indexed by place identifier (e.g., tract</span>
+<span class="sd">        ID or parcel ID), represented by x and y coordinate columns</span>
+<span class="sd">    x : str</span>
+<span class="sd">        label of the x coordinate column in the DataFrame</span>
+<span class="sd">    y : str</span>
+<span class="sd">        label of the y coordinate column in the DataFrame</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># placeholder until implementation of network distance matrix calculation</span>
+    <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;network_distance_matrix is not currently implemented&#39;</span><span class="p">)</span>
+
+
+
+
+<div class="viewcode-block" id="distance_matrix"><a class="viewcode-back" href="../../../distance-utilities.html#choicemodels.tools.distance_matrix">[docs]</a><span class="k">def</span> <span class="nf">distance_matrix</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;euclidean&#39;</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="s1">&#39;lng&#39;</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s1">&#39;lat&#39;</span><span class="p">,</span>
+                    <span class="n">earth_radius</span><span class="o">=</span><span class="mi">6371009</span><span class="p">,</span> <span class="n">return_int</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate a pairwise distance matrix from a DataFrame of two-dimensional</span>
+<span class="sd">    points.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    df : pandas DataFrame</span>
+<span class="sd">        a DataFrame of points, uniquely indexed by place identifier (e.g., tract</span>
+<span class="sd">        ID or parcel ID), represented by x and y coordinate columns</span>
+<span class="sd">    method : str</span>
+<span class="sd">        {&#39;euclidean&#39;, &#39;greatcircle&#39;, &#39;network&#39;}</span>
+<span class="sd">        which algorithm to use for calculating pairwise distances</span>
+<span class="sd">    x : str</span>
+<span class="sd">        if method=&#39;greatcircle&#39; or &#39;network&#39;, label of the x coordinate column</span>
+<span class="sd">        in the DataFrame</span>
+<span class="sd">    y : str</span>
+<span class="sd">        if method=&#39;greatcircle&#39; or &#39;network&#39;, label of the y coordinate column</span>
+<span class="sd">        in the DataFrame</span>
+<span class="sd">    earth_radius : numeric</span>
+<span class="sd">        if method=&#39;greatcircle&#39;, radius of earth in units in which distance will</span>
+<span class="sd">        be returned (default is meters)</span>
+<span class="sd">    return_int : bool</span>
+<span class="sd">        if method=&#39;greatcircle&#39;, if True, convert all distances to integers</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    pandas Series</span>
+<span class="sd">        Multi-indexed distance vector in units of df&#39;s values, with top-level</span>
+<span class="sd">        index representing &quot;from&quot; and second-level index representing &quot;to&quot;.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">is_unique</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;The passed-in DataFrame must have a unique index&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;euclidean&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">euclidean_distance_matrix</span><span class="p">(</span><span class="n">df</span><span class="o">=</span><span class="n">df</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;greatcircle&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">great_circle_distance_matrix</span><span class="p">(</span><span class="n">df</span><span class="o">=</span><span class="n">df</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span>
+                                            <span class="n">earth_radius</span><span class="o">=</span><span class="n">earth_radius</span><span class="p">,</span>
+                                            <span class="n">return_int</span><span class="o">=</span><span class="n">return_int</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;network&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">network_distance_matrix</span><span class="p">(</span><span class="n">df</span><span class="o">=</span><span class="n">df</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;argument `method` must be one of &quot;euclidean&quot;, &quot;greatcircle&quot;, or &quot;network&quot;&#39;</span><span class="p">)</span></div>
+
+
+
+
+<span class="k">def</span> <span class="nf">pairwise</span><span class="p">(</span><span class="n">iterable</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Iterate through a list, pairwise.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    iterable : list-like</span>
+<span class="sd">        the list-like object to iterate through pairwise</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    zip</span>
+<span class="sd">        a zipped iterable of pairwise tuples</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">tee</span><span class="p">(</span><span class="n">iterable</span><span class="p">)</span>
+    <span class="nb">next</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">zip</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+
+
+
+
+<div class="viewcode-block" id="distance_bands"><a class="viewcode-back" href="../../../distance-utilities.html#choicemodels.tools.distance_bands">[docs]</a><span class="k">def</span> <span class="nf">distance_bands</span><span class="p">(</span><span class="n">dist_vector</span><span class="p">,</span> <span class="n">distances</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Identify all geographies located within each distance band of each</span>
+<span class="sd">    geography.</span>
+
+<span class="sd">    The list of distances is treated pairwise to create distance bands, with</span>
+<span class="sd">    the first element of each pair forming the band&#39;s inclusive lower limit and</span>
+<span class="sd">    the second element of each pair forming the band&#39;s exclusive upper limit.</span>
+<span class="sd">    For example, if distances=[0, 10, 30], band 0 will contain all geographies</span>
+<span class="sd">    with a distance &gt;= 0 and &lt; 10 units (e.g., meters) from the reference</span>
+<span class="sd">    geography, and band 1 will contain all geographies with a distance &gt;= 10</span>
+<span class="sd">    and &lt; 30 units from the reference geography.</span>
+
+<span class="sd">    To make the final distance band include all geographies beyond a certain</span>
+<span class="sd">    distance, make the final value in the distances list np.inf.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    dist_vector : pandas Series</span>
+<span class="sd">        Multi-indexed distance vector in units of df&#39;s values, with top-level</span>
+<span class="sd">        index representing &quot;from&quot; and second-level index representing &quot;to&quot;.</span>
+<span class="sd">    distances : list</span>
+<span class="sd">        a list of distance band increments</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    pandas Series</span>
+<span class="sd">        a series multi-indexed by geography ID and distance band number, with</span>
+<span class="sd">        values of arrays of geography IDs with the corresponding distances from</span>
+<span class="sd">        that ID</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># loop through each row in distance matrix, identifying all geographies</span>
+    <span class="c1"># within each distance band of the row&#39;s geography</span>
+    <span class="n">bands</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">dist_matrix</span> <span class="o">=</span> <span class="n">dist_vector</span><span class="o">.</span><span class="n">unstack</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">dist_matrix</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+        <span class="n">bands</span><span class="p">[</span><span class="n">row</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># for each distance band</span>
+        <span class="k">for</span> <span class="n">band_number</span><span class="p">,</span> <span class="p">(</span><span class="n">dist1</span><span class="p">,</span> <span class="n">dist2</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">pairwise</span><span class="p">(</span><span class="n">distances</span><span class="p">)):</span>
+
+            <span class="c1"># find all the geographies within this distance band</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">row</span> <span class="o">&gt;=</span> <span class="n">dist1</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">row</span> <span class="o">&lt;</span> <span class="n">dist2</span><span class="p">)</span>
+            <span class="n">place_ids</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span>
+
+            <span class="c1"># store value as array of geography IDs keyed by reference geography</span>
+            <span class="c1"># ID and distance band number</span>
+            <span class="n">bands</span><span class="p">[</span><span class="n">row</span><span class="o">.</span><span class="n">name</span><span class="p">][</span><span class="n">band_number</span><span class="p">]</span> <span class="o">=</span> <span class="n">place_ids</span>
+
+    <span class="c1"># convert geography bands to a series multi-indexed by geography ID and</span>
+    <span class="c1"># distance band number</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">bands</span><span class="p">)</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">stack</span><span class="p">()</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Urban Data Science Toolkit.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
