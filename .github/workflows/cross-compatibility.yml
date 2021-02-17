@@ -24,7 +24,6 @@ jobs:
     - name: Install ChoiceModels
       run: |
         pip install .
-        pip install -r requirements-dev.txt
         pip install orca urbansim  # extra tests run if urbansim is present
     - name: Run tests
       run: |
