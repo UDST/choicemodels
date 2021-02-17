@@ -4,7 +4,7 @@ name: Coverage
 # unit tests) and posts headline metrics to the PR thread.
 
 on:
-  # push:
+  push:  # DISABLE
   pull_request:
   workflow_dispatch:
 
@@ -20,10 +20,10 @@ jobs:
     - name: Install ChoiceModels
       run: |
         pip install .
-        pip install -r requirements-dev.txt
         pip install orca urbansim  # extra tests run if urbansim is present
     - name: Generate coverage report
       run: |
+        pip install pytest coverage
         coverage run --source choicemodels --module pytest --verbose
         coverage report --show-missing
         echo "coverage=$(coverage report | grep '^TOTAL' | grep -oE '[^ ]+$')" >> $GITHUB_ENV

@@ -1,7 +1,0 @@
-# requirements for development and testing
-
-coverage >= 4.5
-pytest >= 3.4
-# urbansim >= 3.1  # additional tests will run if urbansim is installed
-sphinx
-sphinx_rtd_theme

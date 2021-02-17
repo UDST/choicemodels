@@ -27,7 +27,11 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install ChoiceModels
       run: |
-        pip install choicemodels
+        pip install choicemodels pytest
+    - name: Run tests
+      run: |
+        cd tests
+        pytest -s
 
   build-conda:
     runs-on: ${{ matrix.os }}
@@ -46,4 +50,8 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install ChoiceModels
       run: |
-        conda install choicemodels --channel conda-forge
+        conda install choicemodels pytest --channel conda-forge
+    - name: Run tests
+      run: |
+        cd tests
+        pytest -s
