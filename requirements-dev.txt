@@ -1,7 +1,6 @@
 # requirements for development and testing
 
 coverage >= 4.5
-coveralls >= 1.3
 pytest >= 3.4
 # urbansim >= 3.1  # additional tests will run if urbansim is installed
 sphinx

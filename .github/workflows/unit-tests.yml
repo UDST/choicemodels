@@ -1,0 +1,29 @@
+name: Unit tests
+
+# This workflow runs the tests in a single generic environment (recent but stable Python
+# version on recent but stable Ubuntu). The cross-compatibility.yml workflow runs the same
+# tests across multiple platforms.
+
+on:
+  push:
+  # pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+    - name: Install ChoiceModels
+      run: |
+        pip install .
+        pip install -r requirements-dev.txt
+        pip install orca urbansim  # extra tests run if urbansim is present
+    - name: Run tests
+      run: |
+        cd tests
+        pytest -s
