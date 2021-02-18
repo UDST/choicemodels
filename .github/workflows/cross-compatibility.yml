@@ -4,7 +4,7 @@ name: Cross-compatibility
 # operating systems.
 
 on:
-  push:  # DISABLE
+  # push:
   pull_request:
   workflow_dispatch:
 
