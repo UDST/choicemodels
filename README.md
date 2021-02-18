@@ -1,7 +1,3 @@
-[![Build Status](https://travis-ci.org/UDST/choicemodels.svg?branch=master)](https://travis-ci.org/UDST/choicemodels)
-[![Coverage Status](https://coveralls.io/repos/github/UDST/choicemodels/badge.svg?branch=master)](https://coveralls.io/github/UDST/choicemodels?branch=master)
-[![Docs Status](https://readthedocs.org/projects/choicemodels/badge/?version=latest)](https://choicemodels.readthedocs.io)
-
 # ChoiceModels
 
 ChoiceModels is a Python library for discrete choice modeling, with utilities for sampling, simulation, and other ancillary tasks. It's part of the [Urban Data Science Toolkit](https://docs.udst.org) (UDST).
@@ -9,7 +5,7 @@ ChoiceModels is a Python library for discrete choice modeling, with utilities fo
 
 ### Features
 
-The library currently focuses on tools to help integrate discrete choice models into larger workflows, drawing on other packages such as the excellent [PyLogit](https://github.com/timothyb0912/pylogit) for most estimation of models. 
+The library focuses mainly on tools to help integrate discrete choice models into larger workflows, drawing on other packages such as the excellent [PyLogit](https://github.com/timothyb0912/pylogit) for most estimation of models. 
 
 ChoiceModels can automate the creation of choice tables for estimation or simulation, using uniform or weighted random sampling of alternatives, as well as interaction terms or cartesian merges. 
 
@@ -33,7 +29,7 @@ conda install choicemodels --channel conda-forge
 
 ### Documentation
 
-See the online documentation for much more: https://choicemodels.readthedocs.io
+See the online documentation for much more: https://udst.github.io/choicemodels
 
 Some additional documentation is available within the repo in `CHANGELOG.md`, `CONTRIBUTING.md`, `/docs/README.md`, and `/tests/README.md`.
 

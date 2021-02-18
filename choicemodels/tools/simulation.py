@@ -364,8 +364,8 @@ def parallel_lottery_choices(
     A parallelized version of the iterative_lottery_choices method. Chooser
     batches are processed in parallel rather than sequentially.
 
-    NOTE: In it's current form, this method is only supported for simulating
-    choices where every alternative has a capacity of 1. 
+    NOTE: In its current form, this method is only supported for simulating
+    choices where every alternative has a capacity of 1.
 
     Parameters
     ----------
@@ -376,12 +376,12 @@ def parallel_lottery_choices(
     
     alternatives : pd.DataFrame
         Table with one row for each alternative, with unique ID's in the index field.
-        Additional columns can contain fixed attributes of the alternatives. (Reserved 
+        Additional columns can contain fixed attributes of the alternatives. (Reserved
         column names: '_capacity'.)
     
     mct_callable : callable
-        Callable that samples alternatives to generate a table of choice scenarios. It 
-        should accept subsets of the choosers and alternatives tables and return a 
+        Callable that samples alternatives to generate a table of choice scenarios. It
+        should accept subsets of the choosers and alternatives tables and return a
         choicemodels.tools.MergedChoiceTable.
     
     probs_callable : callable
@@ -390,7 +390,7 @@ def parallel_lottery_choices(
         with indexes matching the input.
     
     alt_capacity : str, optional
-        Name of a column in the alternatives table that expresses the capacity of 
+        Name of a column in the alternatives table that expresses the capacity of
         alternatives. If not provided, each alternative is interpreted as accommodating a
         single chooser.
     
@@ -406,15 +406,15 @@ def parallel_lottery_choices(
         all choosers are matched or no alternatives remain.
 
     chooser_batch_size : int or None, optional
-        Size of the batches for processing smaller groups of choosers one at a time. Useful
-        when the anticipated size of the merged choice tables (choosers X alternatives
-        X covariates) will be too large for python/pandas to handle.
+        Size of the batches for processing smaller groups of choosers one at a time.
+        Useful when the anticipated size of the merged choice tables (choosers X
+        alternatives X covariates) will be too large for python/pandas to handle.
 
 
     Returns
     -------
     pd.Series
-        List of chosen alternative id's, indexed with the chooser (observation) id. 
+        List of chosen alternative id's, indexed with the chooser (observation) id.
 
     """
     

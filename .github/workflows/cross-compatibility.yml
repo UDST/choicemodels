@@ -1,0 +1,33 @@
+name: Cross-compatibility
+
+# This workflow runs the unit tests across a comprehensive range of Python versions and
+# operating systems.
+
+on:
+  # push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-pip:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        # add back macos-latest and windows-latest when issue #70 is resolved
+        os: [ubuntu-latest]
+        python-version: [3.6, 3.7, 3.8]  # no pip pytables for py39-mac or py39-win
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install ChoiceModels
+      run: |
+        pip install .
+        pip install orca urbansim  # extra tests run if urbansim is present
+    - name: Run tests
+      run: |
+        pip install pytest
+        cd tests
+        pytest -s

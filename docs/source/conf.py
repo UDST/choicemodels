@@ -17,11 +17,10 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-import os
-import sys
-
+# import os
+# import sys
 # go up two levels from /docs/source to the package root
-sys.path.insert(0, os.path.abspath('../..'))
+# sys.path.insert(0, os.path.abspath('../..'))
 
 import sphinx_rtd_theme
 
@@ -54,7 +53,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'ChoiceModels'
-copyright = '2019, Urban Data Science Toolkit'
+copyright = '2021, Urban Data Science Toolkit'
 author = 'Urban Data Science Toolkit'
 
 # The version info for the project you're documenting, acts as replacement for
