@@ -80,8 +80,10 @@ def monte_carlo_choices(probabilities):
     return choices.set_index(obs_name)[alts_name]
 
 
-def iterative_lottery_choices(choosers, alternatives, mct_callable, probs_callable, 
-        alt_capacity=None, chooser_size=None, max_iter=None, chooser_batch_size=None):
+def iterative_lottery_choices(
+        choosers, alternatives, mct_callable, probs_callable, 
+        alt_capacity=None, chooser_size=None, max_iter=None, chooser_batch_size=None,
+        mct_intx_ops=None):
     """
     Monte Carlo simulation of choices for a set of choice scenarios where (a) the 
     alternatives have limited capacity and (b) the choosers have varying probability 
@@ -144,7 +146,12 @@ def iterative_lottery_choices(choosers, alternatives, mct_callable, probs_callab
     chooser_batch_size : int or None, optional
         Size of the batches for processing smaller groups of choosers one at a time. 
         Useful when the anticipated size of the merged choice tables (choosers X 
-        alternatives X covariates) will be too large for python/pandas to handle. 
+        alternatives X covariates) will be too large for python/pandas to handle.
+
+    mct_intx_ops :  dict
+        Dict of post-processing operations to perform on merged choice table. Available
+        options include (sequentially): merges against other Orca tables, aggregations,
+        column renaming, new column creation via Pandas.DataFrame().eval()
 
     Returns
     -------
@@ -182,9 +189,11 @@ def iterative_lottery_choices(choosers, alternatives, mct_callable, probs_callab
             print("\nRemaining capacity on alternatives but not enough to accodomodate choosers' sizes")
             break
         if chooser_batch_size is None or chooser_batch_size > len(choosers):
-            mct = mct_callable(choosers.sample(frac=1), alts)
+            mct = mct_callable(
+                choosers.sample(frac=1), alts, intx_ops=mct_intx_ops)
         else:
-            mct = mct_callable(choosers.sample(chooser_batch_size), alts)
+            mct = mct_callable(
+                choosers.sample(chooser_batch_size), alts, intx_ops=mct_intx_ops)
 
         if len(mct.to_frame()) == 0:
             print("No valid alternatives for the remaining choosers")
