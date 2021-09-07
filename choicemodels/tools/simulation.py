@@ -151,7 +151,7 @@ def iterative_lottery_choices(
     mct_intx_ops :  dict
         Dict of post-processing operations to perform on merged choice table. Available
         options include (sequentially): merges against other Orca tables, aggregations,
-        column renaming, new column creation via Pandas.DataFrame().eval()
+        column renaming, new column creation via Pandas eval.
 
     Returns
     -------
