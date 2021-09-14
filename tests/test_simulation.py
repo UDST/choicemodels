@@ -93,7 +93,7 @@ def fitted_model(obs, alts):
 
 @pytest.fixture
 def mct(obs, alts):
-    def mct_callable(obs, alts):
+    def mct_callable(obs, alts, intx_ops=None):
         return MergedChoiceTable(obs, alts, sample_size=10)
     return mct_callable
 
