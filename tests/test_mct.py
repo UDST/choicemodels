@@ -26,7 +26,16 @@ def alts():
     return pd.DataFrame(d2).set_index('aid')
 
 
-def test_mergedchoicetable(obs, alts):
+@pytest.fixture
+def stratified_alts():
+    d2 = {'aid': [0,1,2,3,4,5,6,7,8,9], 
+          'altval': [10,20,30,40,50,60,70,80,90,100],
+          'stratum': [1,2,3,4,5,1,2,3,4,5]}
+
+    return pd.DataFrame(d2).set_index('aid')
+
+
+def test_mergedchoicetable(obs, alts, stratified_alts):
     # NO SAMPLING, TABLE FOR SIMULATION
 
     mct = choicemodels.tools.MergedChoiceTable(obs, alts).to_frame()
@@ -43,11 +52,18 @@ def test_mergedchoicetable(obs, alts):
     assert list(mct.columns.sort_values()) == list(sorted(['obsval', 'altval', 
                                                            'w', 'chosen']))
     
+    # STRATIFIED SAMPLING
+    mct = choicemodels.tools.MergedChoiceTable(
+        obs, stratified_alts, sample_size=5, sampling_regime='stratified',
+        strata='stratum').to_frame()
+
+    for obs_id, obs_df in mct.groupby(level=0):
+        assert len(obs_df['stratum'].unique()) == 5
 
     # REPLACEMENT, NO WEIGHTS, TABLE FOR SIMULATION
 
-    mct = choicemodels.tools.MergedChoiceTable(obs, alts, 
-                                 sample_size = 2).to_frame()
+    mct = choicemodels.tools.MergedChoiceTable(
+        obs, alts, sample_size=2).to_frame()
 
     assert len(mct) == 4
     assert sum(mct.altval==30) < 4
