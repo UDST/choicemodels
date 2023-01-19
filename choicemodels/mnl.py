@@ -586,7 +586,7 @@ def mnl_loglik(beta, data, chosen, numalts, weights=None, lcgrad=False,
     return -1 * loglik, -1 * gradarr
 
 
-def mnl_estimate(data, chosen, numalts, GPU=False, coeffrange=(-1000, 1000),
+def mnl_estimate(data, chosen, numalts, GPU=False, coeffrange=(None, None),
                  weights=None, lcgrad=False, beta=None):
     """
     Calculate coefficients of the MNL model.
