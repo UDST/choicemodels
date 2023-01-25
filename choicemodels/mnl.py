@@ -689,7 +689,7 @@ def mnl_estimate(data, chosen, numalts, GPU=False, coeffrange=(None, None),
                                                beta,
                                                args=args,
                                                fprime=None,
-                                               factr=10,
+                                               factr=10e9,
                                                approx_grad=False,
                                                bounds=bounds)
     logger.debug('finish: scipy optimization for MNL fit')
