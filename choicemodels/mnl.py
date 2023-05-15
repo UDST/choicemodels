@@ -715,6 +715,7 @@ def mnl_estimate(data, chosen, numalts, GPU=False, coeffrange=(None, None),
     aic = -2 * ll + 2 * len(beta)
 
     log_likelihood = {
+        "model_converged": bfgs_result[2]['warnflag'] > 0,
         'null': float(l0[0][0]),
         'convergence': float(l1[0][0]),
         'ratio': float((1 - (l1 / l0))[0][0]),
