@@ -4,6 +4,42 @@
 
 ChoiceModels is a Python library for discrete choice modeling, with utilities for sampling, simulation, and other ancillary tasks. It's part of the [Urban Data Science Toolkit](https://docs.udst.org) (UDST).
 
+## Project scope
+
+**Status:** Active
+
+**Mission:** ChoiceModels provides reusable tools for specifying, estimating,
+sampling, and simulating discrete-choice models within larger analytical
+workflows.
+
+**Architecture:** ChoiceModels provides portable Python implementations and
+interfaces for discrete-choice workflows and conventional estimation. Its
+reference implementations target conventional CPU-based execution, while
+estimator interfaces allow alternative execution engines to interoperate with
+the library.
+
+The project maintains and develops:
+
+- construction and manipulation of choice tables;
+- sampling of alternatives;
+- discrete-choice model specifications and interfaces;
+- conventional model estimation and estimator integrations;
+- Monte Carlo choice simulation;
+- capacity-constrained choice algorithms; and
+- interoperable representations of estimated choice models.
+
+ChoiceModels is designed as a general-purpose discrete-choice library and as
+an integration layer between model specifications, estimation engines, and
+simulation workflows.
+
+Development of choice-model methods and estimator integrations is welcome
+within this mission and architecture. Material changes to the project's
+mission or execution architecture are considered through UDST's
+organization-level governance process.
+
+See the [UDST Project Directory](https://github.com/UDST/.github/blob/main/PROJECTS.md)
+for organization-wide project status and policy.
+
 
 ### Features
 
