@@ -1,3 +1,6 @@
 include CHANGELOG.md
 include LICENSE.txt
+include PYLOGIT_ATTRIBUTION.md
+include PYLOGIT_CONTRIBUTORS.txt
+include licenses/PYLOGIT_LICENSE.txt
 recursive-include tests *.py *.csv *.R *.md

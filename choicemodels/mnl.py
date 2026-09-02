@@ -13,6 +13,22 @@ from statsmodels.iolib.table import SimpleTable
 
 from .tools import MergedChoiceTable
 from .tools.pmat import PMAT
+from .pylogit_compat import fit_mnl, predict_mnl
+
+
+def _ids_as_columns(df, *id_cols):
+    """
+    Return a copy of a long-format table with any of the named id columns that are
+    stored as index levels moved into regular columns. MergedChoiceTable frames carry
+    the observation and alternative ids as a MultiIndex, and the flexible MNL engine
+    expects columns.
+
+    """
+    levels = [col for col in id_cols
+              if col is not None and col in df.index.names and col not in df.columns]
+    if levels:
+        df = df.reset_index(level=levels)
+    return df
 
 
 """
@@ -68,7 +84,8 @@ class MultinomialLogit(object):
        'alternative_id_col', 'choice_col', 'model_expression' in PyLogit format,
        'model_labels' in PyLogit format (optional).
 
-       To fit this type of model, ChoiceModels will use the PyLogit estimation engine.
+       ChoiceModels fits this type of model using an implementation compatible with
+       PyLogit's MNL specification conventions.
 
     With either use case, the model expression can include attributes of both the choosers
     and the alternatives. Attributes of a particular alternative may vary for different
@@ -149,17 +166,6 @@ class MultinomialLogit(object):
         if isinstance(self._model_expression, OrderedDict):
             self._estimation_engine = 'PyLogit'
 
-            # parse initial_coefs
-            if isinstance(self._initial_coefs, np.ndarray):
-                pass
-            elif isinstance(self._initial_coefs, list):
-                self._initial_coefs = np.array(self._initial_coefs)
-            elif (self._initial_coefs == None):
-                self._initial_coefs = np.zeros(len(self._model_expression))
-            else:
-                self._initial_coefs = np.repeat(self._initial_coefs,
-                                                len(self._model_expression))
-
         else:
             self._estimation_engine = 'ChoiceModels'
             self._numobs = self._df.reset_index()[[self._observation_id_col]].\
@@ -172,7 +178,7 @@ class MultinomialLogit(object):
     def fit(self):
         """
         Fit the model using maximum likelihood estimation. Uses either the ChoiceModels
-        or PyLogit estimation engine as appropriate.
+        or flexible MNL estimation engine as appropriate.
 
         Returns
         -------
@@ -181,28 +187,20 @@ class MultinomialLogit(object):
         """
         if (self._estimation_engine == 'PyLogit'):
 
-            # PyLogit is imported only when this estimation path is used. It is not
-            # declared as a dependency: its current release fails to import on
-            # Python 3.10 and later. See https://github.com/UDST/choicemodels/issues/79.
-            try:
-                import pylogit
-            except ImportError as e:
-                raise ImportError(
-                    "The PyLogit-format estimation path requires the pylogit package, "
-                    "which is not installed or does not import on this version of Python. "
-                    "See https://github.com/UDST/choicemodels/issues/79.") from e
-
-            m = pylogit.create_choice_model(data = self._df,
-                                            obs_id_col = self._observation_id_col,
-                                            alt_id_col = self._alternative_id_col,
-                                            choice_col = self._choice_col,
-                                            specification = self._model_expression,
-                                            names = self._model_labels,
-                                            model_type = 'MNL')
-
-            m.fit_mle(init_vals = self._initial_coefs)
+            df = _ids_as_columns(self._df, self._observation_id_col,
+                                 self._alternative_id_col)
+            m = fit_mnl(data=df,
+                        observation_id_col=self._observation_id_col,
+                        alternative_id_col=self._alternative_id_col,
+                        choice_col=self._choice_col,
+                        specification=self._model_expression,
+                        names=self._model_labels,
+                        initial_values=self._initial_coefs)
             results = MultinomialLogitResults(estimation_engine = self._estimation_engine,
                                               model_expression = self._model_expression,
+                                              model_labels = self._model_labels,
+                                              observation_id_col = self._observation_id_col,
+                                              alternative_id_col = self._alternative_id_col,
                                               results = m)
 
         elif (self._estimation_engine == 'ChoiceModels'):
@@ -258,16 +256,35 @@ class MultinomialLogitResults(object):
     estimation_engine : str, optional
         'ChoiceModels' (default) or 'PyLogit'.
 
+    model_labels : OrderedDict, optional
+        PyLogit-format coefficient labels, if the model was specified with them. Only
+        used with the 'PyLogit' estimation engine.
+
+    observation_id_col : str, optional
+        Name of the column or index level containing the observation id. Required to
+        generate probabilities from a results object built without raw results, with
+        the 'PyLogit' estimation engine.
+
+    alternative_id_col : str, optional
+        Name of the column or index level containing the alternative id. Required in
+        the same circumstances as 'observation_id_col'.
+
     """
-    def __init__(self, model_expression, results=None, fitted_parameters=None, 
-                 estimation_engine='ChoiceModels'):
+    def __init__(self, model_expression, results=None, fitted_parameters=None,
+                 estimation_engine='ChoiceModels', model_labels=None,
+                 observation_id_col=None, alternative_id_col=None):
         
         if (fitted_parameters is None) & (results is not None):
             if (estimation_engine == 'ChoiceModels'):
                 fitted_parameters = results['fit_parameters']['Coefficient'].tolist()
+            elif (estimation_engine == 'PyLogit'):
+                fitted_parameters = results.params.tolist()
 
         self.estimation_engine = estimation_engine
         self.model_expression = model_expression
+        self.model_labels = model_labels
+        self.observation_id_col = observation_id_col
+        self.alternative_id_col = alternative_id_col
         self.results = results
         self.fitted_parameters = fitted_parameters
         
@@ -295,8 +312,16 @@ class MultinomialLogitResults(object):
         
         Parameters
         ----------
-        data : choicemodels.tools.MergedChoiceTable
-            Long-format table of choice scenarios. TO DO - accept other data formats.
+        data : choicemodels.tools.MergedChoiceTable or pandas.DataFrame
+            Long-format table of choice scenarios. With the 'ChoiceModels' estimation
+            engine this must be a MergedChoiceTable. With the 'PyLogit' engine it can
+            also be a DataFrame, with the observation and alternative ids either as
+            columns or as index levels.
+
+            With the 'PyLogit' engine, every alternative named in a list-style entry
+            of the model expression must be present in the data, or a ValueError is
+            raised. Tables built by sampling alternatives need to retain those
+            alternatives.
         
         Expected class parameters
         -------------------------
@@ -308,7 +333,21 @@ class MultinomialLogitResults(object):
         pandas.Series with indexes matching the input
         
         """
-        # TO DO - make sure this handles pylogit case
+        if self.estimation_engine == 'PyLogit':
+            df = data.to_frame() if isinstance(data, MergedChoiceTable) else data
+            frame = _ids_as_columns(df, self.observation_id_col, self.alternative_id_col)
+            if self.results is not None:
+                probabilities = self.results.predict(frame)
+            else:
+                if self.observation_id_col is None or self.alternative_id_col is None:
+                    raise ValueError(
+                        'observation_id_col and alternative_id_col are required '
+                        'to restore flexible MNL results')
+                probabilities = predict_mnl(
+                    frame, self.observation_id_col, self.alternative_id_col,
+                    self.model_expression, self.fitted_parameters,
+                    self.model_labels)
+            return pd.Series(probabilities, index=df.index, name='prob')
         
         # TO DO - does MergedChoiceTable guarantee that alternatives for a single scenario
         # are consecutive? seems like a requirement here; should document it
