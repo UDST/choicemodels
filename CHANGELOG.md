@@ -1,5 +1,15 @@
 # ChoiceModels change log
 
+### 0.3.0
+
+- incorporates the PyLogit-compatible MNL functionality used by ChoiceModels,
+  removing the runtime dependency on the unmaintained PyLogit release
+- supports prediction for flexible MNL models with varying choice sets and
+  generic, alternative-specific, or grouped coefficients
+- preserves coefficient, covariance, fit-statistic, summary, and pickle-based
+  result workflows for the flexible MNL path
+- credits the incorporated PyLogit work and preserves its BSD license
+
 ### 0.3.dev0 (not yet released)
 
 - requires Python 3.10 or later, with NumPy 1.21, Pandas 1.5, SciPy 1.7, and
