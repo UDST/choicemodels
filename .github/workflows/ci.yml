@@ -16,7 +16,7 @@ permissions:
 jobs:
   tests:
     name: ${{ matrix.name }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 20
     strategy:
       fail-fast: false
@@ -25,11 +25,21 @@ jobs:
           # Lower support boundary: oldest Python plus the minimum
           # supported versions of the core dependencies
           - name: Python 3.10 + minimum deps
+            os: ubuntu-latest
             python-version: "3.10"
             pip-args: -c requirements-min.txt
           # Forward boundary: newest supported Python plus current
-          # versions of all dependencies
+          # versions of all dependencies, on each operating system
           - name: Python 3.14 + latest deps
+            os: ubuntu-latest
+            python-version: "3.14"
+            pip-args: ""
+          - name: Python 3.14 + latest deps (macOS)
+            os: macos-latest
+            python-version: "3.14"
+            pip-args: ""
+          - name: Python 3.14 + latest deps (Windows)
+            os: windows-latest
             python-version: "3.14"
             pip-args: ""
 

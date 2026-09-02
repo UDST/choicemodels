@@ -182,7 +182,8 @@ class MultinomialLogit(object):
         if (self._estimation_engine == 'PyLogit'):
 
             # PyLogit is an optional dependency, imported only when this estimation
-            # path is used. Its current release requires Python 3.9 or earlier.
+            # path is used. Its current release fails to import on Python 3.10 and
+            # later; see https://github.com/UDST/choicemodels/issues/79.
             import pylogit
 
             m = pylogit.create_choice_model(data = self._df,
