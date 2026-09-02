@@ -1,5 +1,7 @@
 # ChoiceModels
 
+[![CI](https://github.com/UDST/choicemodels/actions/workflows/ci.yml/badge.svg)](https://github.com/UDST/choicemodels/actions/workflows/ci.yml)
+
 ChoiceModels is a Python library for discrete choice modeling, with utilities for sampling, simulation, and other ancillary tasks. It's part of the [Urban Data Science Toolkit](https://docs.udst.org) (UDST).
 
 
@@ -16,7 +18,7 @@ ChoiceModels includes a custom engine for Multinomial Logit estimation that's op
 
 ### Installation
 
-ChoiceModels can be installed using the Pip or Conda package managers:
+ChoiceModels requires Python 3.10 or later, and can be installed using the Pip or Conda package managers:
 
 ```
 pip install choicemodels

@@ -1,0 +1,16 @@
+# Pip constraints pinning the oldest supported versions of the core
+# dependencies (the floors declared in pyproject.toml). Used by the
+# minimum-dependencies CI job:
+#
+#   pip install ".[test]" -c requirements-min.txt
+#
+# numpy must be constrained alongside pandas 1.5: pandas 1.5 predates
+# NumPy 2 and declares no upper bound, so without this constraint the
+# resolver pairs it with NumPy 2.x and pandas fails to import.
+
+numpy == 1.21.*
+pandas == 1.5.*
+patsy == 0.5.*
+scipy == 1.7.*
+statsmodels == 0.13.*
+tqdm == 4.64.*
