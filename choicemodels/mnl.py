@@ -16,6 +16,21 @@ from .tools.pmat import PMAT
 from .pylogit_compat import fit_mnl, predict_mnl
 
 
+def _ids_as_columns(df, *id_cols):
+    """
+    Return a copy of a long-format table with any of the named id columns that are
+    stored as index levels moved into regular columns. MergedChoiceTable frames carry
+    the observation and alternative ids as a MultiIndex, and the flexible MNL engine
+    expects columns.
+
+    """
+    levels = [col for col in id_cols
+              if col is not None and col in df.index.names and col not in df.columns]
+    if levels:
+        df = df.reset_index(level=levels)
+    return df
+
+
 """
 #####################
 NEW CLASS DEFINITIONS
@@ -172,7 +187,9 @@ class MultinomialLogit(object):
         """
         if (self._estimation_engine == 'PyLogit'):
 
-            m = fit_mnl(data=self._df,
+            df = _ids_as_columns(self._df, self._observation_id_col,
+                                 self._alternative_id_col)
+            m = fit_mnl(data=df,
                         observation_id_col=self._observation_id_col,
                         alternative_id_col=self._alternative_id_col,
                         choice_col=self._choice_col,
@@ -239,6 +256,19 @@ class MultinomialLogitResults(object):
     estimation_engine : str, optional
         'ChoiceModels' (default) or 'PyLogit'.
 
+    model_labels : OrderedDict, optional
+        PyLogit-format coefficient labels, if the model was specified with them. Only
+        used with the 'PyLogit' estimation engine.
+
+    observation_id_col : str, optional
+        Name of the column or index level containing the observation id. Required to
+        generate probabilities from a results object built without raw results, with
+        the 'PyLogit' estimation engine.
+
+    alternative_id_col : str, optional
+        Name of the column or index level containing the alternative id. Required in
+        the same circumstances as 'observation_id_col'.
+
     """
     def __init__(self, model_expression, results=None, fitted_parameters=None,
                  estimation_engine='ChoiceModels', model_labels=None,
@@ -282,8 +312,16 @@ class MultinomialLogitResults(object):
         
         Parameters
         ----------
-        data : choicemodels.tools.MergedChoiceTable
-            Long-format table of choice scenarios. TO DO - accept other data formats.
+        data : choicemodels.tools.MergedChoiceTable or pandas.DataFrame
+            Long-format table of choice scenarios. With the 'ChoiceModels' estimation
+            engine this must be a MergedChoiceTable. With the 'PyLogit' engine it can
+            also be a DataFrame, with the observation and alternative ids either as
+            columns or as index levels.
+
+            With the 'PyLogit' engine, every alternative named in a list-style entry
+            of the model expression must be present in the data, or a ValueError is
+            raised. Tables built by sampling alternatives need to retain those
+            alternatives.
         
         Expected class parameters
         -------------------------
@@ -297,15 +335,16 @@ class MultinomialLogitResults(object):
         """
         if self.estimation_engine == 'PyLogit':
             df = data.to_frame() if isinstance(data, MergedChoiceTable) else data
+            frame = _ids_as_columns(df, self.observation_id_col, self.alternative_id_col)
             if self.results is not None:
-                probabilities = self.results.predict(df)
+                probabilities = self.results.predict(frame)
             else:
                 if self.observation_id_col is None or self.alternative_id_col is None:
                     raise ValueError(
                         'observation_id_col and alternative_id_col are required '
                         'to restore flexible MNL results')
                 probabilities = predict_mnl(
-                    df, self.observation_id_col, self.alternative_id_col,
+                    frame, self.observation_id_col, self.alternative_id_col,
                     self.model_expression, self.fitted_parameters,
                     self.model_labels)
             return pd.Series(probabilities, index=df.index, name='prob')

@@ -104,7 +104,14 @@ def _probabilities(design, coefficients, groups):
 
 def predict_mnl(data, observation_id_col, alternative_id_col, specification,
                 coefficients, names=None):
-    """Predict long-form probabilities from a fitted flexible MNL model."""
+    """Predict long-form probabilities from a fitted flexible MNL model.
+
+    Every alternative named in a list-style specification entry must be present
+    in ``data``; otherwise the design matrix cannot be built and a ValueError is
+    raised. This matches PyLogit's behavior. It means prediction tables built by
+    sampling alternatives must retain all alternatives that the specification
+    refers to by id.
+    """
     design, coefficient_names = create_design_matrix(
         data, specification, alternative_id_col, names)
     coefficients = np.asarray(coefficients, dtype=float)
@@ -165,6 +172,9 @@ class MNLResults(object):
             gradient = -self.design.T.dot(self._choices - probs) / observation_count
             return objective, gradient
 
+        # The objective is the mean negative log-likelihood, so the gradient tolerance
+        # is on a per-observation scale. The tight target keeps coefficients within
+        # 1e-8 of PyLogit's; convergence is judged below by the final gradient.
         fitted = scipy.optimize.minimize(
             objective_and_gradient, initial_values, jac=True, method="BFGS",
             options={"gtol": 1e-9, "maxiter": 1000})
@@ -219,7 +229,12 @@ class MNLResults(object):
         self.rho_squared = 1 - self.log_likelihood / self.null_log_likelihood
         self.rho_bar_squared = 1 - (
             self.log_likelihood - coefficients.size) / self.null_log_likelihood
-        self.estimation_success = bool(fitted.success)
+        # BFGS in double precision often cannot drive the gradient all the way to the
+        # 1e-9 target and stops with a "precision loss" status even though the fit is
+        # converged, so judge convergence by the final gradient rather than by the
+        # optimizer's own status.
+        final_gradient = np.abs(objective_and_gradient(coefficients)[1]).max()
+        self.estimation_success = bool(fitted.success) or final_gradient <= 1e-7
         self.estimation_message = str(fitted.message)
         if not self.estimation_success:
             warnings.warn(

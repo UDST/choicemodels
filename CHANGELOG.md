@@ -9,6 +9,8 @@
 - preserves coefficient, covariance, fit-statistic, summary, and pickle-based
   result workflows for the flexible MNL path
 - credits the incorporated PyLogit work and preserves its BSD license
+- accepts MergedChoiceTable input, or any table with the ids as index levels, in the
+  flexible MNL path (closes #77)
 
 ### 0.3.dev0 (not yet released)
 

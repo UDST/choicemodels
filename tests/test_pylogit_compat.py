@@ -1,5 +1,6 @@
 from collections import OrderedDict
 import pickle
+import warnings
 
 import numpy as np
 import pandas as pd
@@ -7,6 +8,7 @@ import pytest
 
 from choicemodels import MultinomialLogit, MultinomialLogitResults
 from choicemodels.pylogit_compat import create_design_matrix
+from choicemodels.tools import MergedChoiceTable
 
 
 @pytest.fixture
@@ -137,9 +139,45 @@ def test_initial_values_match_expanded_specification(mode_choice_data, specifica
         model.fit()
 
 
-def test_matches_pylogit_reference_results():
-    rng = np.random.default_rng(42)
-    observation_count = 500
+def test_flexible_mnl_accepts_merged_choice_table():
+    """
+    MergedChoiceTable frames carry the observation and alternative ids as index levels
+    rather than columns (issue #77).
+
+    """
+    rng = np.random.default_rng(7)
+    obs = pd.DataFrame({
+        "oid": np.arange(60),
+        "obsval": rng.random(60),
+        "choice": rng.choice([1, 2, 3], size=60)}).set_index("oid")
+    alts = pd.DataFrame({
+        "aid": [1, 2, 3],
+        "altval": rng.random(3)}).set_index("aid")
+    mct = MergedChoiceTable(obs, alts, "choice")
+    specification = OrderedDict([
+        ("altval", "all_same"),
+        ("obsval", [2, 3]),
+    ])
+
+    results = MultinomialLogit(mct, specification).fit()
+    assert results.get_raw_results().estimation_success
+
+    probabilities = results.probabilities(mct)
+    assert probabilities.index.equals(mct.to_frame().index)
+    np.testing.assert_allclose(probabilities.groupby(level="oid").sum(), 1.0)
+
+    # ids as columns of a plain DataFrame give the same probabilities
+    frame = mct.to_frame().reset_index()
+    np.testing.assert_allclose(
+        results.probabilities(frame).to_numpy(), probabilities.to_numpy())
+
+
+def simulated_mode_choice(observation_count, seed=42):
+    """
+    Deterministic three-alternative mode choice data generated from known coefficients.
+
+    """
+    rng = np.random.default_rng(seed)
     alternative = np.tile([1, 2, 3], observation_count)
     observation = np.repeat(np.arange(observation_count), 3)
     travel_time = rng.normal(20, 5, observation_count * 3)
@@ -159,7 +197,7 @@ def test_matches_pylogit_reference_results():
     for obs in range(observation_count):
         chosen[obs * 3 + rng.choice(3, p=probability[obs])] = 1
 
-    data = pd.DataFrame({
+    return pd.DataFrame({
         "observation": observation,
         "alternative": alternative,
         "chosen": chosen,
@@ -167,6 +205,10 @@ def test_matches_pylogit_reference_results():
         "travel_time": travel_time,
         "cost": cost,
     })
+
+
+def test_matches_pylogit_reference_results():
+    data = simulated_mode_choice(500)
     specification = OrderedDict([
         ("intercept", [2, 3]),
         ("travel_time", "all_same"),
@@ -193,3 +235,35 @@ def test_matches_pylogit_reference_results():
     np.testing.assert_allclose(results.params, expected, rtol=1e-7, atol=1e-8)
     assert results.log_likelihood == pytest.approx(-480.48961450823003)
     assert results.estimation_success
+
+
+def test_converged_fit_reports_success():
+    """
+    Judged by the optimizer's own status, this fit stops with a "precision loss" message
+    at the same coefficients as a successful fit; convergence is judged by the final
+    gradient instead, so no non-convergence warning should be raised.
+
+    """
+    data = simulated_mode_choice(300)
+    specification = OrderedDict([
+        ("intercept", [2, 3]),
+        ("travel_time", "all_same"),
+        ("cost", [[1, 2], 3]),
+    ])
+
+    def fit(initial_coefs):
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", RuntimeWarning)
+            return MultinomialLogit(
+                data,
+                specification,
+                observation_id_col="observation",
+                alternative_id_col="alternative",
+                choice_col="chosen",
+                initial_coefs=initial_coefs).fit().get_raw_results()
+
+    from_zero = fit(None)
+    from_offset = fit(0.1)
+    assert from_zero.estimation_success
+    assert from_offset.estimation_success
+    np.testing.assert_allclose(from_offset.params, from_zero.params, rtol=1e-6)
