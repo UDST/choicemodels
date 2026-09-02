@@ -33,11 +33,6 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# The PyLogit-format estimation path imports PyLogit at fit time. PyLogit's
-# current release does not import on Python 3.10 or later; see issue #79.
-pylogit = [
-    "pylogit>=1.0",
-]
 test = [
     "pytest>=8",
     "pytest-cov>=5",
@@ -46,6 +41,10 @@ dev = [
     "build>=1.2",
     "ruff>=0.12",
     "twine>=6",
+]
+docs = [
+    "sphinx>=7",
+    "sphinx_rtd_theme>=2",
 ]
 
 [project.urls]

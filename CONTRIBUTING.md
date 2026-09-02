@@ -25,9 +25,9 @@ You can contact Sam Maurer, the lead developer, at `maurer@urbansim.com`.
 
 - Make your changes, following the existing styles for code and inline documentation
 
-- Add [tests](https://github.com/UDST/choicemodels/tree/master/tests) if possible!
+- Add [tests](https://github.com/UDST/choicemodels/tree/dev/tests) if possible!
 
-- Open a pull request to the `UDST/choicemodels` master branch, including a writeup of your changes -- take a look at some of the closed PR's for examples
+- Open a pull request to the `UDST/choicemodels` dev branch, including a writeup of your changes -- take a look at some of the closed PR's for examples
 
 - Current maintainers will review the code, suggest changes, and hopefully merge it!
 
@@ -38,8 +38,7 @@ You can contact Sam Maurer, the lead developer, at `maurer@urbansim.com`.
 
 - It works best to do this just before merging (in case other PR's are merged first, and so you know the release date for the changelog and documentation)
 
-- There are three places where the version number needs to be changed: 
-  - `setup.py`
+- There are two places where the version number needs to be changed (`pyproject.toml` reads it from the package): 
   - `choicemodels/__init__.py`
   - `docs/source/index.rst`
 
@@ -59,16 +58,16 @@ You can contact Sam Maurer, the lead developer, at `maurer@urbansim.com`.
 
 - Make sure all the tests are passing, and check if updates are needed to `README.md` or to the documentation
 
-- Open a pull request to the master branch and merge it
+- Open a pull request to the dev branch and merge it
 
 - Tag the release on Github
 
 
 ## Distributing a release on PyPI (for pip installation):
 
-- Register an account at https://pypi.org, ask one of the current maintainers to add you to the project, and `pip install twine`
+- Register an account at https://pypi.org, ask one of the current maintainers to add you to the project, and `pip install build twine`
 
-- Run `python setup.py sdist bdist_wheel --universal`
+- Run `python -m build`, then `twine check --strict dist/*`
 
 - This should create a `dist` directory containing two package files -- delete any old ones before the next step
 
@@ -85,7 +84,7 @@ You can contact Sam Maurer, the lead developer, at `maurer@urbansim.com`.
   - update the version number
   - paste a new hash matching the tar.gz file that was uploaded to pypi (it's available on the pypi.org project page)
 
-- Check that the run requirements still match `requirements.txt`
+- Check that the run requirements still match the dependencies in `pyproject.toml`
 
 - Open a pull request to the `conda-forge/choicemodels-feedstock` master branch
 

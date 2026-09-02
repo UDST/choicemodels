@@ -99,7 +99,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
         with:
-          python-version: "3.12"
+          python-version: "3.14"
 
       - name: Build distributions
         run: |
@@ -113,3 +113,25 @@ jobs:
           python -m pip check
           cd /tmp
           python -c "import choicemodels; print(choicemodels.__version__)"
+
+  docs:
+    name: Documentation build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: "3.14"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+
+      - name: Install package and documentation tools
+        run: python -m pip install ".[docs]"
+
+      - name: Build documentation (warnings are errors)
+        run: python -m sphinx -E -W --keep-going -b html docs/source docs/build/html

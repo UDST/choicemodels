@@ -5,11 +5,13 @@
 - requires Python 3.10 or later, with NumPy 1.21, Pandas 1.5, SciPy 1.7, and
   Statsmodels 0.13 as the tested minimum versions
 - declares `tqdm` as a dependency; it was already required by the simulation tools
-- imports PyLogit only when the PyLogit-format estimation path is used, and moves it
-  to an optional `pylogit` extra
-- moves package metadata to `pyproject.toml` and replaces the Travis-era GitHub
-  Actions workflows with a single CI workflow that tests the minimum and current
-  dependency versions, checks code quality, and validates the built distributions
+- imports PyLogit only when the PyLogit-format estimation path is used, and no longer
+  declares it as a dependency; its current release does not import on Python 3.10 or
+  later (see #79)
+- moves package metadata to `pyproject.toml` and replaces the 2021 GitHub Actions
+  workflows with a single CI workflow that tests the minimum and current dependency
+  versions, checks code quality, validates the built distributions, and builds the
+  documentation
 - updates tests for current Pandas releases and for the `spawn` multiprocessing start
   method
 
