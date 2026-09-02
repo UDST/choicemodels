@@ -7,13 +7,13 @@ ChoiceModels is a Python library for discrete choice modeling, with utilities fo
 
 ### Features
 
-The library focuses mainly on tools to help integrate discrete choice models into larger workflows, drawing on other packages such as the excellent [PyLogit](https://github.com/timothyb0912/pylogit) for most estimation of models. 
+The library focuses mainly on tools to help integrate discrete choice models into larger workflows. 
 
 ChoiceModels can automate the creation of choice tables for estimation or simulation, using uniform or weighted random sampling of alternatives, as well as interaction terms or cartesian merges. 
 
 It also provides general-purpose tools for Monte Carlo simulation of choices given probability distributions from fitted models, with fast algorithms for independent or capacity-constrained choices. 
 
-ChoiceModels includes a custom engine for Multinomial Logit estimation that's optimized for fast performance with large numbers of alternatives.
+ChoiceModels includes a custom engine for Multinomial Logit estimation that's optimized for fast performance with large numbers of alternatives, as well as a flexible MNL implementation compatible with [PyLogit](https://github.com/timothyb0912/pylogit) model specifications.
 
 
 ### Installation

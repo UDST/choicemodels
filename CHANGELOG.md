@@ -1,9 +1,9 @@
 # ChoiceModels change log
 
-### 0.3.0
+### 0.3.dev1 (not yet released)
 
-- incorporates the PyLogit-compatible MNL functionality used by ChoiceModels,
-  removing the runtime dependency on the unmaintained PyLogit release
+- incorporates the PyLogit-compatible MNL functionality used by ChoiceModels, so the
+  PyLogit-format estimation path no longer imports PyLogit at all (closes #79)
 - supports prediction for flexible MNL models with varying choice sets and
   generic, alternative-specific, or grouped coefficients
 - preserves coefficient, covariance, fit-statistic, summary, and pickle-based
