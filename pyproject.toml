@@ -1,0 +1,82 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "choicemodels"
+dynamic = ["version"]
+description = "Python library for discrete choice modeling"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "BSD-3-Clause"
+authors = [
+    {name = "UrbanSim Inc.", email = "info@urbansim.com"},
+]
+classifiers = [
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "numpy>=1.21",
+    "pandas>=1.5,<4",
+    "patsy>=0.5",
+    "scipy>=1.7",
+    "statsmodels>=0.13",
+    "tqdm>=4.64",
+]
+
+[project.optional-dependencies]
+# The PyLogit-format estimation path imports PyLogit at fit time. PyLogit's
+# current release does not import on Python 3.10 or later; see issue #79.
+pylogit = [
+    "pylogit>=1.0",
+]
+test = [
+    "pytest>=8",
+    "pytest-cov>=5",
+]
+dev = [
+    "build>=1.2",
+    "ruff>=0.12",
+    "twine>=6",
+]
+
+[project.urls]
+Documentation = "https://udst.github.io/choicemodels/"
+Repository = "https://github.com/UDST/choicemodels"
+Issues = "https://github.com/UDST/choicemodels/issues"
+
+[tool.setuptools]
+include-package-data = false
+
+[tool.setuptools.dynamic]
+version = {attr = "choicemodels.__version__"}
+
+[tool.setuptools.packages.find]
+include = ["choicemodels", "choicemodels.*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.coverage.run]
+source = ["choicemodels"]
+
+[tool.coverage.report]
+show_missing = true
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E9", "F"]
+
+[tool.ruff.lint.per-file-ignores]
+"**/__init__.py" = ["F401", "F403"]

@@ -6,14 +6,12 @@ from collections import OrderedDict
 
 import numpy as np
 import pandas as pd
-import pylogit
 import scipy.optimize
 import scipy.stats
 from patsy import dmatrix
 from statsmodels.iolib.table import SimpleTable
 
 from .tools import MergedChoiceTable
-from .tools import pmat
 from .tools.pmat import PMAT
 
 
@@ -182,6 +180,10 @@ class MultinomialLogit(object):
 
         """
         if (self._estimation_engine == 'PyLogit'):
+
+            # PyLogit is an optional dependency, imported only when this estimation
+            # path is used. Its current release requires Python 3.9 or earlier.
+            import pylogit
 
             m = pylogit.create_choice_model(data = self._df,
                                             obs_id_col = self._observation_id_col,
@@ -708,7 +710,6 @@ def mnl_estimate(data, chosen, numalts, GPU=False, coeffrange=(-1000, 1000),
     ll_null = float(l0[0][0])
     rho_squared = 1.0 - ll / ll_null
     rho_bar_squared = 1.0 - ((ll - len(beta)) /ll_null)
-    num_obs = numobs
     df_resid = numobs - len(beta)
     p_values = 2 * scipy.stats.norm.sf(np.abs(beta / stderr))
     bic = -2 * ll + np.log(numobs) * len(beta)

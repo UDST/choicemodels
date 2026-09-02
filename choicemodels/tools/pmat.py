@@ -1,12 +1,11 @@
 from __future__ import division
 
 import numpy as np
-from numpy.linalg import inv
 
 
 def initialize_gpu():
-    from cudamat import cudamat as cm
     global cm
+    from cudamat import cudamat as cm
 
     # this class wraps matrix operations so that you can switch between numpy
     # and cuda operations
