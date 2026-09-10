@@ -11,6 +11,10 @@
 - credits the incorporated PyLogit work and preserves its BSD license
 - accepts MergedChoiceTable input, or any table with the ids as index levels, in the
   flexible MNL path (closes #77)
+- keeps flexible MNL probabilities strictly positive when utilities differ by hundreds
+  of units within a choice set, so log-probabilities computed in simulation stay finite;
+  the raw results' `predict()` can reuse the estimation design matrix and accept
+  alternative coefficients
 
 ### 0.3.dev0 (not yet released)
 

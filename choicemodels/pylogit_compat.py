@@ -92,12 +92,21 @@ def _observation_slices(observation_ids):
     return [np.asarray(positions[observation_id], dtype=int) for observation_id in order]
 
 
+# Floor for exponentiated utilities, so that an alternative whose utility is far
+# below the best in its choice set keeps a small positive probability instead of
+# underflowing to zero. Log-probabilities then stay finite in simulation and
+# validation, where the fitted coefficients may be applied to new data.
+_MIN_EXP_UTILITY = np.finfo(float).tiny
+
+
 def _probabilities(design, coefficients, groups):
     utilities = design.dot(coefficients)
     probabilities = np.empty(utilities.shape[0], dtype=float)
     for rows in groups:
+        # Centering on the maximum utility rules out overflow; the floor rules out
+        # underflow. Normalizing afterward keeps each choice set summing to one.
         centered = utilities[rows] - np.max(utilities[rows])
-        exponentiated = np.exp(centered)
+        exponentiated = np.maximum(np.exp(centered), _MIN_EXP_UTILITY)
         probabilities[rows] = exponentiated / exponentiated.sum()
     return probabilities
 
@@ -247,14 +256,27 @@ class MNLResults(object):
         self.aic = -2 * self.log_likelihood + 2 * self.df_model
         self.bic = -2 * self.log_likelihood + np.log(self.nobs) * self.df_model
 
-    def predict(self, data):
-        design, names = create_design_matrix(
-            data, self.specification, self.alt_id_col, self.name_spec)
-        if names != self.ind_var_names:
-            raise ValueError("Prediction design does not match the fitted model")
-        return predict_mnl(
-            data, self.obs_id_col, self.alt_id_col, self.specification,
-            self.params.to_numpy(), self.name_spec)
+    def predict(self, data=None, coefficients=None):
+        """Predict long-form probabilities for ``data``, or for the estimation data.
+
+        Passing ``data=None`` reuses the design matrix built for estimation, which
+        avoids rebuilding it for each draw of a simulation that varies only the
+        coefficients. ``coefficients`` defaults to the fitted parameters.
+        """
+        if coefficients is None:
+            coefficients = self.params.to_numpy()
+        coefficients = np.asarray(coefficients, dtype=float)
+        if data is None:
+            design, groups = self.design, self._groups
+        else:
+            design, names = create_design_matrix(
+                data, self.specification, self.alt_id_col, self.name_spec)
+            if names != self.ind_var_names:
+                raise ValueError("Prediction design does not match the fitted model")
+            groups = _observation_slices(data[self.obs_id_col].to_numpy())
+        if coefficients.shape != (design.shape[1],):
+            raise ValueError("coefficients must contain one value per design column")
+        return _probabilities(design, coefficients, groups)
 
     def to_pickle(self, path):
         """Write the fitted model using the method exposed by PyLogit."""
