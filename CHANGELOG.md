@@ -5,9 +5,9 @@
 Release candidate for 0.3, the first release since 2020. It modernizes the package for
 current Python and dependency versions and removes the dependency on PyLogit.
 
-- requires Python 3.10 or later, and is tested on Python 3.10 through 3.14 with NumPy
-  1.21 through 2.x, Pandas 1.5 through 3.x, SciPy 1.7+, and Statsmodels 0.13+; drops
-  support for Python 2 and for Python 3.5 through 3.9
+- supports Python 3.10 through 3.14, tested at the oldest and newest, with NumPy 1.21
+  through 2.x, Pandas 1.5 through 3.x, Patsy 0.5+, SciPy 1.7+, and Statsmodels 0.13+;
+  drops support for Python 3.9 and earlier
 - removes the PyLogit dependency by incorporating the multinomial logit functionality
   that ChoiceModels used from it, with attribution and the original BSD license (#79,
   #81): the flexible estimation path still takes PyLogit-style `OrderedDict`
