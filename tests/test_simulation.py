@@ -98,6 +98,10 @@ def fitted_model(obs, alts):
 def _sample_mct(obs, alts, intx_ops=None):
     return MergedChoiceTable(obs, alts, sample_size=10)
 
+def _failing_probs(mct):
+    raise ValueError("probabilities cannot be computed")
+
+
 def _sample_mct_without_replacement(obs, alts, intx_ops=None):
     # sampling without replacement fails on an empty alternatives table, unlike the
     # default sampler, so a lottery must stop before it runs out of alternatives
@@ -254,12 +258,52 @@ def test_capacity_break(obs, alts, mct, probs):
 
 def test_parallel_lottery_choices(obs, alts, mct, probs):
     """
-    Test that parallel lottery choices can run and that there
-    aren't any duplicate choices
+    Test that parallel lottery choices can run, that there aren't any duplicate
+    choices, and that every alternative gets filled when they are the binding
+    constraint (40 alternatives with capacity 1, 50 choosers).
     
     """
+    alts = alts.iloc[:40].copy()
     num_cpus = multiprocessing.cpu_count()
     batch_size = int(np.ceil(len(obs) / num_cpus))
     choices = parallel_lottery_choices(
         obs, alts, mct, probs, chooser_batch_size=batch_size)
-    assert len(np.unique(list(choices.values))) == min(len(alts), len(obs))
+    assert not choices.duplicated().any()
+    assert sorted(choices.values) == alts.index.tolist()
+
+
+def test_parallel_lottery_choices_default_batch_size(obs, alts, mct, probs):
+    """
+    Confirm that omitting chooser_batch_size processes all the choosers in one batch.
+
+    """
+    choices = parallel_lottery_choices(obs, alts, mct, probs)
+    assert len(choices) == len(obs)
+    assert not choices.duplicated().any()
+
+
+def test_parallel_lottery_choices_rejects_unsupported_ids(obs, alts, mct, probs):
+    """
+    Alternative ids are exchanged between workers through a shared integer array, so
+    they must be non-negative integers; anything else is rejected up front.
+
+    """
+    negative = alts.iloc[:5].copy()
+    negative.index = pd.Index([-1, 0, 1, 2, 3], name='aid')
+    with pytest.raises(ValueError, match="non-negative"):
+        parallel_lottery_choices(obs, negative, mct, probs)
+
+    strings = alts.iloc[:5].copy()
+    strings.index = pd.Index(list('abcde'), name='aid')
+    with pytest.raises(ValueError, match="integer alternative ids"):
+        parallel_lottery_choices(obs, strings, mct, probs)
+
+
+def test_parallel_lottery_choices_surfaces_worker_errors(obs, alts, mct):
+    """
+    An error inside a worker process must raise in the caller rather than silently
+    returning a short result.
+
+    """
+    with pytest.raises(RuntimeError, match="exited with an error"):
+        parallel_lottery_choices(obs, alts, mct, _failing_probs, chooser_batch_size=25)
