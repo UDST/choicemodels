@@ -212,12 +212,10 @@ def test_exhausted_alternatives(obs, alts, probs):
 
 def test_exhausted_alternatives_in_parallel(obs, alts, probs):
     """
-    The parallel lottery runs the same check in each worker. (Alternative id 0 is
-    skipped because the shared array of chosen alternatives is zero-filled, so the
-    workers treat id 0 as already taken; that is a separate pre-existing limitation.)
+    The parallel lottery runs the same check in each worker.
 
     """
-    alts = alts.iloc[1:6].copy()
+    alts = alts.iloc[:5].copy()
     choices = parallel_lottery_choices(
         obs, alts, _sample_mct_without_replacement, probs, chooser_batch_size=25)
 
@@ -264,4 +262,4 @@ def test_parallel_lottery_choices(obs, alts, mct, probs):
     batch_size = int(np.ceil(len(obs) / num_cpus))
     choices = parallel_lottery_choices(
         obs, alts, mct, probs, chooser_batch_size=batch_size)
-    assert len(np.unique(list(choices.values))) == min(len(alts) - 1, len(obs))
+    assert len(np.unique(list(choices.values))) == min(len(alts), len(obs))

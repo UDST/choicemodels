@@ -1,5 +1,11 @@
 # ChoiceModels change log
 
+### 0.3.dev3 (not yet released)
+
+- fixes `parallel_lottery_choices()` never assigning the alternative with id 0, which
+  it mistook for an already-chosen alternative; alternative ids are now also tracked as
+  64-bit integers rather than 32-bit
+
 ### 0.3.dev2 (not yet released)
 
 - fixes `iterative_lottery_choices()` and `parallel_lottery_choices()` failing when every

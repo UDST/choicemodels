@@ -238,6 +238,9 @@ def iterative_lottery_choices(
     return valid_choices
 
 
+_UNCLAIMED = -1  # sentinel for unfilled slots in the shared array of chosen alternatives
+
+
 def _parallel_lottery_choices_worker(
         choosers, alternatives, choices_dict, chosen_alts,
         mct_callable, probs_callable, alt_capacity=None,
@@ -310,7 +313,7 @@ def _parallel_lottery_choices_worker(
 
     iter = 0
     while (len(valid_choices) < len_choosers):
-        chosen_alts_list = list(chosen_alts.get_obj())
+        chosen_alts_list = [a for a in chosen_alts.get_obj() if a != _UNCLAIMED]
         alternatives = alternatives[~alternatives.index.isin(chosen_alts_list)]
         iter += 1
 
@@ -353,7 +356,7 @@ def _parallel_lottery_choices_worker(
         # chosen already and the time the worker updates the array
         with chosen_alts.get_lock():
 
-            chosen_alts_list = list(chosen_alts.get_obj())
+            chosen_alts_list = [a for a in chosen_alts.get_obj() if a != _UNCLAIMED]
             c_valid = (c._cumsize <= c[capacity]) & (
                 ~c[alts_name].isin(chosen_alts_list))
             iter_valid_choices = c[aid].loc[c_valid]
@@ -467,7 +470,11 @@ def parallel_lottery_choices(
     manager = Manager()
     shared_choices_dict = manager.dict()
     alternatives[alt_capacity] = 1
-    shared_chosen_alts = Array('i', len(choosers))
+    # One slot per chooser, filled in as alternatives are claimed. The array starts
+    # out as a sentinel that no alternative id can equal, rather than zeros, so that
+    # an alternative with id 0 is not mistaken for one that has already been chosen.
+    shared_chosen_alts = Array('q', len(choosers))
+    shared_chosen_alts[:] = [_UNCLAIMED] * len(choosers)
     jobs = []
     for b, batch in enumerate(obs_batches):
         obs = choosers.loc[batch]
