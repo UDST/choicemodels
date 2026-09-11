@@ -1,6 +1,6 @@
 Thanks for using ChoiceModels! 
 
-This is an open source project that's part of the Urban Data Science Toolkit. Development and maintenance is a collaboration between UrbanSim Inc and U.C. Berkeley's Urban Analytics Lab. 
+This is an open source project that's part of the Urban Data Science Toolkit. Development and maintenance is a collaboration between UrbanSim Inc and other contributors. 
 
 You can contact Sam Maurer, the lead developer, at `maurer@urbansim.com`.
 

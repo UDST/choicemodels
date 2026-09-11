@@ -8,7 +8,7 @@ ChoiceModels
 
 ChoiceModels is a Python library for discrete choice modeling, with utilities for sampling, simulation, and other ancillary tasks. It's part of the `Urban Data Science Toolkit <https://docs.udst.org>`__ (UDST).
 
-v0.2.2, released April 17, 2020
+v0.3rc1, released September 11, 2026
 
 
 Contents

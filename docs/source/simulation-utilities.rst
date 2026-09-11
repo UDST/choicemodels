@@ -5,9 +5,9 @@ ChoiceModels provides general-purpose tools for Monte Carlo simulation of choice
 
 ``monte_carlo_choices()`` is equivalent to applying ``np.random.choice()`` in parallel for many independent choice scenarios, but it's implemented as a single-pass matrix calculation that is much faster.
 
-``iterative_lottery_choices()`` is for cases where the alternatives have limited capacitiesxs, requiring multiple passes to match choosers and alternatives. Effectively, choices are simulated sequentially, each time removing the chosen alternative or reducing its available capacity. (It's actually done in batches for better performance.)
+``iterative_lottery_choices()`` is for cases where the alternatives have limited capacities, requiring multiple passes to match choosers and alternatives. Effectively, choices are simulated sequentially, each time removing the chosen alternative or reducing its available capacity. (It's actually done in batches for better performance.)
 
-``parallel_lottery_choices()`` works functionally the same as the above but the batches run in parallel rather than sequentially.
+``parallel_lottery_choices()`` works functionally the same as the above but the batches run in parallel rather than sequentially. It currently supports only alternatives with a capacity of 1, identified by non-negative integer ids.
 
 Independent choices
 -------------------
