@@ -102,10 +102,13 @@ def _failing_probs(mct):
     raise ValueError("probabilities cannot be computed")
 
 
-def _sample_mct_without_replacement(obs, alts, intx_ops=None):
-    # sampling without replacement fails on an empty alternatives table, unlike the
-    # default sampler, so a lottery must stop before it runs out of alternatives
-    return MergedChoiceTable(obs, alts, sample_size=3, replace=False)
+def _sample_mct_strict(obs, alts, intx_ops=None):
+    # The default sampler happens to tolerate an empty alternatives table, but the
+    # callables in downstream models generally do not, so a lottery must stop before
+    # it runs out of alternatives rather than rely on the callable coping.
+    if len(alts) == 0:
+        raise ValueError("no alternatives left to sample")
+    return MergedChoiceTable(obs, alts, sample_size=10)
 
 def _predict_probs(model, mct):
     return model.probabilities(mct)
@@ -208,7 +211,7 @@ def test_exhausted_alternatives(obs, alts, probs):
 
     """
     alts = alts.iloc[:5].copy()  # 50 choosers, 5 alternatives with capacity 1
-    choices = iterative_lottery_choices(obs, alts, _sample_mct_without_replacement, probs)
+    choices = iterative_lottery_choices(obs, alts, _sample_mct_strict, probs)
 
     assert len(choices) == len(alts)
     assert sorted(choices.values) == alts.index.tolist()
@@ -221,7 +224,7 @@ def test_exhausted_alternatives_in_parallel(obs, alts, probs):
     """
     alts = alts.iloc[:5].copy()
     choices = parallel_lottery_choices(
-        obs, alts, _sample_mct_without_replacement, probs, chooser_batch_size=25)
+        obs, alts, _sample_mct_strict, probs, chooser_batch_size=25)
 
     assert len(choices) == len(alts)
     assert sorted(choices.values) == alts.index.tolist()
