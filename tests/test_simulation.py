@@ -98,6 +98,11 @@ def fitted_model(obs, alts):
 def _sample_mct(obs, alts, intx_ops=None):
     return MergedChoiceTable(obs, alts, sample_size=10)
 
+def _sample_mct_without_replacement(obs, alts, intx_ops=None):
+    # sampling without replacement fails on an empty alternatives table, unlike the
+    # default sampler, so a lottery must stop before it runs out of alternatives
+    return MergedChoiceTable(obs, alts, sample_size=3, replace=False)
+
 def _predict_probs(model, mct):
     return model.probabilities(mct)
 
@@ -190,6 +195,35 @@ def test_insufficient_capacity(obs, alts, mct, probs):
     choices = iterative_lottery_choices(obs, alts, mct, probs)
     assert len(choices) > 0
     
+
+def test_exhausted_alternatives(obs, alts, probs):
+    """
+    Confirm that the lottery stops cleanly when every alternative fills up before the
+    choosers run out, without asking for a choice table from an empty alternatives table
+    (PR #75).
+
+    """
+    alts = alts.iloc[:5].copy()  # 50 choosers, 5 alternatives with capacity 1
+    choices = iterative_lottery_choices(obs, alts, _sample_mct_without_replacement, probs)
+
+    assert len(choices) == len(alts)
+    assert sorted(choices.values) == alts.index.tolist()
+
+
+def test_exhausted_alternatives_in_parallel(obs, alts, probs):
+    """
+    The parallel lottery runs the same check in each worker. (Alternative id 0 is
+    skipped because the shared array of chosen alternatives is zero-filled, so the
+    workers treat id 0 as already taken; that is a separate pre-existing limitation.)
+
+    """
+    alts = alts.iloc[1:6].copy()
+    choices = parallel_lottery_choices(
+        obs, alts, _sample_mct_without_replacement, probs, chooser_batch_size=25)
+
+    assert len(choices) == len(alts)
+    assert sorted(choices.values) == alts.index.tolist()
+
 
 def test_chooser_priority(obs, alts, mct, probs):
     """
