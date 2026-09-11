@@ -238,6 +238,11 @@ def iterative_lottery_choices(
     return valid_choices
 
 
+# Sentinel for unfilled slots in the shared array of chosen alternatives; alternative
+# ids passed to parallel_lottery_choices() must be non-negative integers
+_UNCLAIMED = -1
+
+
 def _parallel_lottery_choices_worker(
         choosers, alternatives, choices_dict, chosen_alts,
         mct_callable, probs_callable, alt_capacity=None,
@@ -262,7 +267,9 @@ def _parallel_lottery_choices_worker(
         A dictionary array allocated from shared memory
 
     chosen_alts : multiprocessing.Array
-        A ctypes array allocated from shared memory
+        A ctypes array allocated from shared memory, with one slot per chooser. Slots
+        hold the id of a claimed alternative, or _UNCLAIMED (-1) if not yet filled, so
+        readers must filter the sentinel out.
     
     mct_callable : callable
         Callable that samples alternatives to generate a table of choice scenarios. It 
@@ -310,7 +317,7 @@ def _parallel_lottery_choices_worker(
 
     iter = 0
     while (len(valid_choices) < len_choosers):
-        chosen_alts_list = list(chosen_alts.get_obj())
+        chosen_alts_list = [a for a in chosen_alts.get_obj() if a != _UNCLAIMED]
         alternatives = alternatives[~alternatives.index.isin(chosen_alts_list)]
         iter += 1
 
@@ -353,7 +360,7 @@ def _parallel_lottery_choices_worker(
         # chosen already and the time the worker updates the array
         with chosen_alts.get_lock():
 
-            chosen_alts_list = list(chosen_alts.get_obj())
+            chosen_alts_list = [a for a in chosen_alts.get_obj() if a != _UNCLAIMED]
             c_valid = (c._cumsize <= c[capacity]) & (
                 ~c[alts_name].isin(chosen_alts_list))
             iter_valid_choices = c[aid].loc[c_valid]
@@ -394,14 +401,16 @@ def parallel_lottery_choices(
         (Reserved column names: '_size'.)
     
     alternatives : pd.DataFrame
-        Table with one row for each alternative, with unique ID's in the index field.
-        Additional columns can contain fixed attributes of the alternatives. (Reserved
-        column names: '_capacity'.)
+        Table with one row for each alternative, with unique non-negative integer ID's
+        in the index field (the ID's are exchanged between worker processes through a
+        shared integer array). Additional columns can contain fixed attributes of the
+        alternatives. (Reserved column names: '_capacity'.)
     
     mct_callable : callable
         Callable that samples alternatives to generate a table of choice scenarios. It
         should accept subsets of the choosers and alternatives tables and return a
-        choicemodels.tools.MergedChoiceTable.
+        choicemodels.tools.MergedChoiceTable. Along with probs_callable, it is sent to
+        the worker processes and must be picklable.
     
     probs_callable : callable
         Callable that generates predicted probabilities for a table of choice scenarios.
@@ -427,16 +436,31 @@ def parallel_lottery_choices(
     chooser_batch_size : int or None, optional
         Size of the batches for processing smaller groups of choosers one at a time.
         Useful when the anticipated size of the merged choice tables (choosers X
-        alternatives X covariates) will be too large for python/pandas to handle.
-
+        alternatives X covariates) will be too large for python/pandas to handle. If
+        None (default), all the choosers are processed in a single worker.
 
     Returns
     -------
     pd.Series
         List of chosen alternative id's, indexed with the chooser (observation) id.
 
+    Raises
+    ------
+    ValueError
+        If the alternatives index is not made up of non-negative integers.
+    RuntimeError
+        If a worker process exits with an error.
+
     """
     
+    if not pd.api.types.is_integer_dtype(alternatives.index):
+        raise ValueError(
+            "parallel_lottery_choices() requires integer alternative ids, not {}".format(
+                alternatives.index.dtype))
+    if (alternatives.index < 0).any():
+        raise ValueError(
+            "parallel_lottery_choices() requires non-negative alternative ids")
+
     choosers = choosers.copy()
     alternatives = alternatives.copy()
 
@@ -449,6 +473,7 @@ def parallel_lottery_choices(
         choosers.loc[:, chooser_size] = 1
 
     if chooser_batch_size is None or chooser_batch_size > len(choosers):
+        chooser_batch_size = len(choosers)
         obs_batches = [choosers.index.values]
     else:
         obs_batches = [
@@ -467,7 +492,12 @@ def parallel_lottery_choices(
     manager = Manager()
     shared_choices_dict = manager.dict()
     alternatives[alt_capacity] = 1
-    shared_chosen_alts = Array('i', len(choosers))
+    # One slot per chooser, filled in as alternatives are claimed. The array starts
+    # out filled with the sentinel rather than zeros, so that an alternative with id 0
+    # is not mistaken for one that has already been chosen; the validation above
+    # guarantees that no alternative id equals the sentinel.
+    shared_chosen_alts = Array('q', len(choosers))
+    shared_chosen_alts[:] = [_UNCLAIMED] * len(choosers)
     jobs = []
     for b, batch in enumerate(obs_batches):
         obs = choosers.loc[batch]
@@ -483,6 +513,12 @@ def parallel_lottery_choices(
 
     for j, job in tqdm(enumerate(jobs), total=len(jobs)):
         job.join()
+
+    failed = [j for j, job in enumerate(jobs) if job.exitcode != 0]
+    if failed:
+        raise RuntimeError(
+            "parallel_lottery_choices() worker process(es) {} exited with an error; "
+            "see the traceback(s) printed above".format(failed))
 
     choices_dict = shared_choices_dict._getvalue()
 

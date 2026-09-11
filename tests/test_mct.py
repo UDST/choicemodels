@@ -1,6 +1,7 @@
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
+import numpy as np
 import pandas as pd
 import pytest
 
@@ -26,6 +27,10 @@ def alts():
 
 
 def test_mergedchoicetable(obs, alts):
+    # The sampling assertions below are probabilistic (e.g. four uniform draws from
+    # three alternatives all landing on the same one), so fix the random state
+    np.random.seed(0)
+
     # NO SAMPLING, TABLE FOR SIMULATION
 
     mct = choicemodels.tools.MergedChoiceTable(obs, alts).to_frame()
