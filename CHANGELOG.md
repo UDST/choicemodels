@@ -1,5 +1,12 @@
 # ChoiceModels change log
 
+### 0.3.dev2 (not yet released)
+
+- fixes `iterative_lottery_choices()` and `parallel_lottery_choices()` failing when every
+  alternative fills up before the choosers run out: the lottery now stops before asking
+  the choice-table callable to sample from an empty alternatives table (PR #75, thanks
+  to @mxndrwgrdnr)
+
 ### 0.3.dev1 (not yet released)
 
 - incorporates the PyLogit-compatible MNL functionality used by ChoiceModels, so the
