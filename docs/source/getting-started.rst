@@ -86,7 +86,8 @@ Then, you can estimate a Multinomial Logit model like this:
 
 .. code-block:: python
    
-   results = choicemodels.MultinomialLogit(mct, model_expression='x1 + x2 + x3')
+   model = choicemodels.MultinomialLogit(mct, model_expression='x1 + x2 + x3')
+   results = model.fit()
 
 This provides a ``choicemodels.MultinomialLogitResults`` object, from which you can obtain probability distributions for out-of-sample choice scenarios in order to generate simulated choices.
 

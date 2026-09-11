@@ -53,7 +53,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'ChoiceModels'
-copyright = '2021, Urban Data Science Toolkit'
+copyright = '2026, Urban Data Science Toolkit'
 author = 'Urban Data Science Toolkit'
 
 # The version info for the project you're documenting, acts as replacement for

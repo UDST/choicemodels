@@ -1,60 +1,42 @@
 # ChoiceModels change log
 
-### 0.3.dev4 (not yet released)
+### 0.3rc1 (2026-09-11)
 
-- adds a `Publish` GitHub Actions workflow that builds and verifies the distributions
-  for a GitHub release and uploads them to PyPI through Trusted Publishing, after
-  approval in a protected deployment environment
-- makes `main` the integration branch and retires `dev`; updates the contributor guide
-  for the new branch and release process
+Release candidate for 0.3, the first release since 2020. It modernizes the package for
+current Python and dependency versions and removes the dependency on PyLogit.
 
-### 0.3.dev3 (not yet released)
-
-- fixes `parallel_lottery_choices()` never assigning the alternative with id 0, which
-  it mistook for an already-chosen alternative; alternative ids are now tracked as
-  64-bit integers rather than 32-bit, and must be non-negative integers (an unsupported
-  index raises a `ValueError` up front)
-- `parallel_lottery_choices()` works with the default `chooser_batch_size=None`, which
-  previously crashed the worker, and raises a `RuntimeError` when a worker process
-  exits with an error instead of silently returning a partial result
-
-### 0.3.dev2 (not yet released)
-
-- fixes `iterative_lottery_choices()` and `parallel_lottery_choices()` failing when every
-  alternative fills up before the choosers run out: the lottery now stops before asking
-  the choice-table callable to sample from an empty alternatives table (PR #75, thanks
-  to @mxndrwgrdnr)
-
-### 0.3.dev1 (not yet released)
-
-- incorporates the PyLogit-compatible MNL functionality used by ChoiceModels, so the
-  PyLogit-format estimation path no longer imports PyLogit at all (closes #79)
-- supports prediction for flexible MNL models with varying choice sets and
-  generic, alternative-specific, or grouped coefficients
-- preserves coefficient, covariance, fit-statistic, summary, and pickle-based
-  result workflows for the flexible MNL path
-- credits the incorporated PyLogit work and preserves its BSD license
-- accepts MergedChoiceTable input, or any table with the ids as index levels, in the
-  flexible MNL path (closes #77)
-- keeps flexible MNL probabilities strictly positive when utilities differ by hundreds
-  of units within a choice set, so log-probabilities computed in simulation stay finite;
-  the raw results' `predict()` can reuse the estimation design matrix and accept
-  alternative coefficients
-
-### 0.3.dev0 (not yet released)
-
-- requires Python 3.10 or later, with NumPy 1.21, Pandas 1.5, SciPy 1.7, and
-  Statsmodels 0.13 as the tested minimum versions
+- requires Python 3.10 or later, and is tested on Python 3.10 through 3.14 with NumPy
+  1.21 through 2.x, Pandas 1.5 through 3.x, SciPy 1.7+, and Statsmodels 0.13+; drops
+  support for Python 2 and for Python 3.5 through 3.9
+- removes the PyLogit dependency by incorporating the multinomial logit functionality
+  that ChoiceModels used from it, with attribution and the original BSD license (#79,
+  #81): the flexible estimation path still takes PyLogit-style `OrderedDict`
+  specifications and labels, supports generic, alternative-specific, and grouped
+  coefficients and varying choice sets, and provides conventional and robust
+  covariances, fit measures, a summary table, prediction, and picklable results; the
+  `estimation_engine` value `'PyLogit'` is retained as the identifier for this path.
+  Results match PyLogit 1.0.1 to about 1e-8 on the reference tests
+- accepts a `MergedChoiceTable`, or any table with the ids as index levels, in the
+  flexible estimation path (#77)
+- keeps flexible MNL probabilities strictly positive for extreme utilities, so
+  log-probabilities computed in simulation stay finite; the raw results' `predict()`
+  can reuse the estimation design matrix and accept alternative coefficients
+- fixes `iterative_lottery_choices()` and `parallel_lottery_choices()` failing when
+  every alternative fills up before the choosers run out (#75)
+- fixes `parallel_lottery_choices()` never assigning the alternative with id 0, crashing
+  silently when `chooser_batch_size` was omitted, and returning partial results when a
+  worker process failed; alternative ids must now be non-negative integers (#83)
 - declares `tqdm` as a dependency; it was already required by the simulation tools
-- imports PyLogit only when the PyLogit-format estimation path is used, and no longer
-  declares it as a dependency; its current release does not import on Python 3.10 or
-  later (see #79)
-- moves package metadata to `pyproject.toml` and replaces the 2021 GitHub Actions
-  workflows with a single CI workflow that tests the minimum and current dependency
-  versions, checks code quality, validates the built distributions, and builds the
-  documentation
-- updates tests for current Pandas releases and for the `spawn` multiprocessing start
-  method
+- moves package metadata to `pyproject.toml` and removes `setup.py`; ships the tests in
+  the source distribution (#82)
+- replaces the 2021 GitHub Actions workflows with continuous integration that tests the
+  minimum and current dependency versions on Linux, macOS, and Windows, checks code
+  quality, validates the built distributions, and builds the documentation; releases are
+  built, verified, and published to PyPI by a GitHub Actions workflow (#84)
+- `main` is now the integration branch; `dev` is retired
+- thanks to Paul Waddell for the packaging, CI, and PyLogit migration work, to Timothy
+  Brathwaite for permitting the migration of his PyLogit code and reviewing it, and to
+  Max Gardner for the lottery-choice fix (#75)
 
 ### 0.2.2 (2020-04-17)
 
