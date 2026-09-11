@@ -1,9 +1,9 @@
 # ChoiceModels change log
 
-### 0.3rc1 (2026-09-11)
+### 0.3 (2026-09-11)
 
-Release candidate for 0.3, the first release since 2020. It modernizes the package for
-current Python and dependency versions and removes the dependency on PyLogit.
+First release since 2020. It modernizes the package for current Python and dependency
+versions and removes the dependency on PyLogit.
 
 - supports Python 3.10 through 3.14, tested at the oldest and newest, with NumPy 1.21
   through 2.x, Pandas 1.5 through 3.x, Patsy 0.5+, SciPy 1.7+, and Statsmodels 0.13+;
