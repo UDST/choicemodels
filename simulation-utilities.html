@@ -1,182 +1,104 @@
 
 
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" />
-  
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
-  <title>Simulation utilities API &mdash; ChoiceModels 0.2.2 documentation</title>
-  
+  <title>Simulation utilities API &mdash; ChoiceModels 0.3 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-
-  
-  
-
-  
-  
-
-  
-
-  
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/doctools.js"></script>
-    
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-
-    
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=b489f392"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Distance utilities API" href="distance-utilities.html" />
     <link rel="prev" title="Multinomial Logit API" href="multinomial-logit.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
 
           
-            <a href="index.html" class="icon icon-home"> ChoiceModels
           
-
-          
+          <a href="index.html" class="icon icon-home">
+            ChoiceModels
           </a>
-
-          
-            
-            
-              <div class="version">
-                0.2.2
-              </div>
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="choice-table-utilities.html">Choice table utilities API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="multinomial-logit.html">Multinomial Logit API</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Simulation utilities API</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#independent-choices">Independent choices</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#capacity-constrained-choices">Capacity-constrained choices</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#parallelized-capacity-constrained-choices">Parallelized capacity-constrained choices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#independent-choices">Independent choices</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#choicemodels.tools.monte_carlo_choices"><code class="docutils literal notranslate"><span class="pre">monte_carlo_choices()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#capacity-constrained-choices">Capacity-constrained choices</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#choicemodels.tools.iterative_lottery_choices"><code class="docutils literal notranslate"><span class="pre">iterative_lottery_choices()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#parallelized-capacity-constrained-choices">Parallelized capacity-constrained choices</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#choicemodels.tools.parallel_lottery_choices"><code class="docutils literal notranslate"><span class="pre">parallel_lottery_choices()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="distance-utilities.html">Distance utilities API</a></li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">ChoiceModels</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-        
-      <li>Simulation utilities API</li>
-    
-    
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Simulation utilities API</li>
       <li class="wy-breadcrumbs-aside">
-        
-          
             <a href="_sources/simulation-utilities.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  <div class="section" id="simulation-utilities-api">
-<h1>Simulation utilities API<a class="headerlink" href="#simulation-utilities-api" title="Permalink to this headline">¶</a></h1>
+             
+  <section id="simulation-utilities-api">
+<h1>Simulation utilities API<a class="headerlink" href="#simulation-utilities-api" title="Link to this heading"></a></h1>
 <p>ChoiceModels provides general-purpose tools for Monte Carlo simulation of choices among alternatives, given probability distributions generated from fitted models.</p>
 <p><code class="docutils literal notranslate"><span class="pre">monte_carlo_choices()</span></code> is equivalent to applying <code class="docutils literal notranslate"><span class="pre">np.random.choice()</span></code> in parallel for many independent choice scenarios, but it’s implemented as a single-pass matrix calculation that is much faster.</p>
-<p><code class="docutils literal notranslate"><span class="pre">iterative_lottery_choices()</span></code> is for cases where the alternatives have limited capacitiesxs, requiring multiple passes to match choosers and alternatives. Effectively, choices are simulated sequentially, each time removing the chosen alternative or reducing its available capacity. (It’s actually done in batches for better performance.)</p>
-<p><code class="docutils literal notranslate"><span class="pre">parallel_lottery_choices()</span></code> works functionally the same as the above but the batches run in parallel rather than sequentially.</p>
-<div class="section" id="independent-choices">
-<h2>Independent choices<a class="headerlink" href="#independent-choices" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">iterative_lottery_choices()</span></code> is for cases where the alternatives have limited capacities, requiring multiple passes to match choosers and alternatives. Effectively, choices are simulated sequentially, each time removing the chosen alternative or reducing its available capacity. (It’s actually done in batches for better performance.)</p>
+<p><code class="docutils literal notranslate"><span class="pre">parallel_lottery_choices()</span></code> works functionally the same as the above but the batches run in parallel rather than sequentially. It currently supports only alternatives with a capacity of 1, identified by non-negative integer ids.</p>
+<section id="independent-choices">
+<h2>Independent choices<a class="headerlink" href="#independent-choices" title="Link to this heading"></a></h2>
 <dl class="py function">
-<dt id="choicemodels.tools.monte_carlo_choices">
-<code class="sig-prename descclassname"><span class="pre">choicemodels.tools.</span></code><code class="sig-name descname"><span class="pre">monte_carlo_choices</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">probabilities</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/choicemodels/tools/simulation.html#monte_carlo_choices"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#choicemodels.tools.monte_carlo_choices" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="choicemodels.tools.monte_carlo_choices">
+<span class="sig-prename descclassname"><span class="pre">choicemodels.tools.</span></span><span class="sig-name descname"><span class="pre">monte_carlo_choices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">probabilities</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/choicemodels/tools/simulation.html#monte_carlo_choices"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#choicemodels.tools.monte_carlo_choices" title="Link to this definition"></a></dt>
 <dd><p>Monte Carlo simulation of choices for a set of K scenarios, each having different
 probability distributions (and potentially different alternatives).</p>
 <p>Choices are independent and unconstrained, meaning that the same alternative can be
@@ -200,25 +122,25 @@ with zero-probability alternatives if needed.</p></li>
 <li><p>Each scenario’s alternative probabilities must sum to 1.</p></li>
 </ol>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>probabilities</strong> (<em>pd.Series</em>) – List of probabilities for each observation (choice scenario) and alternative.
 Please verify that the formatting matches the four requirements described above.</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>List of chosen alternative id’s, indexed with the observation id.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>pd.Series</p>
 </dd>
 </dl>
 </dd></dl>
 
-</div>
-<div class="section" id="capacity-constrained-choices">
-<h2>Capacity-constrained choices<a class="headerlink" href="#capacity-constrained-choices" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="capacity-constrained-choices">
+<h2>Capacity-constrained choices<a class="headerlink" href="#capacity-constrained-choices" title="Link to this heading"></a></h2>
 <dl class="py function">
-<dt id="choicemodels.tools.iterative_lottery_choices">
-<code class="sig-prename descclassname"><span class="pre">choicemodels.tools.</span></code><code class="sig-name descname"><span class="pre">iterative_lottery_choices</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">choosers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alternatives</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mct_callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">probs_callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alt_capacity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chooser_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chooser_batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/choicemodels/tools/simulation.html#iterative_lottery_choices"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#choicemodels.tools.iterative_lottery_choices" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="choicemodels.tools.iterative_lottery_choices">
+<span class="sig-prename descclassname"><span class="pre">choicemodels.tools.</span></span><span class="sig-name descname"><span class="pre">iterative_lottery_choices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">choosers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alternatives</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mct_callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">probs_callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alt_capacity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chooser_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chooser_batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mct_intx_ops</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/choicemodels/tools/simulation.html#iterative_lottery_choices"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#choicemodels.tools.iterative_lottery_choices" title="Link to this definition"></a></dt>
 <dd><p>Monte Carlo simulation of choices for a set of choice scenarios where (a) the
 alternatives have limited capacity and (b) the choosers have varying probability
 distributions over the alternatives.</p>
@@ -236,7 +158,7 @@ distribution over alternatives, you don’t need this function. You can use
 np.random.choice() with size=K to draw chosen alternatives, which will be more
 efficient. (This function also works, though.)</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>choosers</strong> (<em>pd.DataFrame</em>) – Table with one row for each chooser or choice scenario, with unique ID’s in the
 index field. Additional columns can contain fixed attributes of the choosers.
@@ -263,39 +185,44 @@ all choosers are matched or no alternatives remain.</p></li>
 <li><p><strong>chooser_batch_size</strong> (<em>int</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Size of the batches for processing smaller groups of choosers one at a time.
 Useful when the anticipated size of the merged choice tables (choosers X
 alternatives X covariates) will be too large for python/pandas to handle.</p></li>
+<li><p><strong>mct_intx_ops</strong> (<em>dict</em>) – Dict of post-processing operations to perform on merged choice table. Available
+options include (sequentially): merges against other Orca tables, aggregations,
+column renaming, new column creation via Pandas eval.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>List of chosen alternative id’s, indexed with the chooser (observation) id.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>pd.Series</p>
 </dd>
 </dl>
 </dd></dl>
 
-</div>
-<div class="section" id="parallelized-capacity-constrained-choices">
-<h2>Parallelized capacity-constrained choices<a class="headerlink" href="#parallelized-capacity-constrained-choices" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="parallelized-capacity-constrained-choices">
+<h2>Parallelized capacity-constrained choices<a class="headerlink" href="#parallelized-capacity-constrained-choices" title="Link to this heading"></a></h2>
 <dl class="py function">
-<dt id="choicemodels.tools.parallel_lottery_choices">
-<code class="sig-prename descclassname"><span class="pre">choicemodels.tools.</span></code><code class="sig-name descname"><span class="pre">parallel_lottery_choices</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">choosers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alternatives</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mct_callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">probs_callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alt_capacity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chooser_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chooser_batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/choicemodels/tools/simulation.html#parallel_lottery_choices"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#choicemodels.tools.parallel_lottery_choices" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="choicemodels.tools.parallel_lottery_choices">
+<span class="sig-prename descclassname"><span class="pre">choicemodels.tools.</span></span><span class="sig-name descname"><span class="pre">parallel_lottery_choices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">choosers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alternatives</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mct_callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">probs_callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alt_capacity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chooser_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chooser_batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/choicemodels/tools/simulation.html#parallel_lottery_choices"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#choicemodels.tools.parallel_lottery_choices" title="Link to this definition"></a></dt>
 <dd><p>A parallelized version of the iterative_lottery_choices method. Chooser
 batches are processed in parallel rather than sequentially.</p>
-<p>NOTE: In it’s current form, this method is only supported for simulating
+<p>NOTE: In its current form, this method is only supported for simulating
 choices where every alternative has a capacity of 1.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>choosers</strong> (<em>pd.DataFrame</em>) – Table with one row for each chooser or choice scenario, with unique ID’s in the
 index field. Additional columns can contain fixed attributes of the choosers.
 (Reserved column names: ‘_size’.)</p></li>
-<li><p><strong>alternatives</strong> (<em>pd.DataFrame</em>) – Table with one row for each alternative, with unique ID’s in the index field.
-Additional columns can contain fixed attributes of the alternatives. (Reserved
-column names: ‘_capacity’.)</p></li>
+<li><p><strong>alternatives</strong> (<em>pd.DataFrame</em>) – Table with one row for each alternative, with unique non-negative integer ID’s
+in the index field (the ID’s are exchanged between worker processes through a
+shared integer array). Additional columns can contain fixed attributes of the
+alternatives. (Reserved column names: ‘_capacity’.)</p></li>
 <li><p><strong>mct_callable</strong> (<em>callable</em>) – Callable that samples alternatives to generate a table of choice scenarios. It
 should accept subsets of the choosers and alternatives tables and return a
-choicemodels.tools.MergedChoiceTable.</p></li>
+choicemodels.tools.MergedChoiceTable. Along with probs_callable, it is sent to
+the worker processes and must be picklable.</p></li>
 <li><p><strong>probs_callable</strong> (<em>callable</em>) – Callable that generates predicted probabilities for a table of choice scenarios.
 It should accept a choicemodels.tools.MergedChoiceTable and return a pd.Series
 with indexes matching the input.</p></li>
@@ -309,69 +236,59 @@ must be in the same units as alternative capacities. If not provided, each choos
 has a size of 1.</p></li>
 <li><p><strong>max_iter</strong> (<em>int</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Maximum number of iterations. If None (default), the algorithm will iterate until
 all choosers are matched or no alternatives remain.</p></li>
-<li><p><strong>chooser_batch_size</strong> (<em>int</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Size of the batches for processing smaller groups of choosers one at a time. Useful
-when the anticipated size of the merged choice tables (choosers X alternatives
-X covariates) will be too large for python/pandas to handle.</p></li>
+<li><p><strong>chooser_batch_size</strong> (<em>int</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Size of the batches for processing smaller groups of choosers one at a time.
+Useful when the anticipated size of the merged choice tables (choosers X
+alternatives X covariates) will be too large for python/pandas to handle. If
+None (default), all the choosers are processed in a single worker.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>List of chosen alternative id’s, indexed with the chooser (observation) id.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>pd.Series</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>ValueError</strong> – If the alternatives index is not made up of non-negative integers.</p></li>
+<li><p><strong>RuntimeError</strong> – If a worker process exits with an error.</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
 
-</div>
-</div>
+</section>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="distance-utilities.html" class="btn btn-neutral float-right" title="Distance utilities API" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="multinomial-logit.html" class="btn btn-neutral float-left" title="Multinomial Logit API" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="distance-utilities.html" class="btn btn-neutral float-right" title="Distance utilities API" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &#169; Copyright 2021, Urban Data Science Toolkit.
-
-    </p>
+    <p>&#169; Copyright 2026, Urban Data Science Toolkit.</p>
   </div>
-    
-    
-    
-    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>
