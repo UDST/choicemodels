@@ -6,14 +6,12 @@ from collections import OrderedDict
 
 import numpy as np
 import pandas as pd
-import pylogit
 import scipy.optimize
 import scipy.stats
 from patsy import dmatrix
 from statsmodels.iolib.table import SimpleTable
 
 from .tools import MergedChoiceTable
-from .tools import pmat
 from .tools.pmat import PMAT
 
 
@@ -182,6 +180,17 @@ class MultinomialLogit(object):
 
         """
         if (self._estimation_engine == 'PyLogit'):
+
+            # PyLogit is imported only when this estimation path is used. It is not
+            # declared as a dependency: its current release fails to import on
+            # Python 3.10 and later. See https://github.com/UDST/choicemodels/issues/79.
+            try:
+                import pylogit
+            except ImportError as e:
+                raise ImportError(
+                    "The PyLogit-format estimation path requires the pylogit package, "
+                    "which is not installed or does not import on this version of Python. "
+                    "See https://github.com/UDST/choicemodels/issues/79.") from e
 
             m = pylogit.create_choice_model(data = self._df,
                                             obs_id_col = self._observation_id_col,
@@ -708,7 +717,6 @@ def mnl_estimate(data, chosen, numalts, GPU=False, coeffrange=(-1000, 1000),
     ll_null = float(l0[0][0])
     rho_squared = 1.0 - ll / ll_null
     rho_bar_squared = 1.0 - ((ll - len(beta)) /ll_null)
-    num_obs = numobs
     df_resid = numobs - len(beta)
     p_values = 2 * scipy.stats.norm.sf(np.abs(beta / stderr))
     bic = -2 * ll + np.log(numobs) * len(beta)

@@ -16,7 +16,7 @@ ChoiceModels was created in 2016, with contributions from Sam Maurer (maurer@urb
 Installation
 ------------
 
-ChoiceModels is tested with Python 2.7, 3.5, 3.6, 3.7, and 3.8. It should run on any platform. 
+ChoiceModels requires Python 3.10 or later, and is tested on Linux, macOS, and Windows.
 
 
 Production releases
@@ -51,7 +51,7 @@ Developer pre-releases of ChoiceModels can be installed using the Github URL. Ad
 
 .. code-block:: python
 
-    pip install git+git://github.com/udst/choicemodels.git
+    pip install git+https://github.com/udst/choicemodels.git
 
 You can use the same command to upgrade.
 
@@ -65,7 +65,7 @@ You can also install ChoiceModels by cloning the Github repository, which is the
 
     git clone https://github.com/udst/choicemodels.git
     cd choicemodels
-    python setup.py develop
+    pip install -e .
 
 Update it with ``git pull``.
 

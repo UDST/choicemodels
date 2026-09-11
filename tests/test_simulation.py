@@ -4,6 +4,7 @@ Tests for the simulation codebase.
 """
 from __future__ import division
 
+import functools
 import numpy as np
 import pandas as pd
 import pytest
@@ -53,11 +54,11 @@ def test_simulation_accuracy():
     data = build_data(5,3)
     
     # Get values associated with an arbitrary row
-    r = np.random.randint(0, 15, 1)
+    r = np.random.randint(0, 15)
     row = pd.DataFrame(data).reset_index().iloc[r]
     oid = int(row.oid)
     aid = int(row.aid)
-    prob = float(pd.DataFrame(data).query('oid=='+str(oid)+' & aid=='+str(aid)).sum())
+    prob = float(pd.DataFrame(data).query('oid=='+str(oid)+' & aid=='+str(aid)).probs.sum())
 
     n = 1000
     count = 0
@@ -91,25 +92,30 @@ def fitted_model(obs, alts):
     m = MultinomialLogit(mct, model_expression='obsval + altval - 1')
     return m.fit()
 
+# The callables passed to parallel_lottery_choices() are sent to worker processes,
+# so they must be picklable: module-level functions rather than closures.
+
+def _sample_mct(obs, alts, intx_ops=None):
+    return MergedChoiceTable(obs, alts, sample_size=10)
+
+def _predict_probs(model, mct):
+    return model.probabilities(mct)
+
 @pytest.fixture
 def mct(obs, alts):
-    def mct_callable(obs, alts, intx_ops=None):
-        return MergedChoiceTable(obs, alts, sample_size=10)
-    return mct_callable
+    return _sample_mct
 
 @pytest.fixture
 def probs(fitted_model, mct):
-    def probs_callable(mct):
-        return fitted_model.probabilities(mct)
-    return probs_callable
+    return functools.partial(_predict_probs, fitted_model)
 
 
 def test_iterative_lottery_choices(obs, alts, mct, probs):
     """
     Test that iterative lottery choices can run.
-    
+
     """
-    choices = iterative_lottery_choices(obs, alts, mct, probs)
+    iterative_lottery_choices(obs, alts, mct, probs)
 
 
 def test_input_safety(obs, alts, mct, probs):
@@ -119,7 +125,7 @@ def test_input_safety(obs, alts, mct, probs):
     """
     orig_obs = obs.copy()
     orig_alts = alts.copy()
-    choices = iterative_lottery_choices(obs, alts, mct, probs)
+    iterative_lottery_choices(obs, alts, mct, probs)
     pd.testing.assert_frame_equal(orig_obs, obs)
     pd.testing.assert_frame_equal(orig_alts, alts)
 
@@ -200,8 +206,7 @@ def test_max_iter(obs, alts, mct, probs):
     
     """
     obs['size'] = 2  # (alts have capacity of 1)
-    choices = iterative_lottery_choices(obs, alts, mct, probs,
-                                        chooser_size='size', max_iter=5)
+    iterative_lottery_choices(obs, alts, mct, probs, chooser_size='size', max_iter=5)
 
 
 def test_capacity_break(obs, alts, mct, probs):
@@ -211,9 +216,9 @@ def test_capacity_break(obs, alts, mct, probs):
     """
     obs['size'] = 2
     alts['capacity'] = np.random.choice([3,5], size=len(alts)) # alt capacity left but not enough to host one obs
-    choices = iterative_lottery_choices(obs, alts, mct, probs,
-                                        chooser_size='size', alt_capacity='capacity')
-    
+    iterative_lottery_choices(obs, alts, mct, probs,
+                              chooser_size='size', alt_capacity='capacity')
+
 
 def test_parallel_lottery_choices(obs, alts, mct, probs):
     """

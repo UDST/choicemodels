@@ -169,7 +169,8 @@ def test_alternative_specific_coeffs(num_alts):
     income_df = pd.DataFrame(
         np.tile(template, (num_choosers, 1)),
         columns=[
-            'boat:income', 'charter:income', 'pier:income'])
+            'boat:income', 'charter:income', 'pier:income'],
+        dtype=float)
 
     for idx, row in fish.iterrows():
         income_df.loc[idx] = income_df.loc[idx] * row['income']
@@ -186,12 +187,13 @@ def test_alternative_specific_coeffs(num_alts):
     income_df = pd.DataFrame(
         np.tile(template, (num_choosers, 1)),
         columns=[
-            'boat:income', 'charter:income', 'pier:income'])
+            'boat:income', 'charter:income', 'pier:income'],
+        dtype=float)
 
     for idx, row in fish_choosers.iterrows():
         income_df.loc[idx] = income_df.loc[idx] * row['income']
 
-    choosers_dm = pd.concat([intercept_df, income_df], axis=1)
+    choosers_dm = pd.concat([intercept_df, income_df], axis=1)  # noqa: F841
 
     # test estimation
     expected = pd.Series([

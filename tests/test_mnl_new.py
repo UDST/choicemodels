@@ -1,102 +1,107 @@
 """
 These are tests for the refactored choicemodels MNL codebase.
 
+The estimation and prediction tests compare against fixed reference results generated
+with `urbansim.urbanchoice.mnl` (UrbanSim 3.2) from the same seeded inputs, so they do
+not require UrbanSim to be installed.
+
 """
 
 import numpy as np
 import pandas as pd
 import pytest
 
-from pandas.testing import assert_frame_equal
-from patsy import dmatrix
-
 from choicemodels import MultinomialLogit
 from choicemodels.tools import MergedChoiceTable
 
 
-@pytest.fixture
-def obs():
-    d1 = {'oid': np.arange(100), 
-          'obsval': np.random.random(100),
-          'choice': np.random.choice(np.arange(5), size=100)}
-    return pd.DataFrame(d1).set_index('oid')
+MODEL_EXPRESSION = 'obsval + altval - 1'
+
 
 @pytest.fixture
-def alts():
-    d2 = {'aid': np.arange(5), 
-          'altval': np.random.random(5)}
-    return pd.DataFrame(d2).set_index('aid')
+def data():
+    """
+    Seeded choosers and alternatives. The reference results below were generated from
+    these exact tables, so the draw order must not change.
+
+    """
+    rng = np.random.default_rng(12345)
+    d1 = {'oid': np.arange(100),
+          'obsval': rng.random(100),
+          'choice': rng.choice(np.arange(5), size=100)}
+    d2 = {'aid': np.arange(5),
+          'altval': rng.random(5)}
+    return pd.DataFrame(d1).set_index('oid'), pd.DataFrame(d2).set_index('aid')
+
+@pytest.fixture
+def obs(data):
+    return data[0]
+
+@pytest.fixture
+def alts(data):
+    return data[1]
 
 
 def test_mnl(obs, alts):
     """
     Confirm that MNL estimation runs, using the native estimator.
-    
+
     """
-    model_expression = 'obsval + altval - 1'
     mct = MergedChoiceTable(obs, alts, 'choice')
-    m = MultinomialLogit(mct, model_expression)
+    m = MultinomialLogit(mct, MODEL_EXPRESSION)
     print(m.fit())
-    
+
 
 def test_mnl_estimation(obs, alts):
     """
-    Confirm that estimated params from the new interface match urbansim.urbanchoice.
-    Only runs if the urbansim package has been installed.
-    
-    """
-    try:
-        from urbansim.urbanchoice.mnl import mnl_estimate
-    except:
-        print("Comparison of MNL estimation results skipped because urbansim is not installed")
-        return
+    Confirm that estimated params match reference results from urbansim.urbanchoice.
 
-    model_expression = 'obsval + altval - 1'
+    """
     mct = MergedChoiceTable(obs, alts, 'choice')
-    
-    # new interface
-    m = MultinomialLogit(mct, model_expression)
-    r = m.fit().get_raw_results()
-    
-    # old interface
-    dm = dmatrix(model_expression, mct.to_frame())
-    chosen = np.reshape(mct.to_frame()[mct.choice_col].values, (100, 5))
-    log_lik, fit = mnl_estimate(np.array(dm), chosen, numalts=5)
-    
-    for k,v in log_lik.items():
-        assert(v == pytest.approx(r['log_likelihood'][k], 0.00001))
-    
-    assert_frame_equal(fit, r['fit_parameters'][['Coefficient', 'Std. Error', 'T-Score']])
+    r = MultinomialLogit(mct, MODEL_EXPRESSION).fit().get_raw_results()
+
+    assert r['log_likelihood']['null'] == pytest.approx(-160.94379124341)
+    assert r['log_likelihood']['convergence'] == pytest.approx(-160.23827438299497)
+    assert r['log_likelihood']['ratio'] == pytest.approx(0.0043836227229667735)
+
+    fit = r['fit_parameters']
+    # 'obsval' does not vary across alternatives, so its coefficient is identified at zero
+    assert fit['Coefficient'].iloc[0] == pytest.approx(0.0, abs=1e-10)
+    assert fit['Coefficient'].iloc[1] == pytest.approx(0.49098178188816505)
+    np.testing.assert_allclose(
+        fit['Std. Error'].values, [0.349133923117027, 0.2912928880390445], rtol=1e-6)
+    assert fit['T-Score'].iloc[1] == pytest.approx(1.685526156142729)
 
 
 def test_mnl_prediction(obs, alts):
     """
-    Confirm that fitted probabilities in the new codebase match urbansim.urbanchoice.
-    Only runs if the urbansim package has been installed.
-    
+    Confirm that fitted probabilities match reference results from urbansim.urbanchoice.
+    The alternative sampling is seeded so the choice table is reproducible.
+
     """
-    try:
-        from urbansim.urbanchoice.mnl import mnl_simulate
-    except:
-        print("Comparison of MNL simulation results skipped because urbansim is not installed")
-        return
-
-    # produce a fitted model
+    np.random.seed(0)
     mct = MergedChoiceTable(obs, alts, 'choice', 5)
-    m = MultinomialLogit(mct, model_expression='obsval + altval - 1')
-    results = m.fit()
-    
-    # get predicted probabilities using choicemodels
-    probs1 = results.probabilities(mct)
-    
-    # compare to probabilities from urbansim.urbanchoice
-    dm = dmatrix(results.model_expression, data=mct.to_frame(), return_type='dataframe')
+    results = MultinomialLogit(mct, model_expression=MODEL_EXPRESSION).fit()
 
-    probs = mnl_simulate(data=dm, coeff=results.fitted_parameters,
-                         numalts=mct.sample_size, returnprobs=True)
+    assert results.fitted_parameters[0] == pytest.approx(0.0, abs=1e-10)
+    assert results.fitted_parameters[1] == pytest.approx(0.6623212935691077)
 
-    df = mct.to_frame()
-    df['prob'] = probs.flatten()
-    probs2 = df.prob
-    
-    pd.testing.assert_series_equal(probs1, probs2)
+    probs = results.probabilities(mct)
+    assert len(probs) == 500
+
+    # probabilities sum to one within each choice scenario
+    totals = probs.groupby(level=0).sum()
+    np.testing.assert_allclose(totals.values, 1.0)
+
+    expected_head = pd.Series(
+        [0.2295914413632789, 0.18027237242448077, 0.18027237242448077,
+         0.18027237242448077, 0.2295914413632789, 0.1986877750239994,
+         0.15600719418213743, 0.1986877750239994, 0.2479294807458644,
+         0.1986877750239994],
+        index=pd.MultiIndex.from_tuples(
+            [(99, 4), (99, 3), (99, 3), (99, 3), (99, 4),
+             (98, 4), (98, 3), (98, 4), (98, 1), (98, 4)],
+            names=['oid', 'aid']),
+        name='prob')
+    pd.testing.assert_series_equal(probs.iloc[:10], expected_head, check_index_type=False)
+    assert (probs ** 2).sum() == pytest.approx(20.420676103008006)
