@@ -9,6 +9,13 @@ description = "Python library for discrete choice modeling"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "BSD-3-Clause"
+# The PyLogit license and attribution travel with the wheel as well as the sdist
+license-files = [
+    "LICENSE.txt",
+    "licenses/PYLOGIT_LICENSE.txt",
+    "PYLOGIT_ATTRIBUTION.md",
+    "PYLOGIT_CONTRIBUTORS.txt",
+]
 authors = [
     {name = "UDST"},
 ]

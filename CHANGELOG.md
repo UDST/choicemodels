@@ -1,5 +1,21 @@
 # ChoiceModels change log
 
+### 0.3.dev1 (not yet released)
+
+- incorporates the PyLogit-compatible MNL functionality used by ChoiceModels, so the
+  PyLogit-format estimation path no longer imports PyLogit at all (closes #79)
+- supports prediction for flexible MNL models with varying choice sets and
+  generic, alternative-specific, or grouped coefficients
+- preserves coefficient, covariance, fit-statistic, summary, and pickle-based
+  result workflows for the flexible MNL path
+- credits the incorporated PyLogit work and preserves its BSD license
+- accepts MergedChoiceTable input, or any table with the ids as index levels, in the
+  flexible MNL path (closes #77)
+- keeps flexible MNL probabilities strictly positive when utilities differ by hundreds
+  of units within a choice set, so log-probabilities computed in simulation stay finite;
+  the raw results' `predict()` can reuse the estimation design matrix and accept
+  alternative coefficients
+
 ### 0.3.dev0 (not yet released)
 
 - requires Python 3.10 or later, with NumPy 1.21, Pandas 1.5, SciPy 1.7, and
