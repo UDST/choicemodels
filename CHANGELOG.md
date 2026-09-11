@@ -1,5 +1,13 @@
 # ChoiceModels change log
 
+### 0.3.dev4 (not yet released)
+
+- adds a `Publish` GitHub Actions workflow that builds and verifies the distributions
+  for a GitHub release and uploads them to PyPI through Trusted Publishing, after
+  approval in a protected deployment environment
+- makes `main` the integration branch and retires `dev`; updates the contributor guide
+  for the new branch and release process
+
 ### 0.3.dev3 (not yet released)
 
 - fixes `parallel_lottery_choices()` never assigning the alternative with id 0, which
