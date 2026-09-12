@@ -634,7 +634,7 @@ def mnl_loglik(beta, data, chosen, numalts, weights=None, lcgrad=False,
     return -1 * loglik, -1 * gradarr
 
 
-def mnl_estimate(data, chosen, numalts, GPU=False, coeffrange=(-1000, 1000),
+def mnl_estimate(data, chosen, numalts, GPU=False, coeffrange=(None, None),
                  weights=None, lcgrad=False, beta=None):
     """
     Calculate coefficients of the MNL model.
@@ -737,7 +737,7 @@ def mnl_estimate(data, chosen, numalts, GPU=False, coeffrange=(-1000, 1000),
                                                beta,
                                                args=args,
                                                fprime=None,
-                                               factr=10,
+                                               factr=10e9,
                                                approx_grad=False,
                                                bounds=bounds)
     logger.debug('finish: scipy optimization for MNL fit')
@@ -762,6 +762,7 @@ def mnl_estimate(data, chosen, numalts, GPU=False, coeffrange=(-1000, 1000),
     aic = -2 * ll + 2 * len(beta)
 
     log_likelihood = {
+        "model_converged": bfgs_result[2]['warnflag'] == 0,
         'null': float(l0[0][0]),
         'convergence': float(l1[0][0]),
         'ratio': float((1 - (l1 / l0))[0][0]),

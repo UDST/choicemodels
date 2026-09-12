@@ -176,7 +176,7 @@ def iterative_lottery_choices(
     capacity, size = (alt_capacity, chooser_size)
     
     len_choosers = len(choosers)
-    valid_choices = pd.Series()
+    valid_choices = pd.Series(dtype='float64')
     iter = 0
     
     while (len(valid_choices) < len_choosers):
